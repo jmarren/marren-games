@@ -1,0 +1,30 @@
+
+# Root directory of your project
+root = "."
+# Temporary directory to store binary files and log files
+tmp_dir = "tmp"
+
+# These settings affect how Air builds your project
+[build]
+# Command to build your project; change './cmd/server' to your main package location
+cmd = "go build -o ./tmp/main ./cmd/server"
+# Path to the binary created by the build command
+bin = "./tmp/main"
+# Extensions to watch for changes
+include_ext = ["go", "html", "css", "js"]
+# Directories to exclude from watching
+exclude_dir = ["assets", "tmp", "vendor"]
+# Files to exclude from watching
+exclude_file = ["*.test.go", "*.md"]
+
+# These settings configure the command that Air will run after building successfully
+[log]
+# Enable timestamps in the logs
+time = true
+
+# Color settings for the output in the terminal
+[color]
+main = "magenta"
+watcher = "cyan"
+build = "green"
+runner = "red"
