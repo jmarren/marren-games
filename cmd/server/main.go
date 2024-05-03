@@ -1,53 +1,60 @@
 package main
 
 import (
-	"html/template"
-	"io"
+	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/jmarren/marren-games/internal/db"
+	"github.com/jmarren/marren-games/internal/handler/render"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type Templates struct {
-	templates *template.Template
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
-func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	return t.templates.ExecuteTemplate(w, name, data)
-}
-
-func NewTemplates() *Templates {
-	return &Templates{
-		templates: template.Must(template.ParseGlob("ui/templates/*.html")),
+func getUsers(c echo.Context) error {
+	db.InitDB()
+	users, err := db.GetUsers()
+	if err != nil {
+		fmt.Println("error getting users: ", err)
+		return c.JSON(http.StatusInternalServerError, err)
 	}
-}
-
-type PageData struct {
-	BlockColor string
+	return c.JSON(http.StatusOK, users)
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	e := echo.New()
-	e.Renderer = NewTemplates()
+	e.Renderer = render.NewTemplates()
 	e.Use(middleware.Logger())
 
 	// Serve static files
 	e.Static("/static", "ui/static")
 
 	e.GET("/", func(c echo.Context) error {
-		data := &PageData{
-			BlockColor: "#FF0000",
+		data := &render.PageData{
+			Options: []string{"Mom", "Dad", "Tom", "Anna", "Megan", "Robby", "Allie", "Kristin", "Kevin", "John"},
 		}
 		return c.Render(http.StatusOK, "blocks.html", data)
 	})
 
 	e.GET("/home", func(c echo.Context) error {
-		data := &PageData{
-			BlockColor: "#FF0000",
+		data := &render.PageData{
+			Options: []string{"Mom", "Dad", "Tom", "Anna", "Megan", "Robby", "Allie", "Kristin", "Kevin", "John"},
 		}
 		return c.Render(http.StatusOK, "blocks.html", data)
 	})
+
+	e.GET("/users", getUsers)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

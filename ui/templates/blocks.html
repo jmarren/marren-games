@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Marren-Prompt</title>
+    <title>Marren Games</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
@@ -9,15 +9,59 @@
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 <body>
-    <h1 class="jersey-15-regular">Marren-Prompt</h1>
-    {{ template "color-block" . }}
+    <h1 class="jersey-15-regular">Marren Games</h1>
+    {{ template "main-block" . }}
 </body>
 </html>
 
 
-{{ define "color-block" }}
-<div id="color-block" style="transition: all ease-in-out 1s; width: 98%; height: 500px; margin-left: 1%; background-color: #5836ad" ></div>
+{{ define "main-block" }}
+<div class="main-block"  >
+    {{ template "game-play" . }}
+    <!-- {{ template "sign-in" . }} -->
+</div>
+{{ end }}
+
+{{ define "sign-in" }}
+<div id="sign-in-container">
+<span id="sign-in-title" class="jersey-15-regular">Sign In</span>
+<form id="sign-in-form" hx-post="/login" hx-swap="outerHTML" class="jersey-15-regular">
+  <div>
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+  </div>
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <div>
+    <input type="submit" value="Sign In" class="jersey-15-regular">
+  </div>
+</form>
+  </div>
 {{ end }}
 
 
+{{ define "game-play" }}
+  <div id="game-play-container">
+  <span id="game-play-title" class="jersey-15-regular">Who is the best dressed?</span>
+  {{ template "options" . }}
+  </div>
+{{ end }}
 
+
+{{ define "option" }}
+  <div class="option-card"> 
+  <span class="jersey-15-regular"></span>
+</div>
+{{ end }}
+
+{{ define "options" }} 
+  <div id="options-container">
+    {{ range .Options }}
+      <div class="option-card"> 
+        <span class="jersey-15-regular">{{ . }}</span>
+      </div>
+    {{ end }}
+  </div>
+{{ end }}

@@ -41,7 +41,8 @@ Thumbs.db
 # Binary
 /bin
 
-
+# Ignore .env files
+*.env
 
 
 # Ignore all temporary directories

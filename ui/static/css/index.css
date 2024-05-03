@@ -9,3 +9,107 @@
   font-weight: 400;
   font-style: normal;
 }
+
+
+.main-block {
+  min-height: 500px;
+  height: 98vh;
+  min-width: 500px;
+  width: 96vw;
+  margin-left: 1%;
+  margin-right: 1%;
+  background-color: #5836ad;
+}
+
+/* Sign in form */
+
+#sign-in-title {
+  font-size: 3em;
+  color: white;
+  text-align: center;
+}
+
+
+
+#sign-in-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 100px;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#sign-in-form {
+  width: 100%;
+}
+
+
+
+#sign-in-container label {
+  color: white;
+  display: block;
+  margin-bottom: 5px;
+}
+
+#sign-in-container input[type="text"], #sign-in-container input[type="password"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px; /* Increase this value to increase the vertical space */
+}
+
+#sign-in-container input[type="submit"] {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+  width: 100%; /* Increase this value to make the input boxes wider */
+}
+
+#sign-in-container input[type="submit"]:hover {
+  background-color: #45a049;
+}
+
+
+/* Game Play */
+
+#game-play-container {
+  display: flex;
+  font-size: 3em;
+  color: white;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 100px;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+.option-card {
+  margin: 3px;
+  border-radius: 5px;
+  color: orange;
+  padding: 10px 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.option-card:hover {
+  background-color: #f1f1f1;
+  /* box-shadow: 0 8px 16px 0 gray; */
+}
+
+
+
+
