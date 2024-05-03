@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	// "github.com/joho/godotenv"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
@@ -56,14 +55,6 @@ func GetUsers() ([]User, error) {
 
 	return users, nil
 }
-
-// func GetUsers() ([]User, error) {
-//   users, err := queryUsers(db)
-//   if err != nil {
-//     return nil, err
-//       }
-//   return users, nil
-// }
 
 func queryUsers(db *sql.DB) {
 	rows, err := db.Query("SELECT * FROM users")

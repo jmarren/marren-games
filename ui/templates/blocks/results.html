@@ -1,0 +1,12 @@
+{{ define "results" }}
+  <div id="results-container">
+    <span id="results-title" class="jersey-15-regular">Results</span>
+    <div id="results-list">
+      {{ range .Results }}
+        <div class="result-card">
+          <span class="jersey-15-regular">{{ . }}</span>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+{{ end }}

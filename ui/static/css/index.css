@@ -11,7 +11,7 @@
 }
 
 
-.main-block {
+.content {
   min-height: 500px;
   height: 98vh;
   min-width: 500px;
@@ -93,8 +93,14 @@
   margin-right: auto;
 }
 
+#options-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
 
 .option-card {
+  text-align: center;
   margin: 3px;
   border-radius: 5px;
   color: orange;
@@ -112,4 +118,39 @@
 
 
 
+/* Create Question */
 
+#create-question-container {
+  color: white;
+  align-items: center;
+  padding-top: 100px;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#create-question-container input, form {
+display: block;
+margin: 0 auto;
+}
+
+#create-question-form textarea {
+  border-radius: 5px;
+}
+
+#create-question-title {
+  margin-bottom: 20px;
+  font-size: 3em;
+  color: white;
+  text-align: center;
+}
+
+#create-question-form div {
+  margin-bottom: 20px;
+}
+
+#create-question-form label, 
+#create-question-form textarea {
+  vertical-align: top;
+}

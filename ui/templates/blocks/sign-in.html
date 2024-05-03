@@ -1,0 +1,19 @@
+
+{{ define "sign-in" }}
+<div id="sign-in-container">
+<span id="sign-in-title" class="jersey-15-regular">Sign In</span>
+<form id="sign-in-form" hx-post="/login" hx-swap="outerHTML" class="jersey-15-regular">
+  <div>
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+  </div>
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <div>
+    <input type="submit" value="Sign In" class="jersey-15-regular">
+  </div>
+</form>
+  </div>
+{{ end }}

@@ -1,0 +1,50 @@
+
+{{ define "game-play" }}
+  <div id="game-play-container">
+  <!-- <span id="game-play-title" class="jersey-15-regular">Who is the best dressed?</span> -->
+  <!-- {{ template "options" . }} -->
+  <!-- {{ template "free-response" . }} -->
+  <!-- {{ template "answer-submitted" . }} -->
+  {{ template "results"}}
+  </div>
+{{ end }}
+
+
+{{ define "option" }}
+  <div class="option-card"> 
+  <span class="jersey-15-regular"></span>
+</div>
+{{ end }}
+
+{{ define "options" }} 
+  <div id="options-container">
+    {{ range .Options }}
+      <div class="option-card"> 
+        <span class="jersey-15-regular">{{ . }}</span>
+      </div>
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "free-response" }}
+  <div id="free-response-container">
+    <span id="free-response-title" class="jersey-15-regular">What is your favorite color?</span>
+    <form id="free-response-form" hx-post="/free-response" hx-swap="outerHTML" class="jersey-15-regular">
+      <div>
+        <textarea id="free-response" name="free-response" required></textarea>
+      </div>
+      <div>
+        <input type="submit" value="Submit" class="jersey-15-regular">
+      </div>
+    </form>
+  </div>
+  {{ end }}
+
+
+{{ define "answer-submitted"}}
+<div id="answer-submitted-container">
+  <span id="answer-submitted-title" class="jersey-15-regular">Answer Submitted Successfully!</span><br /><br />
+  <span id="answer-submitted-message" class="jersey-15-regular">Please wait for an answer to be chosen...</span>
+
+  {{ end }}
+

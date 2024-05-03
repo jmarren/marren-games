@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Marren Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css" >
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+    <h1 class="jersey-15-regular">Marren Games</h1>
+    {{ template "content" . }}
+</body>
+</html>
+
+
+{{ define "content" }}
+<div class="content"  >
+  {{ template "game-play" . }}
+  <!-- {{ template "create-question" . }} -->
+</div>
+{{ end }}
+

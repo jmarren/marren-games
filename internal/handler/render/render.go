@@ -16,9 +16,11 @@ func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Co
 }
 
 func NewTemplates() *Templates {
-	return &Templates{
+	t := &Templates{
 		templates: template.Must(template.ParseGlob("ui/templates/*.html")),
 	}
+	t.templates = template.Must(t.templates.ParseGlob("ui/templates/blocks/*.html"))
+	return t
 }
 
 type PageData struct {

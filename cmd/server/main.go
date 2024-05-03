@@ -18,7 +18,6 @@ type User struct {
 }
 
 func getUsers(c echo.Context) error {
-	db.InitDB()
 	users, err := db.GetUsers()
 	if err != nil {
 		fmt.Println("error getting users: ", err)
@@ -33,6 +32,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	db.InitDB()
+
 	e := echo.New()
 	e.Renderer = render.NewTemplates()
 	e.Use(middleware.Logger())
@@ -44,14 +45,14 @@ func main() {
 		data := &render.PageData{
 			Options: []string{"Mom", "Dad", "Tom", "Anna", "Megan", "Robby", "Allie", "Kristin", "Kevin", "John"},
 		}
-		return c.Render(http.StatusOK, "blocks.html", data)
+		return c.Render(http.StatusOK, "index.html", data)
 	})
 
 	e.GET("/home", func(c echo.Context) error {
 		data := &render.PageData{
 			Options: []string{"Mom", "Dad", "Tom", "Anna", "Megan", "Robby", "Allie", "Kristin", "Kevin", "John"},
 		}
-		return c.Render(http.StatusOK, "blocks.html", data)
+		return c.Render(http.StatusOK, "index.html", data)
 	})
 
 	e.GET("/users", getUsers)
