@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Marren Games</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/static/css/index.css" >
+  <title></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/static/css/index.css">
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
+
 <body>
-    <h1 class="jersey-15-regular">Marren Games</h1>
-    {{ template "content" . }}
+  <h1 class="jersey-15-regular main-header">Marren Games</h1>
+  <div id="background"></div>
+  <div class="content">
+    <div id="yellow-corner-top-left"></div>
+    <div id="yellow-corner-top-right"></div>
+    {{ if eq .Content "sign-in" }}
+    {{ template "sign-in" }}
+    {{ else if eq .Content "create-account"}}
+    {{ template "create-account" }}
+    {{ else if "create-question"}}
+    {{ template "create-question" }}
+    {{ end }}
+  </div>
 </body>
+
 </html>
-
-
-{{ define "content" }}
-<div class="content"  >
-  {{ template "create-account"}}
-</div>
-{{ end }}
-

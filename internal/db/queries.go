@@ -1,10 +1,6 @@
 package db // import "github.com/jmarren/marren-games/internal/db"
 
-import (
-	"database/sql"
-)
-
-func RegisterUser(db *sql.DB, username, hashedPassword, email string) error {
+func AddUser(username, hashedPassword, email string) error {
 	// Insert user into database
 	_, err := db.Exec("INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)", username, hashedPassword, email)
 	if err != nil {
@@ -14,7 +10,7 @@ func RegisterUser(db *sql.DB, username, hashedPassword, email string) error {
 	return nil
 }
 
-func GetUserPasswordHash(db *sql.DB, username string) (string, error) {
+func GetUserPasswordHash(username string) (string, error) {
 	var hashedPassword string
 	err := db.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hashedPassword)
 	if err != nil {

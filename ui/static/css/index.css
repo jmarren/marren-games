@@ -1,6 +1,18 @@
-#main-header {
+.main-header {
   font-family: 'Roboto', sans-serif;
-  color: blue;
+  color: #695c35;
+}
+
+#background {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #99f6f7;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
 }
 
 
@@ -12,12 +24,14 @@
 
 
 .content {
+  position: relative;
   min-height: 500px;
   height: 98vh;
   min-width: 500px;
   width: 96vw;
   margin-left: 1%;
   margin-right: 1%;
+  z-index: 1;
   background-color: #5836ad;
 }
 
@@ -121,7 +135,9 @@
 /* Create Question */
 
 #create-question-container {
-  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding-top: 100px;
   width: 100%;
@@ -130,6 +146,20 @@
   margin-right: auto;
 }
 
+#create-question-title {
+  margin-bottom: 20px;
+  font-size: 3em;
+  color: white;
+  text-align: center;
+  width: 100%;
+}
+
+#create-question-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
 #create-question-container input, form {
 display: block;
 margin: 0 auto;
@@ -137,13 +167,6 @@ margin: 0 auto;
 
 #create-question-form textarea {
   border-radius: 5px;
-}
-
-#create-question-title {
-  margin-bottom: 20px;
-  font-size: 3em;
-  color: white;
-  text-align: center;
 }
 
 #create-question-form div {
@@ -154,6 +177,23 @@ margin: 0 auto;
 #create-question-form textarea {
   vertical-align: top;
 }
+
+
+
+#create-question-container input[type="submit"] {
+  font-size: 1.5em;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+#create-question-container input[type="submit"]:hover {
+  background-color: #45a049;
+}
+
 
 /* Create Account */
 
@@ -213,5 +253,28 @@ margin: 0 auto;
 
 #create-account-container input[type="submit"]:hover {
   background-color: #45a049;
+}
+
+
+#yellow-corner-top-left {
+  height: 75px;
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 75px;
+  background-color: #f5c542;
+  border-radius: 3px;
+  clip-path: polygon(0 0, 100% 0, 0% 100%);
+}
+
+#yellow-corner-top-right {
+  height: 75px;
+  width: 75px;
+  top: -5px;
+  right: -5px;
+  position: absolute;
+  background-color: #f5c542;
+  border-radius: 3px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
 }
 
