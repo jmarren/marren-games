@@ -1,0 +1,43 @@
+{{ define "base"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+
+<body>
+  <h1 class="jersey-15-regular main-header">Marren Games</h1>
+  <div id="background"></div>
+  <div class="content">
+    <div id="yellow-corner-top-left"></div>
+    <div id="yellow-corner-top-right"></div>
+
+
+    <div class="welcome-screen jersey-15-regular" id="welcome-screen">
+      <h1>Welcome!</h1>
+      <div id="home-container">
+
+        {{ if eq .PartialTemplate "sign-in" }}
+        {{ template "sign-in"}}
+        {{ else if eq .PartialTemplate "create-account" }}
+        {{ template "create-account" }}
+        {{ else if eq .PartialTemplate "create-question"}}
+        {{ template "create-question"}}
+        {{ else }}
+        {{ template "index"}}
+        {{ end }}
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>
+
+{{ end }}
