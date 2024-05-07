@@ -1,7 +1,7 @@
 {{ define "create-account" }}
 <div id="create-account-container">
   <span id="create-account-title" class="jersey-15-regular">Create Account</span>
-  <form id="create-account-form" hx-post="/create-account" hx-swap="outerHTML" class="jersey-15-regular">
+  <form id="create-account-form" hx-post="/create-account-submit" hx-swap="outerHTML" class="jersey-15-regular">
     <div>
       <label for="username">Username</label>
       <input type="text" id="username" name="username" required>

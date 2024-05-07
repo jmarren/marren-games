@@ -16,13 +16,26 @@
   <div class="content">
     <div id="yellow-corner-top-left"></div>
     <div id="yellow-corner-top-right"></div>
-    {{ if eq .Content "sign-in" }}
-    {{ template "sign-in" }}
-    {{ else if eq .Content "create-account"}}
-    {{ template "create-account" }}
-    {{ else if "create-question"}}
-    {{ template "create-question" }}
-    {{ end }}
+
+
+    <div class="welcome-screen jersey-15-regular" id="welcome-screen">
+      <h1>Welcome!</h1>
+      <div id="home-container">
+        <button class="jersey-15-regular" hx-get="/sign-in" hx-push-url="true" hx-swap="outerHTML"
+          hx-target="#welcome-screen">Sign
+          In</button>
+        <button class="jersey-15-regular" hx-get="/create-account" hx-push-url="true" hx-swap="outerHTML"
+          hx-target="#welcome-screen">Create Account</button>
+      </div>
+    </div>
+
+    <!-- {{ if eq .Content "sign-in" }} -->
+    <!-- {{ template "sign-in" }} -->
+    <!-- {{ else if eq .Content "create-account"}} -->
+    <!-- {{ template "create-account" }} -->
+    <!-- {{ else if "create-question"}} -->
+    <!-- {{ template "create-question" }} -->
+    <!-- {{ end }} -->
   </div>
 </body>
 

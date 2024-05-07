@@ -1,6 +1,6 @@
 .main-header {
   font-family: 'Roboto', sans-serif;
-  color: #695c35;
+  color: black;
 }
 
 #background {
@@ -278,3 +278,32 @@ margin: 0 auto;
   clip-path: polygon(0 0, 100% 0, 100% 100%);
 }
 
+#welcome-screen {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #5836ad;
+}
+
+#welcome-screen button {
+  font-size: 1.5em;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+#welcome-screen button:hover {
+  background-color: #45a049;
+}
+
+#home-container {
+  gap: 20px;
+  display: flex;
+  flex-direction: row;
+}

@@ -60,6 +60,13 @@ func main() {
 		data := map[string]interface{}{
 			"Content": "create-account", // Create Account content template name
 		}
+		return c.Render(http.StatusOK, "create-account", data)
+	})
+
+	e.GET("/create-account-submit", func(c echo.Context) error {
+		data := map[string]interface{}{
+			"Content": "create-account-submit", // Create Account content template name
+		}
 		return c.Render(http.StatusOK, "index.html", data)
 	})
 
@@ -68,7 +75,7 @@ func main() {
 		data := map[string]interface{}{
 			"Content": "sign-in", // Sign-In content template name
 		}
-		return c.Render(http.StatusOK, "index.html", data)
+		return c.Render(http.StatusOK, "sign-in", data)
 	})
 
 	// Create Question route
