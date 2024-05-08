@@ -32,7 +32,7 @@ func AuthenticateUser(username, password string) (bool, error) {
 		return false, err
 	}
 
-	// Compare the hashed password with the plaintext password
+	// Compare the hashed password with the plain text password
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		// bcrypt returns an error if the hashes don't match
@@ -48,7 +48,7 @@ func AuthenticateUser(username, password string) (bool, error) {
 func RegisterUser(username, password, email string) error {
 	// First determine if the data is valid
 	// Validate the username
-	acceptableUsernames := []string{"John", "Kevin", "Anna", "Megan", "Tom", "Kristin", "Allie", "Robby", "Mom", "Dad"}
+	acceptableUsernames := []string{"admin", "John", "Kevin", "Anna", "Megan", "Tom", "Kristin", "Allie", "Robby", "Mom", "Dad"}
 
 	if !slices.Contains(acceptableUsernames, username) {
 		return errors.New("username is not allowed")

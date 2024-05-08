@@ -1,18 +1,53 @@
 package db // import "github.com/jmarren/marren-games/internal/db"
 
+import (
+	"fmt"
+	"os"
+)
+
 func AddUser(username, hashedPassword, email string) error {
-	// Insert user into database
-	_, err := db.Exec("INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)", username, hashedPassword, email)
-	if err != nil {
-		return err
+	// Ensure the database connection is initialized
+	if db == nil {
+		fmt.Println("db not connected")
 	}
+
+	fmt.Printf("username: %s \n hashedPassword: %s \n email: %s", username, hashedPassword, email)
+	_, err := db.Exec(`INSERT INTO users (name, password_hash, email) VALUES (?, ?, ?)`, username, string(hashedPassword), email)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
+		os.Exit(1)
+	}
+
+	//
+	// // Prepare the SQL statement
+	// stmt, err := db.Prepare("INSERT INTO users (name, password_hash, email) VALUES ($1, $2, $3)")
+	// if err != nil {
+	// 	return err
+	// }
+	// defer stmt.Close()
+	//
+	// // Execute the SQL statement, passing in the username, hashed password, and email
+	// _, err = stmt.Exec(username, hashedPassword, email)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
+// func AddUser(username, hashedPassword, email string) error {
+// 	// Insert user into database
+// 	_, err := db.Exec("INSERT INTO users (name, password_hash, email) VALUES ($1, $2, $3)", username, hashedPassword, email)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	return nil
+// }
+
 func GetUserPasswordHash(username string) (string, error) {
 	var hashedPassword string
-	err := db.QueryRow("SELECT password_hash FROM users WHERE username = $1", username).Scan(&hashedPassword)
+	err := db.QueryRow("SELECT password_hash FROM users WHERE name = ?", username).Scan(&hashedPassword)
 	if err != nil {
 		return "", err
 	}
