@@ -1,7 +1,8 @@
 {{ define "sign-in" }}
 <div id="sign-in-container">
   <span id="sign-in-title" class="jersey-15-regular">Sign In</span>
-  <form id="sign-in-form" hx-post="/login" hx-target="#sign-in-container" hx-swap="outerHTML" class="jersey-15-regular">
+  <form id="sign-in-form" hx-post="/login" hx-target="#sign-in-container" hx-swap="outerHTML" hx-push-url="true"
+    class="jersey-15-regular">
     <div>
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required>
