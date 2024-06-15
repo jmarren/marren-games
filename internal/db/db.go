@@ -4,23 +4,72 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
+
+	_ "github.com/mattn/go-sqlite3"
+	// "github.com/mattn/go-sqlite3"
 )
 
 var db *sql.DB
 
 func InitDB() error {
-	databaseURL := os.Getenv("TURSO_DATABASE_URL")
-	authToken := os.Getenv("TURSO_AUTH_TOKEN")
-	url := fmt.Sprintf("%s?authToken=%s", databaseURL, authToken)
-
 	var err error
-	db, err = sql.Open("libsql", url)
+	var url string
+
+	useDevSQLite := os.Getenv("USE_DEV_SQLITE")
+	currentWorkingDir, _ := os.Getwd()
+	log.Println("Current working directory: ", currentWorkingDir)
+	initScript, err := os.ReadFile(currentWorkingDir + "/internal/db/init.sql")
 	if err != nil {
-		return fmt.Errorf("failed to open db %s: %s", url, err)
+		return fmt.Errorf("failed to read init script: %v", err)
 	}
+
+	if useDevSQLite == "true" {
+		log.Println("Using in-memory db")
+
+		db, err = sql.Open("libsql", "file:memory:")
+		if err != nil {
+			return fmt.Errorf("failed to open in-memory db %s: %s", url, err)
+		}
+
+		if _, err := db.Exec(string(initScript)); err != nil {
+			log.Fatalf("failed to execute init script: %v", err)
+		}
+		// Specify the backup file path
+		backupFilePath := "backup.db"
+
+		// Check if the backup file exists and remove it
+		if _, err := os.Stat(backupFilePath); err == nil {
+			if err := os.Remove(backupFilePath); err != nil {
+				log.Fatalf("Failed to remove existing backup file %s: %v", backupFilePath, err)
+			}
+		}
+		_, err := db.Exec("VACUUM INTO 'backup.db';")
+		if err != nil {
+			log.Fatalf("Failed to backup in-memory database: %v", err)
+		}
+		log.Println("Database backed up successfully")
+	} else {
+
+		databaseURL := os.Getenv("TURSO_DATABASE_URL")
+		authToken := os.Getenv("TURSO_AUTH_TOKEN")
+		url := fmt.Sprintf("%s?authToken=%s", databaseURL, authToken)
+
+		var err error
+		db, err = sql.Open("libsql", url)
+		if err != nil {
+			return fmt.Errorf("failed to open db %s: %s", url, err)
+		}
+
+		if _, err := db.Exec(string(initScript)); err != nil {
+			log.Fatalf("failed to execute init script: %v", err)
+		}
+	}
+
+	log.Println("Database initialized successfully")
 
 	return nil
 }

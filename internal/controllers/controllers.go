@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/labstack/echo/v4"
@@ -41,6 +42,11 @@ type CreateAccountSuccessData struct {
 	Username string
 }
 
+type ProfileData struct {
+	Username      string
+	GameCompleted bool
+}
+
 // Initialize templates
 func InitTemplates() {
 	// Determine the working directory
@@ -56,6 +62,7 @@ func InitTemplates() {
 		"create-question.html",
 		"index.html",
 		"create-account-success.html",
+		"profile.html",
 	}
 
 	// Create a base layout template
@@ -128,18 +135,32 @@ func LoginHandler(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
-	data := SignInData{
-		Username: username,
-	}
-	authResult, err := auth.AuthenticateUser(username, password)
+	jwt, err := auth.AuthenticateUser(username, password)
 	if err != nil {
-		log.Fatal(err)
+		return c.String(http.StatusInternalServerError, "An error occurred during authentication.")
 	}
-	if authResult {
-		return renderTemplate(c, "index", nil)
+	cookie := &http.Cookie{
+		Name:    "auth",
+		Value:   jwt,
+		Expires: time.Now().Add(24 * time.Hour),
 	}
 
-	return renderTemplate(c, "sign-in", data)
+	c.SetCookie(cookie)
+	return c.Redirect(http.StatusFound, "/")
+}
+
+func LogoutHandler(c echo.Context) error {
+	cookie := &http.Cookie{
+		Name:    "auth",
+		Value:   "",
+		Expires: time.Now().Add(-1 * time.Hour),
+	}
+	c.SetCookie(cookie)
+	return c.Redirect(http.StatusFound, "/")
+}
+
+func ProfileHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Profile")
 }
 
 // type AnswerQuestionData struct {

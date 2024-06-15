@@ -4,6 +4,12 @@
 *.a
 *.so
 
+# DB files
+backup.db
+*.db
+:memory: # SQLite
+memory: # SQLite
+
 # Folders
 _obj
 _test

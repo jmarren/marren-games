@@ -3,12 +3,23 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"net/mail"
 	"slices"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/db"
+
+	// echojwt "github.com/labstack/echo-jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type JwtCustomClaims struct {
+	Username string `json:"username"`
+	Admin    bool   `json:"admin"`
+	jwt.RegisteredClaims
+}
 
 // HashPassword creates a hashed password from a plain string.
 func HashPassword(password string) (string, error) {
@@ -25,22 +36,41 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func AuthenticateUser(username, password string) (bool, error) {
+func AuthenticateUser(username, password string) (string, error) {
 	// Get the hashed password from the database
 	hashedPassword, err := db.GetUserPasswordHash(username)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	// Compare the hashed password with the plain text password
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		// bcrypt returns an error if the hashes don't match
-		return false, nil
+		return "", err
 	}
 
+	log.Println("User authenticated successfully")
+
+	// Set custom claims
+	claims := &JwtCustomClaims{
+		username,
+		true,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return "", err
+	}
+	log.Println("token: ", t)
+
 	// The hashes match
-	return true, nil
+	return t, nil
 }
 
 // RegisterUser creates a new user in the database.
@@ -82,3 +112,6 @@ func RegisterUser(username, password, email string) error {
 
 	return nil
 }
+
+// func verifyCookie(cookie string) error {
+// }
