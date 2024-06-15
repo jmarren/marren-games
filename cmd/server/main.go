@@ -6,7 +6,6 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
-	_ "github.com/jmarren/marren-games/internal/routers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 

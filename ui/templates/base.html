@@ -24,11 +24,13 @@
       <div id="home-container">
 
         {{ if eq .PartialTemplate "sign-in" }}
-        {{ template "sign-in"}}
+        {{ template "sign-in" .Data}}
         {{ else if eq .PartialTemplate "create-account" }}
-        {{ template "create-account" }}
+        {{ template "create-account" .Data }}
         {{ else if eq .PartialTemplate "create-question"}}
-        {{ template "create-question"}}
+        {{ template "create-question" .Data}}
+        {{ else if eq .PartialTemplate "profile"}}
+        {{ template "profile" .Data}}
         {{ else }}
         {{ template "index"}}
         {{ end }}

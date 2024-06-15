@@ -21,7 +21,7 @@ func RestrictedRoutes(r *echo.Group) {
 
 	r.Use(echojwt.WithConfig(jwtConfig))
 
-	r.GET("/index", controllers.IndexHandler)
+	// r.GET("/index", controllers.IndexHandler)
 	r.GET("/test", func(c echo.Context) error {
 		return c.String(200, "You are authenticated")
 	})

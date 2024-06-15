@@ -65,6 +65,7 @@ func InitTemplates() {
 		"index.html",
 		"create-account-success.html",
 		"profile.html",
+		"user-profile.html",
 	}
 
 	// Create a base layout template
@@ -75,6 +76,7 @@ func InitTemplates() {
 
 	// Parse all partial templates (blocks)
 	for _, partial := range partials {
+		fmt.Println(partial)
 		templates = template.Must(templates.ParseFiles(dir + "/" + basePath + partial))
 	}
 
@@ -91,11 +93,14 @@ func renderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 		return c.Render(http.StatusOK, partialTemplate, data)
 	} else {
 		// Full Page Reload: Render the base layout with the partial content
-		return c.Render(http.StatusOK, "base", PageData{
+		fmt.Println("data: ", data)
+		pageData := PageData{
 			Title:           "Marren Games",
 			PartialTemplate: partialTemplate,
 			Data:            data,
-		})
+		}
+		fmt.Println(pageData)
+		return c.Render(http.StatusOK, "base", pageData)
 	}
 }
 
@@ -116,9 +121,8 @@ func CreateQuestionHandler(c echo.Context) error {
 }
 
 func CreateAccountSubmitHandler(c echo.Context) error {
-	// log the form values
-	log.Print("username:", c.FormValue("username"))
 	registrationError := auth.RegisterUser(c.FormValue("username"), c.FormValue("password"), c.FormValue("email"))
+
 	if registrationError == nil {
 		return renderTemplate(c, "create-account-success", CreateAccountSuccessData{
 			Username: c.FormValue("username"),
@@ -165,107 +169,22 @@ func ProfileHandler(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*auth.JwtCustomClaims)
 	username := claims.Username
-	fmt.Println("------------ User: ", username, "--------------")
-	return c.String(http.StatusOK, "Profile")
+	data := ProfileData{
+		Username:      username,
+		GameCompleted: true,
+	}
+
+	fmt.Println("\n----------- Username: ", username, "---------------")
+	fmt.Println("")
+
+	return renderTemplate(c, "profile", data)
 }
 
-// type AnswerQuestionData struct {
-// 	Question string
-// 	Choices  []string
-// }
-//
-// type CreateAccountData struct {
-// 	Username string
-// 	Email    string
-// 	Success  bool
-// }
-//
-// type RegistrationResult struct {
-// 	Title    string
-// 	Success  bool
-// 	Username string
-// }
-//
-// //	e.GET("/", func(c echo.Context) error {
-// //	    return c.Render(http.StatusOK, "index.html", map[string]interface{}{
-// //	        "Title": "Home Page",
-// //	        "ContentTemplate": "home.html", // Assuming you have a home.html for the homepage
-// //	    })
-// //	})
-// func RenderIndex(c echo.Context) error {
-// 	return c.Render(http.StatusOK, "create-account", map[string]interface{}{
-// 		"Title":           "Create Account",
-// 		"ContentTemplate": "create-account.html",
-// 	})
-// }
-//
-// func RenderHome(c echo.Context) error {
-// 	data := struct{}{}
-// 	return c.Render(http.StatusOK, "create-account", data)
-// }
-//
-// func RenderLoginResult(c echo.Context) error {
-// 	username := c.FormValue("username")
-// 	password := c.FormValue("password")
-//
-// 	isAuthenticated, err := auth.AuthenticateUser(username, password)
-// 	if err != nil {
-// 		return c.String(http.StatusInternalServerError, "An error occurred during authentication.")
-// 	}
-//
-// 	if isAuthenticated {
-// 		data := &render.PageData{
-// 			Options: []string{"Mom", "Dad", "Tom", "Anna", "Megan", "Robby", "Allie", "Kristin", "Kevin", "John"},
-// 		}
-// 		return c.Render(http.StatusOK, "home.html", data)
-// 	} else {
-// 		return c.Render(http.StatusUnauthorized, "error.html", nil)
-// 	}
-// }
-//
-// func AnswerQuestionController(c echo.Context) error {
-// 	data := AnswerQuestionData{
-// 		Question: "What is your favorite color?",
-// 		Choices:  []string{"Red", "Blue", "Green"},
-// 	}
-// 	return c.Render(http.StatusOK, "answer-question", data)
-// }
-//
-// // func CreateAccountController(c echo.Context) error {
-// // 	data := CreateAccountData{
-// // 		Username: c.FormValue(name),
-// // 		Email: c.FormValue(email),
-// //     Success: true,
-// // 	}
-// // 	return c.Render(http.StatusOK, "create-account", data)
-// // }
-//
-// func CreateAccountController(c echo.Context) error {
-// 	// Create a new instance of CreateAccountData
-// 	data := new(CreateAccountData)
-//
-// 	// Bind the form data to the CreateAccountData instance
-// 	if err := c.Bind(data); err != nil {
-// 		// If there's an error, respond with an error message
-// 		return c.String(http.StatusBadRequest, "Invalid form data")
-// 	}
-//
-// 	// If there's no error, render the create-account-success template
-// 	return c.Render(http.StatusOK, "create-account-success", data)
-// }
-//
-// // func RenderCreateAccountSuccessful(c echo.Context) error {
-// // 	username := c.FormValue("username")
-// // 	password := c.FormValue("password")
-// // 	email := c.FormValue("email")
-// // 	err := auth.RegisterUser(username, password, email)
-// // 	if err != nil {
-// // 		return c.String(http.StatusInternalServerError, "An error occurred during registration.")
-// // 	}
-// // 	data := &RegistrationResult{
-// //     Title: "create-account",
-// // 		Success:  true,
-// // 		Username: username,
-// // 	}
-// // 	return c.Render(http.StatusOK, "index.html", data)
-// // }
+func UnrestrictedProfileHandler(c echo.Context) error {
+	data := ProfileData{
+		Username:      "John",
+		GameCompleted: true,
+	}
+
+	return renderTemplate(c, "profile", data)
+}
