@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/labstack/echo/v4"
 )
@@ -146,7 +148,7 @@ func LoginHandler(c echo.Context) error {
 	}
 
 	c.SetCookie(cookie)
-	return c.Redirect(http.StatusFound, "/")
+	return c.Redirect(http.StatusFound, "/auth/profile")
 }
 
 func LogoutHandler(c echo.Context) error {
@@ -160,6 +162,10 @@ func LogoutHandler(c echo.Context) error {
 }
 
 func ProfileHandler(c echo.Context) error {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*auth.JwtCustomClaims)
+	username := claims.Username
+	fmt.Println("------------ User: ", username, "--------------")
 	return c.String(http.StatusOK, "Profile")
 }
 

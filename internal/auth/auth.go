@@ -11,7 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/db"
 
-	// echojwt "github.com/labstack/echo-jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
