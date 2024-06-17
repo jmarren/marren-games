@@ -7,7 +7,6 @@ import (
 	_ "net/http"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
@@ -25,32 +24,7 @@ func UnrestrictedRoutes(group *echo.Group) {
 	QueryTestHandler(queryTest)
 }
 
-// func QueryTestHandler(group *echo.Group) {
-// 	// var roureconfigs routeConfigs
-// 	routeConfigs := GetRouteConfigs()
-//
-// 	for _, routeConfig := range routeConfigs {
-// 		if routeConfig.method == "GET" {
-// 			group.GET(routeConfig.path,
-// 				func(c echo.Context) error {
-// 					var params []interface{}
-// 					for _, param := range routeConfig.queryParams {
-// 						params = append(params, c.QueryParam(param))
-// 					}
-// 					fmt.Println(params)
-// 					var output string
-// 					err := db.Sqlite.QueryRow(routeConfig.query, params...).Scan(&output)
-// 					if err != nil {
-// 						return c.String(http.StatusInternalServerError, "failed to execute query")
-// 					}
-// 					return c.String(http.StatusOK, output)
-// 				})
-// 		}
-// 	}
-// }
-
 func QueryTestHandler(group *echo.Group) {
-	// var roureconfigs routeConfigs
 	routeConfigs := GetRouteConfigs()
 
 	for _, routeConfig := range routeConfigs {
@@ -84,6 +58,8 @@ func QueryTestHandler(group *echo.Group) {
 					vals := make([]interface{}, colLen)
 					valPtrs := make([]interface{}, colLen)
 
+					response := ""
+
 					for outputRows.Next() {
 						for i := range cols {
 							valPtrs[i] = &vals[i]
@@ -104,10 +80,12 @@ func QueryTestHandler(group *echo.Group) {
 								v = val
 							}
 							fmt.Println(col, v)
+							response = fmt.Sprintf("%v\n %v: %v", response, col, v)
 						}
+						response = fmt.Sprintf("%v\n-----------", response)
 					}
 
-					return c.String(http.StatusOK, strings.Join([]string{" ", " "}, "\n"))
+					return c.String(http.StatusOK, response)
 				})
 		case "POST":
 			group.POST(routeConfig.path,
@@ -135,16 +113,6 @@ func QueryTestHandler(group *echo.Group) {
 					fmt.Println(result)
 
 					return c.String(http.StatusOK, "Record created successfully")
-
-					// for outputRows.Next() {
-					// 	err := outputRows.Scan(&output)
-					// 	if err != nil {
-					// 		log.Error(err)
-					// 		return c.String(http.StatusInternalServerError, "failed to execute query")
-					// 	}
-					// }
-					//
-					// return c.String(http.StatusOK, output)
 				})
 		}
 	}
