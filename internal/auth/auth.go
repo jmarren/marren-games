@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/db"
+	"github.com/labstack/echo/v4"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -112,5 +113,20 @@ func RegisterUser(username, password, email string) error {
 	return nil
 }
 
-// func verifyCookie(cookie string) error {
-// }
+type ClaimsType int
+
+const (
+	Username ClaimsType = iota
+)
+
+func GetFromClaims(item ClaimsType, c echo.Context) string {
+	user := c.Get("user").(*jwt.Token)
+	claims := user.Claims.(*JwtCustomClaims)
+
+	switch item {
+	case Username:
+		return claims.Username
+	default:
+		return ""
+	}
+}

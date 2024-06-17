@@ -27,4 +27,5 @@ func RestrictedRoutes(r *echo.Group) {
 	})
 
 	r.GET("/profile", controllers.ProfileHandler)
+	r.GET("/create-question", controllers.CreateQuestionHandler)
 }

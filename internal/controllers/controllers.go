@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
+	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
 
@@ -166,13 +166,18 @@ func LogoutHandler(c echo.Context) error {
 }
 
 func ProfileHandler(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*auth.JwtCustomClaims)
-	username := claims.Username
+	username := auth.GetFromClaims(auth.Username, c)
 	data := ProfileData{
 		Username:      username,
 		GameCompleted: true,
 	}
+
+	id, err := db.GetUserIdFromUsername(username)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\n----------- UserId: ", id, "-------------")
 
 	fmt.Println("\n----------- Username: ", username, "---------------")
 	fmt.Println("")
@@ -180,11 +185,5 @@ func ProfileHandler(c echo.Context) error {
 	return renderTemplate(c, "profile", data)
 }
 
-func UnrestrictedProfileHandler(c echo.Context) error {
-	data := ProfileData{
-		Username:      "John",
-		GameCompleted: true,
-	}
-
-	return renderTemplate(c, "profile", data)
-}
+// func CreateQuestion(c echo.Context) error {
+// }

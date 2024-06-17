@@ -42,11 +42,68 @@ func SetCurrentQuestion(askerId int, questionText string) {
 	}
 }
 
-func GetCurrentQuestion(date_created string) (string, error) {
+func GetCurrentQuestion() (string, error) {
 	var questionText string
-	err := db.QueryRow("SELECT question_text FROM questions WHERE date_created = ", date_created).Scan(&questionText)
+
+	query := "SELECT question_text FROM questions WHERE date(date_created) = date(CURRENT_TIMESTAMP, '-6 hours')"
+	err := db.QueryRow(query).Scan(&questionText)
 	if err != nil {
 		return "", err
 	}
 	return questionText, nil
 }
+
+func GetUserIdFromUsername(username string) (int, error) {
+	var id int
+	query := `SELECT id FROM users WHERE username = ?`
+	err := db.QueryRow(query, username).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func GetUsernameFromUserId(id int) (string, error) {
+	var username string
+	query := `SELECT username FROM users WHERE id = ?`
+	err := db.QueryRow(query, id).Scan(&username)
+	if err != nil {
+		return "", err
+	}
+	return username, nil
+}
+
+func GetTodaysAnswerFromUserId(id int) (string, error) {
+	var answerText string
+
+	query := `SELECT a.answer_text
+            FROM users u
+            JOIN questions q ON u.id = q.asker_id 
+            JOIN answers a ON q.id = a.question_id
+            WHERE u.id = ?
+            AND date(q.date_created) = date(CURRENT_TIMESTAMP, '-6 hours')
+            `
+
+	err := db.QueryRow(query, id).Scan(&answerText)
+	if err != nil {
+		return "", err
+	}
+	return answerText, nil
+}
+
+func QueryRowHandler(query string, args ...interface{}) string {
+	var output string
+
+	err := db.QueryRow(query, args...).Scan(&output)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
+	}
+	return output
+}
+
+// func GetProfileData(username string) {
+//
+//   query := `SELECT id FROM users WHERE username = ?,
+//               `
+//
+// }
