@@ -13,7 +13,7 @@ import (
 	// "github.com/mattn/go-sqlite3"
 )
 
-var db *sql.DB
+var Sqlite *sql.DB
 
 func InitDB() error {
 	var err error
@@ -30,12 +30,12 @@ func InitDB() error {
 	if useDevSQLite == "true" {
 		log.Println("Using in-memory db")
 
-		db, err = sql.Open("libsql", "file:memory:")
+		Sqlite, err = sql.Open("libsql", "file:memory:")
 		if err != nil {
 			return fmt.Errorf("failed to open in-memory db %s: %s", url, err)
 		}
 
-		if _, err := db.Exec(string(initScript)); err != nil {
+		if _, err := Sqlite.Exec(string(initScript)); err != nil {
 			log.Fatalf("failed to execute init script: %v", err)
 		}
 		// Specify the backup file path
@@ -47,7 +47,7 @@ func InitDB() error {
 				log.Fatalf("Failed to remove existing backup file %s: %v", backupFilePath, err)
 			}
 		}
-		_, err := db.Exec("VACUUM INTO 'backup.db';")
+		_, err := Sqlite.Exec("VACUUM INTO 'backup.db';")
 		if err != nil {
 			log.Fatalf("Failed to backup in-memory database: %v", err)
 		}
@@ -59,12 +59,12 @@ func InitDB() error {
 		url := fmt.Sprintf("%s?authToken=%s", databaseURL, authToken)
 
 		var err error
-		db, err = sql.Open("libsql", url)
+		Sqlite, err = sql.Open("libsql", url)
 		if err != nil {
 			return fmt.Errorf("failed to open db %s: %s", url, err)
 		}
 
-		if _, err := db.Exec(string(initScript)); err != nil {
+		if _, err := Sqlite.Exec(string(initScript)); err != nil {
 			log.Fatalf("failed to execute init script: %v", err)
 		}
 	}

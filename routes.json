@@ -1,0 +1,52 @@
+[
+  {
+    "method": "GET",
+    "path": "/",
+    "name": "github.com/jmarren/marren-games/internal/controllers.IndexHandler"
+  },
+  {
+    "method": "POST",
+    "path": "/create-account-submit",
+    "name": "github.com/jmarren/marren-games/internal/controllers.CreateAccountSubmitHandler"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/index",
+    "name": "github.com/jmarren/marren-games/internal/controllers.IndexHandler"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/test",
+    "name": "main.main.func1"
+  },
+  {
+    "method": "GET",
+    "path": "/static*",
+    "name": "github.com/labstack/echo/v4.(*Echo).Static.StaticDirectoryHandler.func1"
+  },
+  {
+    "method": "GET",
+    "path": "/sign-in",
+    "name": "github.com/jmarren/marren-games/internal/controllers.SignInHandler"
+  },
+  {
+    "method": "GET",
+    "path": "/create-account",
+    "name": "github.com/jmarren/marren-games/internal/controllers.CreateAccountHandler"
+  },
+  {
+    "method": "POST",
+    "path": "/login",
+    "name": "github.com/jmarren/marren-games/internal/controllers.LoginHandler"
+  },
+  {
+    "method": "echo_route_not_found",
+    "path": "/auth",
+    "name": "github.com/labstack/echo/v4.init.func1"
+  },
+  {
+    "method": "echo_route_not_found",
+    "path": "/auth/*",
+    "name": "github.com/labstack/echo/v4.init.func1"
+  }
+]

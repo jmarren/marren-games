@@ -8,9 +8,8 @@ import (
 	"github.com/jmarren/marren-games/internal/routers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-
 	// echoprometheus  "github.com/labstack/echo-contrib"
-	"github.com/labstack/echo/v4/middleware"
+	// "github.com/labstack/echo/v4/middleware"
 )
 
 // Initialize Echo framework and templates
@@ -22,8 +21,8 @@ func initEcho() *echo.Echo {
 	e.Renderer = controllers.TmplRegistry
 
 	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// e.Use(middleware.Logger())
+	// e.Use(middleware.Recover())
 
 	// Serve static files
 	e.Static("/static", "ui/static")
@@ -50,8 +49,8 @@ func main() {
 	e := initEcho()
 
 	// ---- Middlewares
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// e.Use(middleware.Logger())
+	// e.Use(middleware.Recover())
 
 	// ---- Routes
 	//

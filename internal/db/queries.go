@@ -7,12 +7,12 @@ import (
 
 func AddUser(username, hashedPassword, email string) error {
 	// Ensure the database connection is initialized
-	if db == nil {
+	if Sqlite == nil {
 		fmt.Println("db not connected")
 	}
 
 	fmt.Printf("username: %s \n hashedPassword: %s \n email: %s", username, hashedPassword, email)
-	_, err := db.Exec(`INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)`, username, string(hashedPassword), email)
+	_, err := Sqlite.Exec(`INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)`, username, string(hashedPassword), email)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
 		os.Exit(1)
@@ -27,7 +27,7 @@ func AddUser(username, hashedPassword, email string) error {
 
 func GetUserPasswordHash(username string) (string, error) {
 	var hashedPassword string
-	err := db.QueryRow("SELECT password_hash FROM users WHERE username = ?", username).Scan(&hashedPassword)
+	err := Sqlite.QueryRow("SELECT password_hash FROM users WHERE username = ?", username).Scan(&hashedPassword)
 	if err != nil {
 		return "", err
 	}
@@ -35,7 +35,7 @@ func GetUserPasswordHash(username string) (string, error) {
 }
 
 func SetCurrentQuestion(askerId int, questionText string) {
-	_, err := db.Exec(`INSERT INTO questions (asker_id, question_text) VALUES (?, ?)`, askerId, questionText)
+	_, err := Sqlite.Exec(`INSERT INTO questions (asker_id, question_text) VALUES (?, ?)`, askerId, questionText)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
 		os.Exit(1)
@@ -46,7 +46,7 @@ func GetCurrentQuestion() (string, error) {
 	var questionText string
 
 	query := "SELECT question_text FROM questions WHERE date(date_created) = date(CURRENT_TIMESTAMP, '-6 hours')"
-	err := db.QueryRow(query).Scan(&questionText)
+	err := Sqlite.QueryRow(query).Scan(&questionText)
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +56,7 @@ func GetCurrentQuestion() (string, error) {
 func GetUserIdFromUsername(username string) (int, error) {
 	var id int
 	query := `SELECT id FROM users WHERE username = ?`
-	err := db.QueryRow(query, username).Scan(&id)
+	err := Sqlite.QueryRow(query, username).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -66,7 +66,7 @@ func GetUserIdFromUsername(username string) (int, error) {
 func GetUsernameFromUserId(id int) (string, error) {
 	var username string
 	query := `SELECT username FROM users WHERE id = ?`
-	err := db.QueryRow(query, id).Scan(&username)
+	err := Sqlite.QueryRow(query, id).Scan(&username)
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +84,7 @@ func GetTodaysAnswerFromUserId(id int) (string, error) {
             AND date(q.date_created) = date(CURRENT_TIMESTAMP, '-6 hours')
             `
 
-	err := db.QueryRow(query, id).Scan(&answerText)
+	err := Sqlite.QueryRow(query, id).Scan(&answerText)
 	if err != nil {
 		return "", err
 	}
@@ -94,7 +94,7 @@ func GetTodaysAnswerFromUserId(id int) (string, error) {
 func QueryRowHandler(query string, args ...interface{}) string {
 	var output string
 
-	err := db.QueryRow(query, args...).Scan(&output)
+	err := Sqlite.QueryRow(query, args...).Scan(&output)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
 	}
