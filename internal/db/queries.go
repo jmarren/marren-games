@@ -78,7 +78,7 @@ func GetTodaysAnswerFromUserId(id int) (string, error) {
 
 	query := `SELECT a.answer_text
             FROM users u
-            JOIN questions q ON u.id = q.asker_id 
+            JOIN questions q ON u.id = q.asker_id
             JOIN answers a ON q.id = a.question_id
             WHERE u.id = ?
             AND date(q.date_created) = date(CURRENT_TIMESTAMP, '-6 hours')

@@ -53,7 +53,7 @@ func GetRouteConfigs() routeConfigs {
 			},
 			{
 				path:   "/create-question",
-				method: "GET",
+				method: "POST",
 				query: `INSERT INTO questions (asker_id, question_text)
                 VALUES (?,?);`,
 				queryParams: []ParamConfig{
@@ -61,6 +61,17 @@ func GetRouteConfigs() routeConfigs {
 					{Name: "text", Type: reflect.String},
 				},
 			},
+			// {
+			//   path: "/create-user",
+			//   method: "POST",
+			//   query: `INSERT INTO users (username, email, password_hash)
+			//           VALUES (? ? ?);`,
+			//   queryParams: []ParamConfig{
+			//     {Name: "username", Type: reflect.String},
+			//     {Name: "email", Type: reflect.String}
+			//     {Name: "password_hash", Type: reflect.String}
+			//   },
+			// }
 		})
 	return routeConfigs
 }

@@ -7,6 +7,7 @@ import (
 	_ "net/http"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
@@ -53,7 +54,8 @@ func QueryTestHandler(group *echo.Group) {
 	routeConfigs := GetRouteConfigs()
 
 	for _, routeConfig := range routeConfigs {
-		if routeConfig.method == "GET" {
+		switch routeConfig.method {
+		case "GET":
 			group.GET(routeConfig.path,
 				func(c echo.Context) error {
 					var params []interface{}
@@ -69,24 +71,80 @@ func QueryTestHandler(group *echo.Group) {
 					}
 					fmt.Println(params)
 
-					var outputRows *sql.Rows
 					outputRows, err := db.Sqlite.Query(routeConfig.query, params...)
+					if err != nil {
+						return err
+					}
+
+					cols, err := outputRows.Columns()
+					if err != nil {
+						return err
+					}
+					colLen := len(cols)
+					vals := make([]interface{}, colLen)
+					valPtrs := make([]interface{}, colLen)
+
+					for outputRows.Next() {
+						for i := range cols {
+							valPtrs[i] = &vals[i]
+						}
+						err := outputRows.Scan(valPtrs...)
+						if err != nil {
+							fmt.Println(err)
+							return err
+						}
+						for i, col := range cols {
+							val := vals[i]
+
+							b, ok := val.([]byte)
+							var v interface{}
+							if ok {
+								v = string(b)
+							} else {
+								v = val
+							}
+							fmt.Println(col, v)
+						}
+					}
+
+					return c.String(http.StatusOK, strings.Join([]string{" ", " "}, "\n"))
+				})
+		case "POST":
+			group.POST(routeConfig.path,
+				func(c echo.Context) error {
+					var params []interface{}
+					for _, paramConfig := range routeConfig.queryParams {
+						paramValue := c.QueryParam(paramConfig.Name)
+						convertedValue, err := convertType(paramValue, paramConfig.Type)
+						if err != nil {
+							errorMessage := fmt.Errorf("**** error converting type: %s\n| parameter name: %s\n| parameter value: %s\n| paramConfig.Type: %s ", err, paramConfig.Name, paramValue, paramConfig.Type)
+							fmt.Println(errorMessage)
+							return c.String(http.StatusBadRequest, error.Error(errorMessage))
+						}
+						params = append(params, convertedValue)
+					}
+					fmt.Println(params)
+
+					var result sql.Result
+					result, err := db.Sqlite.Exec(routeConfig.query, params...)
 					if err != nil {
 						log.Error(err)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
 
-					var output string
+					fmt.Println(result)
 
-					for outputRows.Next() {
-						err := outputRows.Scan(&output)
-						if err != nil {
-							log.Error(err)
-							return c.String(http.StatusInternalServerError, "failed to execute query")
-						}
-					}
+					return c.String(http.StatusOK, "Record created successfully")
 
-					return c.String(http.StatusOK, output)
+					// for outputRows.Next() {
+					// 	err := outputRows.Scan(&output)
+					// 	if err != nil {
+					// 		log.Error(err)
+					// 		return c.String(http.StatusInternalServerError, "failed to execute query")
+					// 	}
+					// }
+					//
+					// return c.String(http.StatusOK, output)
 				})
 		}
 	}
