@@ -126,9 +126,6 @@ func GetRouteConfigs() routeConfigs {
 					{Name: "user_id", Type: reflect.Int},
 				},
 			},
-      {
-        path: 
-      },
 			{
 				path:   "/profile",
 				method: "GET",

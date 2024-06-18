@@ -9,6 +9,8 @@ backup.db
 *.db
 :memory: # SQLite
 memory: # SQLite
+*.sqlite:memory # SQLite
+
 
 # Folders
 _obj
