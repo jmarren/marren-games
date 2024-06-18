@@ -23,6 +23,11 @@ func UnrestrictedRoutes(group *echo.Group) {
 	QueryTestHandler(queryTest)
 }
 
+type NamedParam struct {
+	Name  string
+	Value interface{}
+}
+
 func QueryTestHandler(group *echo.Group) {
 	routeConfigs := GetRouteConfigs()
 
@@ -36,6 +41,7 @@ func QueryTestHandler(group *echo.Group) {
 				func(c echo.Context) error {
 					// convert params to the type specified in config
 					var params []interface{}
+
 					for _, paramConfig := range routeConfig.queryParams {
 						paramValue := c.QueryParam(paramConfig.Name)
 						convertedValue, err := convertType(paramValue, paramConfig.Type)
@@ -44,7 +50,10 @@ func QueryTestHandler(group *echo.Group) {
 							fmt.Println(errorMessage)
 							return c.String(http.StatusBadRequest, error.Error(errorMessage))
 						}
-						params = append(params, convertedValue)
+						// namedParam := NamedParam{Name: paramConfig.Name, Value: convertedValue}
+						// namedParams = append(namedParams, namedParam)
+						namedParam := sql.Named(paramConfig.Name, convertedValue)
+						params = append(params, namedParam)
 					}
 					fmt.Println(params)
 
@@ -107,10 +116,12 @@ func QueryTestHandler(group *echo.Group) {
 							fmt.Println(errorMessage)
 							return c.String(http.StatusBadRequest, error.Error(errorMessage))
 						}
-						params = append(params, convertedValue)
+						// namedParam := fmt.Sprintf("$%s=%v", paramConfig.Name, convertedValue)
+						namedParam := sql.Named(paramConfig.Name, convertedValue)
+						params = append(params, namedParam)
 					}
+					fmt.Println(routeConfig.query)
 					fmt.Println(params)
-
 					var result sql.Result
 					result, err := db.Sqlite.Exec(routeConfig.query, params...)
 					if err != nil {

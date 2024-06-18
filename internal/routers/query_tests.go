@@ -34,9 +34,9 @@ func GetRouteConfigs() routeConfigs {
 			{
 				path:   "/get-username-with-id",
 				method: "GET",
-				query:  `SELECT username FROM users WHERE id = ?`,
+				query:  `SELECT username FROM users WHERE id = :user_id`,
 				queryParams: []ParamConfig{
-					{Name: "id", Type: reflect.Int},
+					{Name: "user_id", Type: reflect.Int},
 				},
 			},
 			{
@@ -46,19 +46,19 @@ func GetRouteConfigs() routeConfigs {
                 FROM questions
                 INNER JOIN users
                   ON users.id = questions.asker_id
-                WHERE questions.asker_id = ?;`,
+        WHERE questions.asker_id = :user_id;`,
 				queryParams: []ParamConfig{
-					{Name: "id", Type: reflect.Int},
+					{Name: "user_id", Type: reflect.Int},
 				},
 			},
 			{
 				path:   "/create-question",
 				method: "POST",
 				query: `INSERT INTO questions (asker_id, question_text)
-                VALUES (?,?);`,
+                VALUES ($user_id,$question_text);`,
 				queryParams: []ParamConfig{
-					{Name: "id", Type: reflect.Int},
-					{Name: "text", Type: reflect.String},
+					{Name: "user_id", Type: reflect.Int},
+					{Name: "question_text", Type: reflect.String},
 				},
 			},
 			{
@@ -72,7 +72,7 @@ func GetRouteConfigs() routeConfigs {
 				method: "GET",
 				query: `SELECT answers.answer_text
                 FROM answers
-                WHERE answers.answerer_id = ?
+                WHERE answers.answerer_id = :user_id
                 AND answers.question_id = (SELECT * FROM todays_question_id)`,
 				queryParams: []ParamConfig{
 					{Name: "user_id", Type: reflect.Int},
@@ -82,7 +82,7 @@ func GetRouteConfigs() routeConfigs {
 				path:   "/answer-to-todays-question",
 				method: "POST",
 				query: `INSERT INTO answers (answerer_id, question_id, answer_text)
-                VALUES (?, (SELECT questions.id FROM questions WHERE DATE(CURRENT_TIMESTAMP) = DATE(questions.date_created)), ?);`,
+        VALUES (:user_id, (SELECT questions.id FROM questions WHERE DATE(CURRENT_TIMESTAMP) = DATE(questions.date_created)), :answer_text);`,
 				queryParams: []ParamConfig{
 					{Name: "user_id", Type: reflect.Int},
 					{Name: "answer_text", Type: reflect.String},
@@ -91,10 +91,11 @@ func GetRouteConfigs() routeConfigs {
 			{
 				path:   "/vote-for-answer",
 				method: "POST",
-				query: `INSERT INTO votes (voter_id, question_id)
-                VALUES (?, (SELECT * FROM todays_question_id));`,
+				query: `INSERT INTO votes (voter_id, question_id, answer_id)
+        VALUES (:user_id, (SELECT * FROM todays_question_id), :answer_id);`,
 				queryParams: []ParamConfig{
 					{Name: "user_id", Type: reflect.Int},
+					{Name: "answer_id", Type: reflect.Int},
 				},
 			},
 			{
@@ -111,17 +112,16 @@ func GetRouteConfigs() routeConfigs {
 				query: `WITH answer_exists AS (
                   SELECT answerer_id
                   FROM answers
-                  WHERE answerer_id = ?
-                  AND question_id = (SELECT * FROM todays_question_id)
+                    WHERE answerer_id = :user_id
+                    AND question_id = (SELECT * FROM todays_question_id)
                 )
                 SELECT
                   CASE
-                    WHEN EXISTS (SELECT ? FROM answer_exists)
+                    WHEN EXISTS (SELECT :user_id FROM answer_exists)
                       THEN 1
                     ELSE 0
                   END AS todays_question_answered;`,
 				queryParams: []ParamConfig{
-					{Name: "user_id", Type: reflect.Int},
 					{Name: "user_id", Type: reflect.Int},
 					{Name: "user_id", Type: reflect.Int},
 				},
