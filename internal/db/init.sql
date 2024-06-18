@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS questions (
 CREATE TABLE IF NOT EXISTS answers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   answer_text TEXT NOT NULL,
-  date_created TEXT NOT NULL,
+  date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   question_id INTEGER NOT NULL,
   answerer_id INTEGER NOT NULL,
   FOREIGN KEY (question_id) REFERENCES questions(id),
@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 
-
+CREATE VIEW IF NOT EXISTS todays_question_id AS
+    SELECT questions.id
+    FROM questions
+    WHERE DATE(questions.date_created) = DATE('now');
 
 
 

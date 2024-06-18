@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	_ "net/http"
 	"reflect"
 	"strconv"
 
@@ -29,9 +28,13 @@ func QueryTestHandler(group *echo.Group) {
 
 	for _, routeConfig := range routeConfigs {
 		switch routeConfig.method {
+
+		// GET Requests
 		case "GET":
 			group.GET(routeConfig.path,
+
 				func(c echo.Context) error {
+					// convert params to the type specified in config
 					var params []interface{}
 					for _, paramConfig := range routeConfig.queryParams {
 						paramValue := c.QueryParam(paramConfig.Name)
@@ -45,13 +48,16 @@ func QueryTestHandler(group *echo.Group) {
 					}
 					fmt.Println(params)
 
+					// Perform Query
 					outputRows, err := db.Sqlite.Query(routeConfig.query, params...)
 					if err != nil {
+						fmt.Println(err)
 						return err
 					}
 
 					cols, err := outputRows.Columns()
 					if err != nil {
+						fmt.Println(err)
 						return err
 					}
 					colLen := len(cols)
@@ -87,6 +93,8 @@ func QueryTestHandler(group *echo.Group) {
 
 					return c.String(http.StatusOK, response)
 				})
+
+			// POST Requests
 		case "POST":
 			group.POST(routeConfig.path,
 				func(c echo.Context) error {
