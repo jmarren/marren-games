@@ -49,6 +49,16 @@ type ProfileData struct {
 	GameCompleted bool
 }
 
+type TemplateName string
+
+const (
+	IndexTemplate          TemplateName = "index"
+	SignInTemplate         TemplateName = "sign-in"
+	CreateAccountTemplate  TemplateName = "create-account"
+	ProfileTemplate        TemplateName = "profile"
+	CreateQuestionTemplate TemplateName = "create-question"
+)
+
 // Initialize templates
 func InitTemplates() {
 	// Determine the working directory

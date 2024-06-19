@@ -153,7 +153,7 @@ func QueryTestHandler(group *echo.Group) {
 					var params []interface{}
 					for _, paramConfig := range routeConfig.queryParams {
 						paramValue := c.QueryParam(paramConfig.Name)
-						convertedValue, err := convertType(paramValue, paramConfig.Type)
+						convertedValue, err := ConvertType(paramValue, paramConfig.Type)
 						if err != nil {
 							errorMessage := fmt.Errorf("**** error converting type: %s\n| parameter name: %s\n| parameter value: %s\n| paramConfig.Type: %s ", err, paramConfig.Name, paramValue, paramConfig.Type)
 							fmt.Println(errorMessage)
@@ -181,7 +181,7 @@ func QueryTestHandler(group *echo.Group) {
 }
 
 // Utility function to convert query parameter from string to specified type
-func convertType(value string, targetType reflect.Kind) (interface{}, error) {
+func ConvertType(value string, targetType reflect.Kind) (interface{}, error) {
 	switch targetType {
 	case reflect.Int:
 		return strconv.Atoi(value)
