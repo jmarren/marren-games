@@ -1,3 +1,17 @@
+////////////
+////////////  This file is used for testing various queries on the sqlite3/libsql database
+////////////  The routeConfig slice is looped over in ./unrestricted.go in order to
+////////////  declare a route for each item in the slice.
+////////////
+////////////  The query for each routeConfig is executed and the data is returned.
+////////////  The withQuery contains the name of a file in ../sql (or /internal/sql) directory
+////////////  contains a 'WITH' clause which will be appended to the query in order to provide
+////////////  an abstraction for some commonly accessed piece of data.
+////////////
+////////////  NOTE: Any named parameters prepended with a ':' (ie :user_id) within a query should
+////////////  be included in queryParams. queryParams should also include any named parameters
+////////////  used by any corresponding withQuery provided.
+
 package routers
 
 import "reflect"
@@ -44,10 +58,10 @@ func GetRouteConfigs() routeConfigs {
 				path:   "/questions-by-user-id",
 				method: "GET",
 				query: `SELECT question_text, users.username, date_created
-                FROM questions
-                INNER JOIN users
-                  ON users.id = questions.asker_id
-        WHERE questions.asker_id = :user_id;`,
+                      FROM questions
+                      INNER JOIN users
+                      ON users.id = questions.asker_id
+                      WHERE questions.asker_id = :user_id;`,
 				queryParams: []ParamConfig{
 					{Name: "user_id", Type: reflect.Int},
 				},
@@ -154,11 +168,3 @@ func GetRouteConfigs() routeConfigs {
 		})
 	return routeConfigs
 }
-
-// WITH todays_answer AS (
-// SELECT answers.answer_text
-// FROM answers
-// WHERE answers.answerer_id = :user_id
-// AND answers.question_id = (SELECT * FROM todays_question_id)
-// )
-// SELECT answer_text FROM todays_answer;
