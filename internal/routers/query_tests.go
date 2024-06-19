@@ -5,6 +5,7 @@ import "reflect"
 type routeConfig struct {
 	path        string
 	method      string
+	WithQuery   string
 	query       string
 	queryParams []ParamConfig
 }
@@ -68,12 +69,10 @@ func GetRouteConfigs() routeConfigs {
 				queryParams: []ParamConfig{},
 			},
 			{
-				path:   "/answer-to-todays-question",
-				method: "GET",
-				query: `SELECT answers.answer_text
-                FROM answers
-                WHERE answers.answerer_id = :user_id
-                AND answers.question_id = (SELECT * FROM todays_question_id)`,
+				path:      "/answer-to-todays-question",
+				method:    "GET",
+				WithQuery: "todays_answer_by_user_id",
+				query:     `SELECT answer_text FROM todays_answer;`,
 				queryParams: []ParamConfig{
 					{Name: "user_id", Type: reflect.Int},
 				},
@@ -155,3 +154,11 @@ func GetRouteConfigs() routeConfigs {
 		})
 	return routeConfigs
 }
+
+// WITH todays_answer AS (
+// SELECT answers.answer_text
+// FROM answers
+// WHERE answers.answerer_id = :user_id
+// AND answers.question_id = (SELECT * FROM todays_question_id)
+// )
+// SELECT answer_text FROM todays_answer;

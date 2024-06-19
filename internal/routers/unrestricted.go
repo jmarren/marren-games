@@ -1,11 +1,16 @@
 package routers
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
 	"fmt"
+	"io/fs"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
@@ -31,6 +36,40 @@ type NamedParam struct {
 func QueryTestHandler(group *echo.Group) {
 	routeConfigs := GetRouteConfigs()
 
+	// get current working directory
+	cwd, _ := os.Getwd()
+	fmt.Println("current directory: ", cwd)
+
+	sqlDir := os.DirFS(cwd + "/internal/sql")
+	fmt.Println("sqlDir: ", sqlDir)
+
+	sqlFiles, err := fs.ReadDir(sqlDir, ".")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(sqlFiles)
+
+	withQueries := make(map[string]string)
+
+	for _, file := range sqlFiles {
+		query := ""
+		reader, err := fs.ReadFile(sqlDir, file.Name())
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("reader: ", reader)
+		bytesReader := bytes.NewReader(reader)
+		scanner := bufio.NewScanner(bytesReader)
+
+		for scanner.Scan() {
+			query += scanner.Text()
+		}
+		queryName := strings.Trim(file.Name(), ".sql")
+		withQueries[queryName] = query
+	}
+
+	fmt.Println("withQueries: ", withQueries)
+
 	for _, routeConfig := range routeConfigs {
 		switch routeConfig.method {
 
@@ -50,15 +89,19 @@ func QueryTestHandler(group *echo.Group) {
 							fmt.Println(errorMessage)
 							return c.String(http.StatusBadRequest, error.Error(errorMessage))
 						}
-						// namedParam := NamedParam{Name: paramConfig.Name, Value: convertedValue}
-						// namedParams = append(namedParams, namedParam)
 						namedParam := sql.Named(paramConfig.Name, convertedValue)
 						params = append(params, namedParam)
 					}
 					fmt.Println(params)
 
+					withQuery := withQueries[routeConfig.WithQuery]
+
+					query := withQuery + " " + routeConfig.query
+
+					fmt.Println(query)
+
 					// Perform Query
-					outputRows, err := db.Sqlite.Query(routeConfig.query, params...)
+					outputRows, err := db.Sqlite.Query(query, params...)
 					if err != nil {
 						fmt.Println(err)
 						return err
