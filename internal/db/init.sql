@@ -45,4 +45,22 @@ CREATE VIEW IF NOT EXISTS todays_question_id AS
     WHERE DATE(questions.date_created) = DATE('now');
 
 
+CREATE VIEW IF NOT EXISTS todays_answers AS
+    SELECT answers.answer_text, users.id AS answerer_id, users.username AS answerer_username, questions.id AS question_id
+    FROM answers
+    JOIN users
+      ON users.id = answers.answerer_id
+    JOIN questions
+      ON question_id = answers.question_id
+    WHERE DATE(answers.date_created) = DATE('now')
+    AND DATE(questions.date_created) = DATE('now');
 
+
+
+CREATE VIEW IF NOT EXISTS todays_question AS
+    SELECT questions.question_text, users.username AS asker_username, questions.id AS question_id
+    FROM questions
+    JOIN users
+      ON users.id = questions.asker_id
+    WHERE DATE(questions.date_created) = DATE('now')
+    LIMIT  1;

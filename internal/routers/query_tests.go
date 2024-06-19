@@ -1,7 +1,9 @@
 ////////////
-////////////  This file is used for testing various queries on the sqlite3/libsql database
+////////////  This file is used for testing various queries on the sqlite3/libsql database.
 ////////////  The routeConfig slice is looped over in ./unrestricted.go in order to
 ////////////  declare a route for each item in the slice.
+////////////
+////////////  All routes are served at /query{routeConfig.path}
 ////////////
 ////////////  The query for each routeConfig is executed and the data is returned.
 ////////////  The withQuery contains the name of a file in ../sql (or /internal/sql) directory
@@ -79,7 +81,7 @@ func GetRouteConfigs() routeConfigs {
 			{
 				path:        "/todays-question",
 				method:      "GET",
-				query:       `SELECT question_text, questions.id FROM questions WHERE DATE(CURRENT_TIMESTAMP) = DATE(questions.date_created);`,
+				query:       `SELECT * FROM todays_question;`,
 				queryParams: []ParamConfig{},
 			},
 			{
@@ -140,30 +142,10 @@ func GetRouteConfigs() routeConfigs {
 				},
 			},
 			{
-				path:   "/profile",
+				path:   "/todays-answers",
 				method: "GET",
-				query: `SELECT
-                  users.username, questions.asker_id, questions.question_text, answers.answer_text, votes.question_id
-                FROM
-                  users
-                WHERE
-                  username = ?
-                JOIN
-                  questions
-                    ON
-                       DATE(questions.date_created) = DATE(CURRENT_TIMESTAMP)
-                JOIN
-                  answers
-                    ON
-                      questions.id = answers.question_id
-                JOIN
-                  votes
-                    ON
-                      votes.voter_id = users.id
-                VALUES (?)`,
-				queryParams: []ParamConfig{
-					{Name: "username", Type: reflect.String},
-				},
+				query: `SELECT *
+                FROM todays_answers;`,
 			},
 		})
 	return routeConfigs
