@@ -64,3 +64,16 @@ CREATE VIEW IF NOT EXISTS todays_question AS
       ON users.id = questions.asker_id
     WHERE DATE(questions.date_created) = DATE('now')
     LIMIT  1;
+
+
+CREATE VIEW IF NOT EXISTS todays_game AS
+    SELECT todays_question.question_text,
+           todays_question.asker_username,
+            GROUP_CONCAT('{"answerer_username":' ||  todays_answers.answerer_username ||
+              '", "answer_text":"' ||  todays_answers.answer_text ||  '}') AS answers
+          FROM todays_question
+          JOIN todays_answers
+            ON todays_answers.question_id = todays_question.question_id;
+
+
+
