@@ -26,11 +26,6 @@ type routeConfig struct {
 	queryParams []ParamConfig
 }
 
-type ParamConfig struct {
-	Name string
-	Type reflect.Kind
-}
-
 type routeConfigs []*routeConfig
 
 func CreateNewRouteConfigs(r []routeConfig) routeConfigs {

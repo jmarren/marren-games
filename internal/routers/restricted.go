@@ -1,10 +1,15 @@
 package routers
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
 	"fmt"
+	"io/fs"
 	"net/http"
 	_ "net/http"
+	"os"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
@@ -77,6 +82,53 @@ func RestrictedRoutes(r *echo.Group) {
 		}
 	}
 }
+
+type withQueries struct {
+  queries *map[string]string
+}
+
+func GetWithQuery(fileName string) withQueries {
+	// get current working directory
+	cwd, _ := os.Getwd()
+	fmt.Println("current directory: ", cwd)
+
+	sqlDir := os.DirFS(cwd + "/internal/sql")
+	fmt.Println("sqlDir: ", sqlDir)
+
+	sqlFiles, err := fs.ReadDir(sqlDir, ".")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(sqlFiles)
+
+	withQueries := make(map[string]string)
+
+	for _, file := range sqlFiles {
+		query := ""
+		reader, err := fs.ReadFile(sqlDir, file.Name())
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("reader: ", reader)
+		bytesReader := bytes.NewReader(reader)
+		scanner := bufio.NewScanner(bytesReader)
+
+		for scanner.Scan() {
+			query += scanner.Text()
+		}
+		queryName := strings.Trim(file.Name(), ".sql")
+		withQueries[queryName] = query
+	}
+
+
+
+}
+
+
+func *
+
+
+
 
 //
 // func GetQueryArgs(q queryParam, c echo.Context) interface{} {

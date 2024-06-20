@@ -10,7 +10,11 @@ import (
 type PageData struct {
 	title    string
 	template controllers.TemplateName
-	data     interface{}
+	data     DataInterface
+}
+
+type DataInterface interface {
+	executeQuery(string)
 }
 
 type RouteMethod string
@@ -93,6 +97,10 @@ type Game struct {
 type ProfileData struct {
 	username   string
 	todaysGame Game
+}
+
+func (p ProfileData) executeQuery(query string) {
+	// db.
 }
 
 func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
