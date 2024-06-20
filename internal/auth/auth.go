@@ -113,10 +113,10 @@ func RegisterUser(username, password, email string) error {
 	return nil
 }
 
-type ClaimsType int
+type ClaimsType string
 
 const (
-	Username ClaimsType = iota
+	Username ClaimsType = "Username"
 )
 
 func GetFromClaims(item ClaimsType, c echo.Context) string {

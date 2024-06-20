@@ -100,7 +100,6 @@ type ProfileData struct {
 }
 
 func (p ProfileData) executeQuery(query string) {
-	// db.
 }
 
 func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
@@ -139,9 +138,9 @@ func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
 				},
 				query: &Query{
 					withQueries: []string{""},
-					mainQuery:   "",
+					mainQuery:   "SELECT * FROM users WHERE username = :Username",
 					claimArgConfigs: []ClaimArgConfig{
-						{claim: auth.Username, Type: reflect.Int},
+						{claim: auth.Username, Type: reflect.String},
 					},
 				},
 			},
