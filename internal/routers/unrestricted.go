@@ -9,6 +9,7 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func UnrestrictedRoutes(group *echo.Group) {
@@ -54,36 +55,29 @@ func QueryTestHandler(group *echo.Group) {
 				})
 
 			// POST Requests
-			/*		case "POST":
-					group.POST(routeConfig.path,
-						func(c echo.Context) error {
-							var params []interface{}
-							for _, paramConfig := range routeConfig.queryParams {
-								paramValue := c.QueryParam(paramConfig.Name)
-								convertedValue, err := ConvertType(paramValue, paramConfig.Type)
-								if err != nil {
-									errorMessage := fmt.Errorf("**** error converting type: %s\n| parameter name: %s\n| parameter value: %s\n| paramConfig.Type: %s ", err, paramConfig.Name, paramValue, paramConfig.Type)
-									fmt.Println(errorMessage)
-									return c.String(http.StatusBadRequest, error.Error(errorMessage))
-								}
-								// namedParam := fmt.Sprintf("$%s=%v", paramConfig.Name, convertedValue)
-								namedParam := sql.Named(paramConfig.Name, convertedValue)
-								params = append(params, namedParam)
-							}
-							fmt.Println(routeConfig.query)
-							fmt.Println(params)
-							var result sql.Result
-							result, err := db.Sqlite.Exec(routeConfig.query, params...)
-							if err != nil {
-								log.Error(err)
-								return c.String(http.StatusInternalServerError, "failed to execute query")
-							}
+		case "POST":
+			group.POST(routeConfig.path,
+				func(c echo.Context) error {
+					params, err := GetParamsFromUrlAndClaims(routeConfig.claimArgConfigs, routeConfig.urlParamArgConfigs, c)
+					if err != nil {
+						return c.String(http.StatusBadRequest, "error getting params")
+					}
+					fmt.Println("params: ", params)
 
-							fmt.Println(result)
+					query := GetFullQuery(routeConfig.query, []string{routeConfig.withQuery})
 
-							return c.String(http.StatusOK, "Record created successfully")
-						})
-			*/
+					fmt.Println(params)
+					result, err := db.ExecTestWithNamedParams(query, params)
+					if err != nil {
+						log.Error(err)
+						return c.String(http.StatusInternalServerError, "failed to execute query")
+					}
+
+					fmt.Println(string(result))
+
+					return c.String(http.StatusOK, "Record created successfully")
+				})
+
 		}
 	}
 }

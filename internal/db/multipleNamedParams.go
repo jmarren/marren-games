@@ -51,7 +51,6 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 
 	fmt.Println("v: ", v)
 
-	// outputSlice := []interface{}{}
 	outputSlice := reflect.MakeSlice(reflect.SliceOf(outputStruct), 0, 32)
 
 	for outputRows.Next() {
@@ -88,18 +87,18 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 	}
 
 	type Int64Value struct {
-		Int64 int
+		Int64 int64
 		Valid bool
 	}
 
-	type Data struct {
+	type Answers struct {
 		Answerer_username StringValue
 		Answerer_id       Int64Value
 		Question_id       Int64Value
 		Answer_text       StringValue
 	}
 
-	var m Data
+	var m Answers
 
 	for {
 		if err := dec.Decode(&m); err == io.EOF {
@@ -128,53 +127,39 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 
 	/*
 
-		for outputRows.Next() {
-			outputArr := reflect.New(outputStructArray).Elem()
+				for outputRows.Next() {
+					outputArr := reflect.New(outputStructArray).Elem()
 
-			fmt.Println("outputArr: ", outputArr)
+					fmt.Println("outputArr: ", outputArr)
 
-			// outputType := reflect.TypeOf(reflect.StructOf(structFields))
-			//
-			// fmt.Println(outputType)
+					// outputType := reflect.TypeOf(reflect.StructOf(structFields))
+					//
+					// fmt.Println(outputType)
 
-			// outputValsStruct := []reflect.TypeOf(outputType){}
-
-			// Create vals and valPtrs to store output
-			colLen := len(cols)
-			vals := make([]interface{}, colLen)
-			valPtrs := make([]interface{}, colLen)
-
-			response := ""
-
-			// Loop through output and store in vals
-			for outputRows.Next() {
-				for i := range cols {
-					valPtrs[i] = &vals[i]
-				}
-				err := outputRows.Scan(valPtrs...)
-				if err != nil {
-					fmt.Println(err)
-					return "Error Scanning output into vals", err
-				}
-				for i, col := range cols {
-					val := vals[i]
-
-					b, ok := val.([]byte)
-					var v interface{}
-					if ok {
-						v = string(b)
-					} else {
-						v = val
-					}
-					fmt.Println(col, v)
-					response = fmt.Sprintf("%v\n %v: %v", response, col, v)
-				}
-				response = fmt.Sprintf("%v\n-----------", response)
-			}
-
-			return response, nil
+					// outputValsStruct := []reflect.TypeOf(outputType){}
+		//
+		//
+		//
+		//
 	*/
 	return "", nil
+}
+
+func ExecTestWithNamedParams(query string, params []sql.NamedArg) (string, error) {
+	var paramsInterface []interface{}
+	for _, param := range params {
+		paramsInterface = append(paramsInterface, param)
+	}
+
+	response, err := Sqlite.Exec(query, paramsInterface...)
+	if err != nil {
+		fmt.Println(err)
+		return "Error Executing Exec Query", err
+	}
+
+	fmt.Println("response: ", response)
+
+	return "Record created successfully", nil
 }
 
 // Capitalize the first letter of a string
