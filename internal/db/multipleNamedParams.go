@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"reflect"
@@ -37,79 +36,36 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 		structFields = append(structFields, reflect.StructField{
 			Name: CapitalizeFirstLetter(col.Name()),
 			Type: col.ScanType(),
-			Tag:  reflect.StructTag(`xml:"` + col.Name() + `"`),
+			Tag:  reflect.StructTag(`xml:"` + CapitalizeFirstLetter(col.Name()) + `"`),
 		})
 	}
+	structFields = append(structFields, reflect.StructField{
+		Name: "XMLName",
+		Type: reflect.TypeOf(xml.Name{}),
+		Tag:  reflect.StructTag(`xml:"answers"`),
+	})
 
-	outputStruct := reflect.StructOf(structFields)
+	fmt.Println("structFields: ", structFields)
 
-	fmt.Println("outputStruct: ", outputStruct)
+	rowSlice := reflect.MakeSlice(reflect.SliceOf(reflect.StructOf(structFields)), 0, 32)
 
-	v := reflect.New(outputStruct).Elem()
-
-	fmt.Println("v: ", v)
-
-	outputSlice := reflect.MakeSlice(reflect.SliceOf(outputStruct), 0, 32)
+	fmt.Println("rowSlice: ", rowSlice)
 
 	for outputRows.Next() {
 		valPtrs := make([]interface{}, len(cols))
-
-		v := reflect.New(outputStruct).Elem()
+		v := reflect.New(rowSlice.Type().Elem()).Elem()
 		for i, col := range cols {
 			valPtrs[i] = v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface()
-			fmt.Println(v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface())
 		}
 		err := outputRows.Scan(valPtrs...)
 		if err != nil {
 			fmt.Println(err)
 			return "Error Scanning output into vals", err
 		}
-		outputSlice = reflect.Append(outputSlice, v)
+		rowSlice = reflect.Append(rowSlice, v)
 	}
 
-	row1 := outputSlice.Index(0).Interface()
-
-	fmt.Println("type of outputSlice: ", outputSlice.Type())
-
-	structFromRowFields := []reflect.StructField{}
-
-	structFromRowField := reflect.StructField{
-		Name: "Root",
-		Type: outputSlice.Type(),
-		Tag:  `xml:"root"`,
-	}
-	//
-	structFromRowFields = append(structFromRowFields, structFromRowField)
-
-	//
-
-	structFromRow := reflect.StructOf(structFromRowFields)
-
-	fmt.Println("structFromRow: ", structFromRow)
-	//
-	// newStruct := reflect.New(structFromRow).Elem()
-	//
-	// fmt.Println("newStruct: ", newStruct)
-
-	fmt.Println("typeof row1: ", reflect.TypeOf(row1))
-
-	xmlOutput, err := xml.Marshal(row1)
-	if err != nil {
-		fmt.Println("Error marshalling into xml: ", err)
-		return "Error Marshalling output into xml", err
-	}
-
-	jsonOutput, err := json.Marshal(row1)
-	if err != nil {
-		fmt.Println(err)
-		return "Error Marshalling output into json", err
-	}
-
-	fmt.Println("jsonOutput: ", string(jsonOutput))
-	fmt.Println("xmlOutput: ", string(xmlOutput))
-
-	// dec := json.NewDecoder(strings.NewReader(jsonOutput))
-
+	fmt.Println("rowSlice: ", rowSlice)
 	type StringValue struct {
 		String  string `json:"string"`
 		isValid bool   `json:"-"`
@@ -121,60 +77,227 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 	}
 
 	type Answers struct {
+		XMLName           xml.Name    `xml:"answers"`
 		Answerer_username StringValue `xml:"answerer_username"`
 		Answerer_id       Int64Value
 		Question_id       Int64Value
 		Answer_text       StringValue
 	}
 
-	var m Answers
-	var xmlAnswers Answers
+	fmt.Println("rowSlice.Index(0): ", rowSlice.Index(0))
 
-	unmarshalErr := json.Unmarshal(jsonOutput, &m)
-	if unmarshalErr != nil {
-		fmt.Println(unmarshalErr)
-		return "Error Unmarshalling output", unmarshalErr
+	var xmlOutputSlice []string
+
+	for i := 0; i < rowSlice.Len(); i++ {
+		fmt.Println("rowSlice.Index(i): ", rowSlice.Index(i))
+		xmlOutput, err := xml.Marshal(rowSlice.Index(i).Interface())
+		if err != nil {
+			fmt.Println("Error marshalling into xml: ", err)
+			return "Error Marshalling output into xml", err
+		}
+		xmlOutputSlice = append(xmlOutputSlice, string(xmlOutput))
 	}
 
-	xmlErr := xml.Unmarshal(xmlOutput, &xmlAnswers)
-	if xmlErr != nil {
-		fmt.Println("xmlErr: ", xmlErr)
-		return "Error Unmarshalling output into xml", xmlErr
-	}
+	fmt.Println("xmlOutputSlice: ", xmlOutputSlice)
+	/*
+		// var xmlAnswers Answers
+		var xmlAnswers []Answers
 
-	// for {
-	// 	if err := dec.Decode(&m); err == io.EOF {
-	// 		fmt.Println(err)
-	// 		break
-	// 	} else if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
+		// var xmlOutput []interface{}
 
-	fmt.Println("**************** m ****************")
-	fmt.Println("------ ", m)
-	fmt.Println("**************** xmlAnswers ****************")
-	fmt.Println("------ ", xmlAnswers)
+		for _, xmlOutput := range xmlOutputSlice {
+			var xmlOut Answers
+			xmlOutputString := string(xmlOutput)
+			fmt.Println("xmlOutputString: ", xmlOutputString)
+			xmlErr := xml.Unmarshal(xmlOutput, &xmlOut)
+			if xmlErr != nil {
+				fmt.Println("xmlErr: ", xmlErr)
+				return "Error Unmarshalling output into xml", xmlErr
+			}
+			xmlAnswers = append(xmlAnswers, xmlOut)
+		}
 
-	fmt.Println("m.Answerer_username:", m.Answerer_username)
+		fmt.Println("xmlAnswers", xmlAnswers)
+	*/
 
-	fmt.Println("typeof m:", reflect.TypeOf(m))
+	return "testing", nil
 
-	// fmt.Println("m.Username.String: ", m.)
+	/*
 
-	// fmt.Println(row1.FieldByName("Answerer_username").Elem())
+		outputStruct := reflect.StructOf(structFields)
 
-	// fmt.Println("outputSlice[1]: ", outputSlice[1])
-	//
-	// fmt.Printf("outputSlice[1]: %v\n", outputSlice[1])
+		fmt.Println("outputStruct: ", outputStruct)
 
-	// for i := 0; i < len(outputArr); i++ {
-	// 	fmt.Println(outputArr[i].answerer_id)
-	// }
+		v := reflect.New(outputStruct).Elem()
 
-	// fmt.Println("outputArr: ", outputArr)
+		fmt.Println("v: ", v)
 
-	return "", nil
+		outputSlice := reflect.MakeSlice(reflect.SliceOf(outputStruct), 0, 32)
+
+		structFromRowFields := []reflect.StructField{}
+
+		structFromRowField := reflect.StructField{
+			Name: "Root",
+			Type: outputSlice.Type(),
+			Tag:  `xml:"root"`,
+		}
+		structFromRowFields = append(structFromRowFields, structFromRowField)
+
+		RootStruct := reflect.StructOf(structFromRowFields) // Returns Type
+
+		RSVal := reflect.ValueOf(&RootStruct) // returns value
+
+		fmt.Println("RSVal: ", RSVal)
+
+		RootStructValue := reflect.ValueOf(RootStruct) // returns value
+
+		fmt.Println("RootStructValue: ", RootStructValue)
+
+		RootStructField := RSVal.Index(1) //
+
+		// RootStructField, ok := RootStruct.FieldByName("Root")
+		// if !ok {
+		// 	fmt.Println("not ok")
+		// }
+
+		fmt.Println("RootStructField: ", RootStructField)
+
+		RootStructFieldPtr := &RootStructField
+
+		fmt.Println("RootStructFieldVal: ", RootStructFieldPtr)
+
+		inner := RootStructValue.Elem().FieldByName("Root")
+
+		fmt.Println("inner: ", inner)
+	*/
+
+	/*
+		for outputRows.Next() {
+			valPtrs := make([]interface{}, len(cols))
+
+			v := reflect.New(outputStruct).Elem()
+			for i, col := range cols {
+				valPtrs[i] = v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface()
+				fmt.Println(v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface())
+			}
+			err := outputRows.Scan(valPtrs...)
+			if err != nil {
+				fmt.Println(err)
+				return "Error Scanning output into vals", err
+			}
+
+			// fmt.Println(field)
+			// inner := append(inner, v)
+			// newSlice = append(RootStructField.Index(0), v)
+
+			// RootStructField = reflect.Append(RootStructFieldPtr, v)
+			// outputSlice = reflect.Append(outputSlice, v)
+		}
+	*/
+	/*
+		fmt.Println("inner: ", inner)
+
+		// RSVal.Set(outputSlice)
+
+		// fmt.Println("type of outputSlice: ", outputSlice.Type())
+		//
+		// RSSlice, ok := RootStruct.FieldByName("Root").Addr()
+		// if !ok {
+		// 	fmt.Println("not ok ?? ")
+		// }
+
+		// RSVal.FieldByName("Root").Elem().Set(reflect.ValueOf(outputSlice))
+
+		// row1 := outputSlice.Index(0).Interface()
+
+		//
+		// fmt.Println("structFromRow: ", structFromRow)
+		//
+		// fmt.Println("typeof row1: ", reflect.TypeOf(row1))
+		//
+		xmlOutput, err := xml.Marshal(RootStruct)
+		if err != nil {
+			fmt.Println("Error marshalling into xml: ", err)
+			return "Error Marshalling output into xml", err
+		}
+
+		jsonOutput, err := json.Marshal(RootStruct)
+		if err != nil {
+			fmt.Println(err)
+			return "Error Marshalling output into json", err
+		}
+
+		fmt.Println("jsonOutput: ", string(jsonOutput))
+		fmt.Println("xmlOutput: ", string(xmlOutput))
+
+		// dec := json.NewDecoder(strings.NewReader(jsonOutput))
+
+		type StringValue struct {
+			String  string `json:"string"`
+			isValid bool   `json:"-"`
+		}
+
+		type Int64Value struct {
+			Int64   int64 `json:"float64"`
+			isValid bool  `json:"-"`
+		}
+
+		type Answers struct {
+			Answerer_username StringValue `xml:"answerer_username"`
+			Answerer_id       Int64Value
+			Question_id       Int64Value
+			Answer_text       StringValue
+		}
+
+		var m Answers
+		var xmlAnswers Answers
+
+		unmarshalErr := json.Unmarshal(jsonOutput, &m)
+		if unmarshalErr != nil {
+			fmt.Println(unmarshalErr)
+			return "Error Unmarshalling output", unmarshalErr
+		}
+
+		xmlErr := xml.Unmarshal(xmlOutput, &xmlAnswers)
+		if xmlErr != nil {
+			fmt.Println("xmlErr: ", xmlErr)
+			return "Error Unmarshalling output into xml", xmlErr
+		}
+
+		// for {
+			// 	if err := dec.Decode(&m); err == io.EOF {
+			// 		fmt.Println(err)
+			// 		break
+			// 	} else if err != nil {
+			// 		log.Fatal(err)
+			// 	}
+			// }
+
+			fmt.Println("**************** m ****************")
+			fmt.Println("------ ", m)
+			fmt.Println("**************** xmlAnswers ****************")
+			fmt.Println("------ ", xmlAnswers)
+
+			fmt.Println("m.Answerer_username:", m.Answerer_username)
+
+			fmt.Println("typeof m:", reflect.TypeOf(m))
+
+			// fmt.Println("m.Username.String: ", m.)
+
+			// fmt.Println(row1.FieldByName("Answerer_username").Elem())
+
+			// fmt.Println("outputSlice[1]: ", outputSlice[1])
+			//
+			// fmt.Printf("outputSlice[1]: %v\n", outputSlice[1])
+
+			// for i := 0; i < len(outputArr); i++ {
+			// 	fmt.Println(outputArr[i].answerer_id)
+			// }
+
+			// fmt.Println("outputArr: ", outputArr)
+
+			return "", nil
+	*/
 }
 
 func ExecTestWithNamedParams(query string, params []sql.NamedArg) (string, error) {
