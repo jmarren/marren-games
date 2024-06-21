@@ -3,11 +3,9 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
-	"io"
-	"log"
 	"reflect"
-	"strings"
 	"unicode"
 )
 
@@ -39,7 +37,7 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 		structFields = append(structFields, reflect.StructField{
 			Name: CapitalizeFirstLetter(col.Name()),
 			Type: col.ScanType(),
-			Tag:  reflect.StructTag(col.Name()),
+			Tag:  reflect.StructTag(`xml:"` + col.Name() + `"`),
 		})
 	}
 
@@ -71,47 +69,98 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 
 	row1 := outputSlice.Index(0).Interface()
 
+	fmt.Println("type of outputSlice: ", outputSlice.Type())
+
+	structFromRowFields := []reflect.StructField{}
+
+	structFromRowField := reflect.StructField{
+		Name: "Root",
+		Type: outputSlice.Type(),
+		Tag:  `xml:"root"`,
+	}
+	//
+	structFromRowFields = append(structFromRowFields, structFromRowField)
+
+	//
+
+	structFromRow := reflect.StructOf(structFromRowFields)
+
+	fmt.Println("structFromRow: ", structFromRow)
+	//
+	// newStruct := reflect.New(structFromRow).Elem()
+	//
+	// fmt.Println("newStruct: ", newStruct)
+
+	fmt.Println("typeof row1: ", reflect.TypeOf(row1))
+
+	xmlOutput, err := xml.Marshal(row1)
+	if err != nil {
+		fmt.Println("Error marshalling into xml: ", err)
+		return "Error Marshalling output into xml", err
+	}
+
 	jsonOutput, err := json.Marshal(row1)
 	if err != nil {
 		fmt.Println(err)
-		return "Error Marshalling output", err
+		return "Error Marshalling output into json", err
 	}
 
 	fmt.Println("jsonOutput: ", string(jsonOutput))
+	fmt.Println("xmlOutput: ", string(xmlOutput))
 
-	dec := json.NewDecoder(strings.NewReader(string(jsonOutput)))
+	// dec := json.NewDecoder(strings.NewReader(jsonOutput))
 
 	type StringValue struct {
-		String string
-		Valid  bool
+		String  string `json:"string"`
+		isValid bool   `json:"-"`
 	}
 
 	type Int64Value struct {
-		Int64 int64
-		Valid bool
+		Int64   int64 `json:"float64"`
+		isValid bool  `json:"-"`
 	}
 
 	type Answers struct {
-		Answerer_username StringValue
+		Answerer_username StringValue `xml:"answerer_username"`
 		Answerer_id       Int64Value
 		Question_id       Int64Value
 		Answer_text       StringValue
 	}
 
 	var m Answers
+	var xmlAnswers Answers
 
-	for {
-		if err := dec.Decode(&m); err == io.EOF {
-			fmt.Println(err)
-			break
-		} else if err != nil {
-			log.Fatal(err)
-		}
+	unmarshalErr := json.Unmarshal(jsonOutput, &m)
+	if unmarshalErr != nil {
+		fmt.Println(unmarshalErr)
+		return "Error Unmarshalling output", unmarshalErr
 	}
 
-	fmt.Println("m -----> \n", m)
+	xmlErr := xml.Unmarshal(xmlOutput, &xmlAnswers)
+	if xmlErr != nil {
+		fmt.Println("xmlErr: ", xmlErr)
+		return "Error Unmarshalling output into xml", xmlErr
+	}
 
-	fmt.Println("m.Answerer_username.String:", m.Answerer_username.String)
+	// for {
+	// 	if err := dec.Decode(&m); err == io.EOF {
+	// 		fmt.Println(err)
+	// 		break
+	// 	} else if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }
+
+	fmt.Println("**************** m ****************")
+	fmt.Println("------ ", m)
+	fmt.Println("**************** xmlAnswers ****************")
+	fmt.Println("------ ", xmlAnswers)
+
+	fmt.Println("m.Answerer_username:", m.Answerer_username)
+
+	fmt.Println("typeof m:", reflect.TypeOf(m))
+
+	// fmt.Println("m.Username.String: ", m.)
 
 	// fmt.Println(row1.FieldByName("Answerer_username").Elem())
 
@@ -125,23 +174,6 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, 
 
 	// fmt.Println("outputArr: ", outputArr)
 
-	/*
-
-				for outputRows.Next() {
-					outputArr := reflect.New(outputStructArray).Elem()
-
-					fmt.Println("outputArr: ", outputArr)
-
-					// outputType := reflect.TypeOf(reflect.StructOf(structFields))
-					//
-					// fmt.Println(outputType)
-
-					// outputValsStruct := []reflect.TypeOf(outputType){}
-		//
-		//
-		//
-		//
-	*/
 	return "", nil
 }
 
