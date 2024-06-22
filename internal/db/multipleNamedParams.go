@@ -2,103 +2,164 @@ package db
 
 import (
 	"database/sql"
-	"encoding/xml"
 	"fmt"
 	"reflect"
 	"unicode"
+	// "github.com/jmarren/marren-games/internal/routers"
 )
 
-func QueryWithMultipleNamedParams(query string, params []sql.NamedArg) (string, error) {
+type RowContainer interface {
+	GetPtrs() []interface{}
+}
+
+func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, createNewSlice func() RowContainer, typ reflect.Type) (string, error) {
 	// Convert Named Params to Interface so they can be passed to Query
 	var paramsInterface []interface{}
 	for _, param := range params {
 		paramsInterface = append(paramsInterface, param)
 	}
 
+	fmt.Println("Query:  ", query)
+
 	// Execute Query
-	outputRows, err := Sqlite.Query(query, paramsInterface...)
+	rows, err := Sqlite.Query(query, paramsInterface...)
 	if err != nil {
 		fmt.Println(err)
 		return "Error Executing Query", err
 	}
 
-	// Get Columns
-	cols, err := outputRows.ColumnTypes()
-	if err != nil {
-		fmt.Println(err)
-		return "Error getting cols from output ", err
-	}
+	fmt.Println("rows: ", rows)
 
-	fmt.Println("cols", cols)
-	structFields := []reflect.StructField{}
+	// results := []interface{}{}
+	//
+	results := []interface{}{}
 
-	for _, col := range cols {
-		structFields = append(structFields, reflect.StructField{
-			Name: CapitalizeFirstLetter(col.Name()),
-			Type: col.ScanType(),
-			Tag:  reflect.StructTag(`xml:"` + CapitalizeFirstLetter(col.Name()) + `"`),
-		})
-	}
-	structFields = append(structFields, reflect.StructField{
-		Name: "XMLName",
-		Type: reflect.TypeOf(xml.Name{}),
-		Tag:  reflect.StructTag(`xml:"answers"`),
-	})
+	fmt.Println("results:", results)
 
-	fmt.Println("structFields: ", structFields)
+	for rows.Next() {
 
-	rowSlice := reflect.MakeSlice(reflect.SliceOf(reflect.StructOf(structFields)), 0, 32)
+		newSlice := createNewSlice()
 
-	fmt.Println("rowSlice: ", rowSlice)
+		slicePtrs := newSlice.GetPtrs()
 
-	for outputRows.Next() {
-		valPtrs := make([]interface{}, len(cols))
-		v := reflect.New(rowSlice.Type().Elem()).Elem()
-		for i, col := range cols {
-			valPtrs[i] = v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface()
-		}
-		err := outputRows.Scan(valPtrs...)
+		fmt.Println("slicePtrs: ", slicePtrs)
+
+		err := rows.Scan(slicePtrs...)
+		fmt.Println("newSlice: ", newSlice)
+
 		if err != nil {
-			fmt.Println(err)
-			return "Error Scanning output into vals", err
+			return "error scanning rows", err
 		}
-		rowSlice = reflect.Append(rowSlice, v)
-	}
-
-	fmt.Println("rowSlice: ", rowSlice)
-	type StringValue struct {
-		String  string `json:"string"`
-		isValid bool   `json:"-"`
-	}
-
-	type Int64Value struct {
-		Int64   int64 `json:"float64"`
-		isValid bool  `json:"-"`
-	}
-
-	type Answers struct {
-		XMLName           xml.Name    `xml:"answers"`
-		Answerer_username StringValue `xml:"answerer_username"`
-		Answerer_id       Int64Value
-		Question_id       Int64Value
-		Answer_text       StringValue
-	}
-
-	fmt.Println("rowSlice.Index(0): ", rowSlice.Index(0))
-
-	var xmlOutputSlice []string
-
-	for i := 0; i < rowSlice.Len(); i++ {
-		fmt.Println("rowSlice.Index(i): ", rowSlice.Index(i))
-		xmlOutput, err := xml.Marshal(rowSlice.Index(i).Interface())
-		if err != nil {
-			fmt.Println("Error marshalling into xml: ", err)
-			return "Error Marshalling output into xml", err
+		// Use reflection to dynamically work with the type
+		resultValue := reflect.ValueOf(newSlice)
+		if resultValue.Type().ConvertibleTo(typ) {
+			concreteType := resultValue.Convert(typ).Interface()
+			fmt.Printf("Concrete data: %+v\n", concreteType)
+		} else {
+			fmt.Println("resultValue.Type(): ", resultValue.Type())
+			fmt.Println("Unexpected type")
 		}
-		xmlOutputSlice = append(xmlOutputSlice, string(xmlOutput))
+
+		results = append(results, newSlice)
 	}
 
-	fmt.Println("xmlOutputSlice: ", xmlOutputSlice)
+	fmt.Println("results: ", results)
+
+	// fmt.Println("results:", results)
+
+	// for _, answer := range results {
+	// 	fmt.Println("AnswerText[i]:", answer.AnswerText)
+	// }
+
+	/*
+
+
+
+	   	// Get Columns
+	   	cols, err := outputRows.ColumnTypes()
+	   	if err != nil {
+	   		fmt.Println(err)
+	   		return "Error getting cols from output ", err
+	   	}
+
+	   	fmt.Println("cols", cols)
+	   	structFields := []reflect.StructField{}
+
+	   	for _, col := range cols {
+	   		structFields = append(structFields, reflect.StructField{
+	   			Name: CapitalizeFirstLetter(col.Name()),
+	   			Type: col.ScanType(),
+	   			Tag:  reflect.StructTag(`xml:"` + CapitalizeFirstLetter(col.Name()) + `"`),
+	   		})
+	   	}
+	   	structFields = append(structFields, reflect.StructField{
+	   		Name: "XMLName",
+	   		Type: reflect.TypeOf(xml.Name{}),
+	   		Tag:  reflect.StructTag(`xml:"answers"`),
+	   	})
+
+	   	fmt.Println("structFields: ", structFields)
+
+	   	rowSlice := reflect.MakeSlice(reflect.SliceOf(reflect.StructOf(structFields)), 0, 32)
+
+	   	fmt.Println("rowSlice: ", rowSlice)
+
+	   	for outputRows.Next() {
+	   		valPtrs := make([]interface{}, len(cols))
+	   		v := reflect.New(rowSlice.Type().Elem()).Elem()
+	   		for i, col := range cols {
+	   			valPtrs[i] = v.FieldByName(CapitalizeFirstLetter(col.Name())).Addr().Interface()
+	   		}
+	   		err := outputRows.Scan(valPtrs...)
+
+	   		if err != nil {
+	   			fmt.Println(err)
+	   			return "Error Scanning output into vals", err
+	   		}
+	   		rowSlice = reflect.Append(rowSlice, v)
+	   	}
+
+	   	fmt.Println("rowSlice: ", rowSlice)
+	   	type StringValue struct {
+	   		String  string `json:"string"`
+	   		isValid bool   `json:"-"`
+	   	}
+
+	   	type Int64Value struct {
+	   		Int64   int64 `json:"float64"`
+	   		isValid bool  `json:"-"`
+	   	}
+
+	   	type Answers struct {
+	   		XMLName           xml.Name    `xml:"row"`
+	   		Answerer_username StringValue `xml:"answerer_username"`
+	   		Answerer_id       Int64Value
+	   		Question_id       Int64Value
+	   		Answer_text       StringValue
+	   	}
+
+	   	fmt.Println("rowSlice.Index(0): ", rowSlice.Index(0))
+
+	   	var xmlOutputSlice []string
+
+	   	for i := 0; i < rowSlice.Len(); i++ {
+	   		fmt.Println("rowSlice.Index(i): ", rowSlice.Index(i))
+	   		xmlOutput, err := xml.Marshal(rowSlice.Index(i).Interface())
+	   		if err != nil {
+	   			fmt.Println("Error marshalling into xml: ", err)
+	   			return "Error Marshalling output into xml", err
+	   		}
+	       strings.ReplaceAll(xmlOutput, "<>", )
+	   		xmlOutputSlice = append(xmlOutputSlice, string(xmlOutput))
+	   	}
+
+	   	fmt.Println("xmlOutputSlice: ", "<row>\n"+strings.Join(xmlOutputSlice, "\n")+"\n</row>")
+
+
+
+	   // here
+	*/
+
 	/*
 		// var xmlAnswers Answers
 		var xmlAnswers []Answers

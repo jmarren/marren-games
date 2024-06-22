@@ -5,6 +5,7 @@ import (
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
+	"github.com/jmarren/marren-games/internal/db"
 )
 
 type PageData struct {
@@ -34,11 +35,13 @@ type Query struct {
 }
 
 type RestrictedRouteConfig struct {
-	path     string
-	method   RouteMethod
-	claims   []auth.ClaimsType
-	pageData *PageData
-	query    *Query
+	path           string
+	method         RouteMethod
+	claims         []auth.ClaimsType
+	pageData       *PageData
+	query          *Query
+	createNewSlice func() db.RowContainer
+	typ            reflect.Type
 }
 
 type UrlParam string
@@ -76,12 +79,12 @@ type Vote struct {
 }
 
 // //// Route Specific Data Structures //////
-type Answer struct {
-	answerText       string
-	answererId       int
-	answererUsername string
-	votes            []Vote
-}
+// type Answer struct {
+// 	answerText       string
+// 	answererId       int
+// 	answererUsername string
+// 	votes            []Vote
+// }
 
 type Question struct {
 	questionText  string
@@ -120,19 +123,19 @@ func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
 								askerId:       0,
 								askerUsername: "",
 							},
-							answers: []Answer{
-								{
-									answerText:       "",
-									answererId:       0,
-									answererUsername: "",
-									votes: []Vote{
-										{
-											voterId:       0,
-											voterUsername: "",
-										},
-									},
-								},
-							},
+							// answers: []Answer{
+							// 	{
+							// 		answerText:       "",
+							// 		answererId:       0,
+							// 		answererUsername: "",
+							// 		votes: []Vote{
+							// 			{
+							// 				voterId:       0,
+							// 				voterUsername: "",
+							// 			},
+							// 		},
+							// 	},
+							// },
 						},
 					},
 				},

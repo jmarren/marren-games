@@ -16,7 +16,12 @@
 
 package routers
 
-import "reflect"
+import (
+	"database/sql"
+	"reflect"
+
+	"github.com/jmarren/marren-games/internal/db"
+)
 
 type routeConfig struct {
 	path               string
@@ -25,6 +30,8 @@ type routeConfig struct {
 	query              string
 	claimArgConfigs    []ClaimArgConfig
 	urlParamArgConfigs []UrlParamArgConfig
+	createNewSlice     func() db.RowContainer
+	typ                reflect.Type
 }
 
 type routeConfigs []*routeConfig
@@ -40,6 +47,43 @@ func CreateNewRouteConfigs(r []routeConfig) routeConfigs {
 func CreateNewRouteConfig() *routeConfig {
 	return &routeConfig{}
 }
+
+type AnswersStruct struct {
+	Answers []Answer
+}
+
+func CreateAnswer() db.RowContainer {
+	return &Answer{
+		AnswerText:       sql.NullString{},
+		AnswererID:       sql.NullInt64{},
+		AnswererUsername: sql.NullString{},
+		QuestionID:       sql.NullInt64{},
+	}
+}
+
+//	func CreateAnswersStruct(size int) *AnswersStruct {
+//		answers := []Answer{}
+//		for i := 0; i < size; i++ {
+//			answers = append(answers, CreateAnswer())
+//		}
+//		return &AnswersStruct{Answers: answers}
+//	}
+// func (a AnswersStruct) GetPtrs() []interface{} {
+// 	return []interface{}{&a.Answers}
+// }
+
+type Answer struct {
+	AnswerText       sql.NullString `xml:"Answer_text"`
+	AnswererID       sql.NullInt64  `xml:"Answerer_id"`
+	AnswererUsername sql.NullString `xml:"Answerer_username"`
+	QuestionID       sql.NullInt64  `xml:"Question_id"`
+}
+
+func (a *Answer) GetPtrs() []interface{} {
+	return []interface{}{&a.AnswerText, &a.AnswererID, &a.AnswererUsername, &a.QuestionID}
+}
+
+// var AnswerSlice []Answer
 
 func GetRouteConfigs() routeConfigs {
 	routeConfigs := CreateNewRouteConfigs(
@@ -116,6 +160,7 @@ func GetRouteConfigs() routeConfigs {
                 FROM answers
                 WHERE question_id = (SELECT * FROM todays_question_id);`,
 				urlParamArgConfigs: []UrlParamArgConfig{},
+				// dataContainer:      &AnswersStruct{},
 			},
 			{
 				path:   "/check-if-todays-question-answered",
@@ -142,6 +187,8 @@ func GetRouteConfigs() routeConfigs {
 				method: "GET",
 				query: `SELECT *
                 FROM todays_answers;`,
+				createNewSlice: CreateAnswer,
+				typ:            reflect.TypeOf(&Answer{}),
 			},
 		})
 	return routeConfigs

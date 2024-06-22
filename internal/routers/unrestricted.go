@@ -46,7 +46,7 @@ func QueryTestHandler(group *echo.Group) {
 
 					query := GetFullQuery(routeConfig.query, []string{routeConfig.withQuery})
 
-					response, err := db.QueryWithMultipleNamedParams(query, params)
+					response, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.createNewSlice, routeConfig.typ)
 					if err != nil {
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
