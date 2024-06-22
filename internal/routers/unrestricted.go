@@ -46,12 +46,25 @@ func QueryTestHandler(group *echo.Group) {
 
 					query := GetFullQuery(routeConfig.query, []string{routeConfig.withQuery})
 
-					response, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.createNewSlice, routeConfig.typ)
+					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.createNewSlice, routeConfig.typ)
 					if err != nil {
+						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
 
-					return c.String(http.StatusOK, response)
+					fmt.Println("results in route:", results)
+
+					// Type assertion for usage
+					if concreteResults, ok := results.([]*Answer); ok {
+						for _, answer := range concreteResults {
+							fmt.Printf("Answer: %+v\n", *answer)
+						}
+					} else {
+						fmt.Println(reflect.TypeOf(results))
+						fmt.Println("Type assertion failed")
+					}
+
+					return c.String(http.StatusOK, " ")
 				})
 
 			// POST Requests
