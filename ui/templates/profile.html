@@ -1,5 +1,14 @@
 {{ define "profile" }}
 <div class="profile-container">
-  <h1 class="jersey-15-regular">{{ .Username }}</h1>
+  {{range .Data}}
+  <li>
+    Answer: {{.AnswerText.String}}<br>
+    Answerer ID: {{.AnswererID.Int64}}<br>
+    Answerer Username: {{.AnswererUsername.String}}<br>
+    Question ID: {{.QuestionID.Int64}}<br>
+  </li>
+  {{else}}
+  <li>No data available.</li>
+  {{end}}
 </div>
 {{ end }}

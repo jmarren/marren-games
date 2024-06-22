@@ -49,6 +49,22 @@ func simplifyAnswer(a *Answer) *SimplifiedAnswer {
 	}
 }
 
+func printStruct(s interface{}) {
+	val := reflect.ValueOf(s)
+	typ := reflect.TypeOf(s)
+
+	if val.Kind() == reflect.Struct {
+		fmt.Printf("Struct type: %s\n", typ)
+		for i := 0; i < val.NumField(); i++ {
+			fieldName := typ.Field(i).Name
+			fieldValue := val.Field(i).Interface()
+			fmt.Printf("%s: %v\n", fieldName, fieldValue)
+		}
+	} else {
+		fmt.Println("Provided value is not a struct")
+	}
+}
+
 func QueryTestHandler(group *echo.Group) {
 	routeConfigs := GetRouteConfigs()
 
@@ -112,8 +128,15 @@ func QueryTestHandler(group *echo.Group) {
 					templateData := TemplateData{
 						Data: concreteDataSlice.Interface(),
 					}
+					//
 
-					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", templateData))
+					for i := 0; i < concreteDataSlice.Len(); i++ {
+						item := concreteDataSlice.Index(i).Interface()
+						printStruct(item)
+					}
+
+					return controllers.RenderTemplate(c, "profile", templateData)
+					// return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", templateData))
 				})
 
 			// POST Requests

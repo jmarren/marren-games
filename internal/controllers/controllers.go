@@ -95,7 +95,7 @@ func InitTemplates() {
 }
 
 // Render full or partial templates based on the HX-Request header
-func renderTemplate(c echo.Context, partialTemplate string, data interface{}) error {
+func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) error {
 	hx := c.Request().Header.Get("HX-Request") != ""
 
 	if hx {
@@ -110,31 +110,35 @@ func renderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 			Data:            data,
 		}
 		fmt.Println(pageData)
-		return c.Render(http.StatusOK, "base", pageData)
+		err := c.Render(http.StatusOK, "base", pageData)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return err
 	}
 }
 
 func IndexHandler(c echo.Context) error {
-	return renderTemplate(c, "index", nil)
+	return RenderTemplate(c, "index", nil)
 }
 
 func SignInHandler(c echo.Context) error {
-	return renderTemplate(c, "sign-in", nil)
+	return RenderTemplate(c, "sign-in", nil)
 }
 
 func CreateAccountHandler(c echo.Context) error {
-	return renderTemplate(c, "create-account", nil)
+	return RenderTemplate(c, "create-account", nil)
 }
 
 func CreateQuestionHandler(c echo.Context) error {
-	return renderTemplate(c, "create-question", nil)
+	return RenderTemplate(c, "create-question", nil)
 }
 
 func CreateAccountSubmitHandler(c echo.Context) error {
 	registrationError := auth.RegisterUser(c.FormValue("username"), c.FormValue("password"), c.FormValue("email"))
 
 	if registrationError == nil {
-		return renderTemplate(c, "create-account-success", CreateAccountSuccessData{
+		return RenderTemplate(c, "create-account-success", CreateAccountSuccessData{
 			Username: c.FormValue("username"),
 		})
 	}
@@ -144,7 +148,7 @@ func CreateAccountSubmitHandler(c echo.Context) error {
 		Error:    registrationError,
 	}
 
-	return renderTemplate(c, "create-account", data)
+	return RenderTemplate(c, "create-account", data)
 }
 
 func LoginHandler(c echo.Context) error {
@@ -192,7 +196,7 @@ func ProfileHandler(c echo.Context) error {
 	fmt.Println("\n----------- Username: ", username, "---------------")
 	fmt.Println("")
 
-	return renderTemplate(c, "profile", data)
+	return RenderTemplate(c, "profile", data)
 }
 
 // func CreateQuestion(c echo.Context) error {
