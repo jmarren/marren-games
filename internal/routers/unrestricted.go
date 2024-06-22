@@ -62,19 +62,22 @@ func QueryTestHandler(group *echo.Group) {
 					}
 					fmt.Println("params: ", params)
 
+					// Combine main query with WithQueries
 					query := GetFullQuery(routeConfig.query, []string{routeConfig.withQuery})
 
+					// Perform Query
 					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.createNewSlice, routeConfig.typ)
 					if err != nil {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
-
 					fmt.Println("results in route:", results)
+
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
+					// var simplifiedAnswers []SimplifiedAnswer
 
-					var simplifiedAnswers []SimplifiedAnswer
+					pageDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.concreteType), 0, 0)
 
 					// Check if the result is a slice
 					if resultsValue.Kind() == reflect.Slice {
@@ -82,36 +85,50 @@ func QueryTestHandler(group *echo.Group) {
 							item := resultsValue.Index(i).Interface()
 							fmt.Printf("Item %d: %+v\n", i, item)
 
-							// dereference the pointer to get the underlying struct
+							// dereference the pointer to get the underlying struct for each slice item
 							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
-
 							fmt.Printf("Item %d: %+\n", i, dereferencedItem)
 
-							// If you want to simplify the struct
-							if answer, ok := dereferencedItem.(Answer); ok {
-								simplified := simplifyAnswer(&answer)
-								simplifiedAnswers = append(simplifiedAnswers, *simplified)
-								fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
+							// var oneAnswer Answer
+
+							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
+
+							if dereferencedItemValue.Type().ConvertibleTo(routeConfig.concreteType) {
+								pageData := reflect.ValueOf(dereferencedItem).Convert(routeConfig.concreteType)
+								fmt.Println("pageData: ", pageData)
+								pageDataSlice = reflect.Append(pageDataSlice, pageData)
+								// oneAnswer = concreteType.Interface().(Answer)
+								// fmt.Println("oneAnswer: ", oneAnswer)
+								// simplified := simplifyAnswer(&oneAnswer)
+								// simplifiedAnswers = append(simplifiedAnswers, *simplified)
+								// fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
 							} else {
 								fmt.Println("Unexpected type")
 							}
+
+							// resultValue := reflect.ValueOf(newSlice)
+							// if resultValue.Type().ConvertibleTo(typ) {
+							//   concreteType := resultValue.Convert(typ)
+							//   results = reflect.Append(results, concreteType)
+							// } else {
+							//   fmt.Println("Unexpected type")
+							// }
+
+							// Simplify the struct
+							// if answer, ok := dereferencedItem.(Answer); ok {
+							// 	simplified := simplifyAnswer(&answer)
+							// 	simplifiedAnswers = append(simplifiedAnswers, *simplified)
+							// 	fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
+							// } else {
+							// 	fmt.Println("Unexpected type")
+							// }
 
 						}
 					} else {
 						fmt.Println("Unexpected result type")
 					}
 
-					// // Type assertion for usage
-					// if concreteResults, ok := results.([]*Answer); ok {
-					// 	for _, answer := range concreteResults {
-					// 		fmt.Printf("Answer: %+v\n", *answer)
-					// 	}
-					// } else {
-					// 	fmt.Println(reflect.TypeOf(results))
-					// 	fmt.Println("Type assertion failed")
-					// }
-
-					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", simplifiedAnswers))
+					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", pageDataSlice))
 				})
 
 			// POST Requests

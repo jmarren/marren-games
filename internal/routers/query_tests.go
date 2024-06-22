@@ -32,6 +32,7 @@ type routeConfig struct {
 	urlParamArgConfigs []UrlParamArgConfig
 	createNewSlice     func() db.RowContainer
 	typ                reflect.Type
+	concreteType       reflect.Type
 }
 
 type routeConfigs []*routeConfig
@@ -178,6 +179,7 @@ func GetRouteConfigs() routeConfigs {
                 FROM todays_answers;`,
 				createNewSlice: CreateAnswer,
 				typ:            reflect.TypeOf(&Answer{}),
+				concreteType:   reflect.TypeOf(Answer{}),
 			},
 		})
 	return routeConfigs
