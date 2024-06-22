@@ -53,16 +53,27 @@ func QueryTestHandler(group *echo.Group) {
 					}
 
 					fmt.Println("results in route:", results)
+					// Dynamically handle the type specified in routeConfig.typ
+					resultsValue := reflect.ValueOf(results)
 
-					// Type assertion for usage
-					if concreteResults, ok := results.([]*Answer); ok {
-						for _, answer := range concreteResults {
-							fmt.Printf("Answer: %+v\n", *answer)
+					// Check if the result is a slice
+					if resultsValue.Kind() == reflect.Slice {
+						for i := 0; i < resultsValue.Len(); i++ {
+							item := resultsValue.Index(i).Interface()
+							fmt.Printf("Item %d: %+v\n", i, item)
 						}
 					} else {
-						fmt.Println(reflect.TypeOf(results))
-						fmt.Println("Type assertion failed")
+						fmt.Println("Unexpected result type")
 					}
+					// // Type assertion for usage
+					// if concreteResults, ok := results.([]*Answer); ok {
+					// 	for _, answer := range concreteResults {
+					// 		fmt.Printf("Answer: %+v\n", *answer)
+					// 	}
+					// } else {
+					// 	fmt.Println(reflect.TypeOf(results))
+					// 	fmt.Println("Type assertion failed")
+					// }
 
 					return c.String(http.StatusOK, " ")
 				})
