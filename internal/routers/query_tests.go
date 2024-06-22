@@ -61,17 +61,6 @@ func CreateAnswer() db.RowContainer {
 	}
 }
 
-//	func CreateAnswersStruct(size int) *AnswersStruct {
-//		answers := []Answer{}
-//		for i := 0; i < size; i++ {
-//			answers = append(answers, CreateAnswer())
-//		}
-//		return &AnswersStruct{Answers: answers}
-//	}
-// func (a AnswersStruct) GetPtrs() []interface{} {
-// 	return []interface{}{&a.Answers}
-// }
-
 type Answer struct {
 	AnswerText       sql.NullString `xml:"Answer_text"`
 	AnswererID       sql.NullInt64  `xml:"Answerer_id"`

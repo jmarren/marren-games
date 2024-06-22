@@ -27,6 +27,24 @@ type NamedParam struct {
 	Value interface{}
 }
 
+// Simplified version of the Answer struct
+type SimplifiedAnswer struct {
+	AnswerText       string
+	AnswererID       int64
+	AnswererUsername string
+	QuestionID       int64
+}
+
+// Function to convert Answer to SimplifiedAnswer
+func simplifyAnswer(a *Answer) *SimplifiedAnswer {
+	return &SimplifiedAnswer{
+		AnswerText:       a.AnswerText.String,
+		AnswererID:       a.AnswererID.Int64,
+		AnswererUsername: a.AnswererUsername.String,
+		QuestionID:       a.QuestionID.Int64,
+	}
+}
+
 func QueryTestHandler(group *echo.Group) {
 	routeConfigs := GetRouteConfigs()
 
@@ -56,15 +74,33 @@ func QueryTestHandler(group *echo.Group) {
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
 
+					var simplifiedAnswers []SimplifiedAnswer
+
 					// Check if the result is a slice
 					if resultsValue.Kind() == reflect.Slice {
 						for i := 0; i < resultsValue.Len(); i++ {
 							item := resultsValue.Index(i).Interface()
 							fmt.Printf("Item %d: %+v\n", i, item)
+
+							// dereference the pointer to get the underlying struct
+							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
+
+							fmt.Printf("Item %d: %+\n", i, dereferencedItem)
+
+							// If you want to simplify the struct
+							if answer, ok := dereferencedItem.(Answer); ok {
+								simplified := simplifyAnswer(&answer)
+								simplifiedAnswers = append(simplifiedAnswers, *simplified)
+								fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
+							} else {
+								fmt.Println("Unexpected type")
+							}
+
 						}
 					} else {
 						fmt.Println("Unexpected result type")
 					}
+
 					// // Type assertion for usage
 					// if concreteResults, ok := results.([]*Answer); ok {
 					// 	for _, answer := range concreteResults {
@@ -75,7 +111,7 @@ func QueryTestHandler(group *echo.Group) {
 					// 	fmt.Println("Type assertion failed")
 					// }
 
-					return c.String(http.StatusOK, " ")
+					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", simplifiedAnswers))
 				})
 
 			// POST Requests
