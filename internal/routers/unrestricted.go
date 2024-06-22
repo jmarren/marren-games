@@ -27,6 +27,10 @@ type NamedParam struct {
 	Value interface{}
 }
 
+type TemplateData struct {
+	Data interface{}
+}
+
 // Simplified version of the Answer struct
 type SimplifiedAnswer struct {
 	AnswerText       string
@@ -75,9 +79,8 @@ func QueryTestHandler(group *echo.Group) {
 
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
-					// var simplifiedAnswers []SimplifiedAnswer
 
-					pageDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.concreteType), 0, 0)
+					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.concreteType), 0, 0)
 
 					// Check if the result is a slice
 					if resultsValue.Kind() == reflect.Slice {
@@ -89,46 +92,28 @@ func QueryTestHandler(group *echo.Group) {
 							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
 							fmt.Printf("Item %d: %+\n", i, dereferencedItem)
 
-							// var oneAnswer Answer
-
+							// Convert the dereferencedItem to the concrete type specified in routeConfig
 							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
 
 							if dereferencedItemValue.Type().ConvertibleTo(routeConfig.concreteType) {
-								pageData := reflect.ValueOf(dereferencedItem).Convert(routeConfig.concreteType)
-								fmt.Println("pageData: ", pageData)
-								pageDataSlice = reflect.Append(pageDataSlice, pageData)
-								// oneAnswer = concreteType.Interface().(Answer)
-								// fmt.Println("oneAnswer: ", oneAnswer)
-								// simplified := simplifyAnswer(&oneAnswer)
-								// simplifiedAnswers = append(simplifiedAnswers, *simplified)
-								// fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
+								concrete := reflect.ValueOf(dereferencedItem).Convert(routeConfig.concreteType)
+								fmt.Println("concrete: ", concrete)
+								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
+
 							} else {
 								fmt.Println("Unexpected type")
 							}
-
-							// resultValue := reflect.ValueOf(newSlice)
-							// if resultValue.Type().ConvertibleTo(typ) {
-							//   concreteType := resultValue.Convert(typ)
-							//   results = reflect.Append(results, concreteType)
-							// } else {
-							//   fmt.Println("Unexpected type")
-							// }
-
-							// Simplify the struct
-							// if answer, ok := dereferencedItem.(Answer); ok {
-							// 	simplified := simplifyAnswer(&answer)
-							// 	simplifiedAnswers = append(simplifiedAnswers, *simplified)
-							// 	fmt.Printf("Simplified Item %d: %+v\n", i, *simplified)
-							// } else {
-							// 	fmt.Println("Unexpected type")
-							// }
-
 						}
 					} else {
 						fmt.Println("Unexpected result type")
 					}
 
-					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", pageDataSlice))
+					// Create a TemplateData struct to pass to the template
+					templateData := TemplateData{
+						Data: concreteDataSlice.Interface(),
+					}
+
+					return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", templateData))
 				})
 
 			// POST Requests
