@@ -11,15 +11,12 @@ type RowContainer interface {
 	GetPtrs() []interface{}
 }
 
-func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, createNewSlice func() RowContainer, typ reflect.Type) (interface{}, string, error) {
+func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, concreteType reflect.Type) (interface{}, string, error) {
 	// Convert Named Params to Interface so they can be passed to Query
 	var paramsInterface []interface{}
 	for _, param := range params {
 		paramsInterface = append(paramsInterface, param)
 	}
-
-	fmt.Println("Query:  ", query)
-
 	// Execute Query
 	rows, err := Sqlite.Query(query, paramsInterface...)
 	if err != nil {
@@ -27,42 +24,38 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, createNew
 		return nil, "Error Executing Query", err
 	}
 
-	fmt.Println("rows: ", rows)
+	structValue := reflect.New(concreteType).Elem()
 
-	// results := []interface{}{}
-	//
-	// results := []interface{}{}
+	// Create a slice to hold pointers
+	// to each field
+	slicePtrs := make([]interface{}, structValue.NumField())
 
-	results := reflect.MakeSlice(reflect.SliceOf(typ), 0, 0)
-	fmt.Println("results:", results)
+	// Create a slice to hold slicePtrs
+	// for each row
+	results := reflect.MakeSlice(reflect.TypeOf(slicePtrs), 0, 0)
 
 	for rows.Next() {
 
-		newSlice := createNewSlice()
+		newStructPtr := reflect.New(concreteType)
 
-		slicePtrs := newSlice.GetPtrs()
+		// Create a slice to hold pointers to each field
+		slicePtrs := make([]interface{}, concreteType.NumField())
 
-		fmt.Println("slicePtrs: ", slicePtrs)
+		// Iterate over the fields and get pointers
+		for i := 0; i < concreteType.NumField(); i++ {
+			field := newStructPtr.Elem().Field(i)
+			slicePtrs[i] = field.Addr().Interface()
+		}
 
+		// Scan the rows into the slicePtrs
 		err := rows.Scan(slicePtrs...)
-		fmt.Println("newSlice: ", newSlice)
-
 		if err != nil {
 			return nil, "error scanning rows", err
 		}
 
-		// Using reflection to append to the results slice
-		resultValue := reflect.ValueOf(newSlice)
-		if resultValue.Type().ConvertibleTo(typ) {
-			concreteType := resultValue.Convert(typ)
-			results = reflect.Append(results, concreteType)
-		} else {
-			fmt.Println("Unexpected type")
-		}
-
+		// Append the newStructPtr to the restuls slice
+		results = reflect.Append(results, newStructPtr)
 	}
-
-	fmt.Println("results: ", results)
 
 	return results.Interface(), "successfully executed query", nil
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
-	"github.com/jmarren/marren-games/internal/db"
 )
 
 type PageData struct {
@@ -35,13 +34,12 @@ type Query struct {
 }
 
 type RestrictedRouteConfig struct {
-	path           string
-	method         RouteMethod
-	claims         []auth.ClaimsType
-	pageData       *PageData
-	query          *Query
-	createNewSlice func() db.RowContainer
-	typ            reflect.Type
+	path     string
+	method   RouteMethod
+	claims   []auth.ClaimsType
+	pageData *PageData
+	query    *Query
+	typ      reflect.Type
 }
 
 type UrlParam string

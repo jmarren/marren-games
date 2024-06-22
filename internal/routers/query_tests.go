@@ -30,9 +30,8 @@ type routeConfig struct {
 	query              string
 	claimArgConfigs    []ClaimArgConfig
 	urlParamArgConfigs []UrlParamArgConfig
-	createNewSlice     func() db.RowContainer
+	partialTemplate    string
 	typ                reflect.Type
-	concreteType       reflect.Type
 }
 
 type routeConfigs []*routeConfig
@@ -177,9 +176,32 @@ func GetRouteConfigs() routeConfigs {
 				method: "GET",
 				query: `SELECT *
                 FROM todays_answers;`,
-				createNewSlice: CreateAnswer,
-				typ:            reflect.TypeOf(&Answer{}),
-				concreteType:   reflect.TypeOf(Answer{}),
+				typ: reflect.TypeOf(&Answer{}),
+			},
+			{
+				path:   "/todays-answers-2",
+				method: "GET",
+				query: `SELECT *
+                FROM todays_answers;`,
+				partialTemplate: "profile",
+				typ: reflect.StructOf([]reflect.StructField{
+					{
+						Name: "WrittenAnswer",
+						Type: reflect.TypeOf(sql.NullString{}),
+					},
+					{
+						Name: "AnswererID",
+						Type: reflect.TypeOf(sql.NullInt64{}),
+					},
+					{
+						Name: "AnswererUsername",
+						Type: reflect.TypeOf(sql.NullString{}),
+					},
+					{
+						Name: "QuestionID",
+						Type: reflect.TypeOf(sql.NullInt64{}),
+					},
+				}),
 			},
 		})
 	return routeConfigs

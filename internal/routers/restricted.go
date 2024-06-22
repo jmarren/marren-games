@@ -58,7 +58,7 @@ func RestrictedRoutes(r *echo.Group) {
 
 					fmt.Println(query)
 
-					queryResult, _, err := db.QueryWithMultipleNamedParams(query, params, config.createNewSlice, config.typ)
+					queryResult, _, err := db.QueryWithMultipleNamedParams(query, params, config.typ)
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error querying database")
 					}

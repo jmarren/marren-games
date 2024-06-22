@@ -86,7 +86,7 @@ func QueryTestHandler(group *echo.Group) {
 					query := GetFullQuery(routeConfig.query, []string{routeConfig.withQuery})
 
 					// Perform Query
-					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.createNewSlice, routeConfig.typ)
+					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
 					if err != nil {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
@@ -96,7 +96,7 @@ func QueryTestHandler(group *echo.Group) {
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
 
-					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.concreteType), 0, 0)
+					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.typ), 0, 0)
 
 					// Check if the result is a slice
 					if resultsValue.Kind() == reflect.Slice {
@@ -111,8 +111,8 @@ func QueryTestHandler(group *echo.Group) {
 							// Convert the dereferencedItem to the concrete type specified in routeConfig
 							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
 
-							if dereferencedItemValue.Type().ConvertibleTo(routeConfig.concreteType) {
-								concrete := reflect.ValueOf(dereferencedItem).Convert(routeConfig.concreteType)
+							if dereferencedItemValue.Type().ConvertibleTo(routeConfig.typ) {
+								concrete := reflect.ValueOf(dereferencedItem).Convert(routeConfig.typ)
 								fmt.Println("concrete: ", concrete)
 								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
 
@@ -135,8 +135,7 @@ func QueryTestHandler(group *echo.Group) {
 						printStruct(item)
 					}
 
-					return controllers.RenderTemplate(c, "profile", templateData)
-					// return c.String(http.StatusOK, fmt.Sprintf("Results: %+v", templateData))
+					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})
 
 			// POST Requests
@@ -166,6 +165,23 @@ func QueryTestHandler(group *echo.Group) {
 		}
 	}
 }
+
+// Function to dynamically create a struct type
+// func createDynamicStructType([]) reflect.Type {
+// 	fields := []reflect.StructField{
+// 		{
+// 			Name: "ID",
+// 			Type: reflect.TypeOf(int(0)),
+// 			Tag:  `json:"id"`,
+// 		},
+// 		{
+// 			Name: "Answer",
+// 			Type: reflect.TypeOf(""),
+// 			Tag:  `json:"answer"`,
+// 		},
+// 	}
+// 	return reflect.StructOf(fields)
+// }
 
 // Utility function to convert query parameter from string to specified type
 func ConvertType(value string, targetType reflect.Kind) (interface{}, error) {
