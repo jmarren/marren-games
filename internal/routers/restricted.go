@@ -47,14 +47,14 @@ func RestrictedRoutes(r *echo.Group) {
 		case GET:
 			r.GET(config.path,
 				func(c echo.Context) error {
-					params, err := GetParamsFromUrlAndClaims(config.query.claimArgConfigs, config.query.urlParamArgConfigs, c)
+					params, err := GetParamsFromUrlAndClaims(config.claimArgConfigs, config.urlParamArgConfigs, c)
 					if err != nil {
 						fmt.Println(err)
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
 					fmt.Println(params)
 
-					query := GetFullQuery(config.query.mainQuery, config.query.withQueries)
+					query := GetFullQuery(config.query, config.withQueries)
 
 					fmt.Println(query)
 

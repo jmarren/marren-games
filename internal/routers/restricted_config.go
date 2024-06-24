@@ -33,14 +33,25 @@ type Query struct {
 	claimArgConfigs    []ClaimArgConfig
 }
 
-type RestrictedRouteConfig struct {
-	path     string
-	method   RouteMethod
-	claims   []auth.ClaimsType
-	pageData *PageData
-	query    *Query
-	typ      interface{}
-}
+// type routeConfig struct {
+// 	path               string
+// 	method             string
+// 	withQuery          string
+// 	query              string
+// 	claimArgConfigs    []ClaimArgConfig
+// 	urlParamArgConfigs []UrlParamArgConfig
+// 	partialTemplate    string
+// 	typ                interface{}
+// }
+
+// type RestrictedRouteConfig struct {
+// 	path     string
+// 	method   RouteMethod
+// 	claims   []auth.ClaimsType
+// 	pageData *PageData
+// 	query    *Query
+// 	typ      interface{}
+// }
 
 type UrlParam string
 
@@ -63,87 +74,28 @@ type UrlParamArgConfig struct {
 	Type     reflect.Kind
 }
 
-func CreateNewRestrictedRouteConfigs(r []RestrictedRouteConfig) []*RestrictedRouteConfig {
-	var configs []*RestrictedRouteConfig
-	for _, config := range r {
-		configs = append(configs, &config)
-	}
-	return configs
-}
-
 type Vote struct {
 	voterId       int
 	voterUsername string
 }
 
-// //// Route Specific Data Structures //////
-// type Answer struct {
-// 	answerText       string
-// 	answererId       int
-// 	answererUsername string
-// 	votes            []Vote
-// }
-//
-// type Question struct {
-// 	questionText  string
-// 	askerId       int
-// 	askerUsername string
-// }
-//
-// type Game struct {
-// 	question Question
-// 	answers  []Answer
-// }
-// //
-// type ProfileData struct {
-// 	username   string
-// 	todaysGame Game
-// }
-//
-// func (p ProfileData) executeQuery(query string) {
-// }
-
-func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
-	return CreateNewRestrictedRouteConfigs(
-		[]RestrictedRouteConfig{
+func GetRestrictedRouteConfigs() []*RouteConfig {
+	return CreateNewRouteConfigs(
+		[]RouteConfig{
 			{
-				path:   "/profile",
-				method: GET,
-				claims: []auth.ClaimsType{auth.Username},
-				pageData: &PageData{
-					title:    "Profile",
-					template: controllers.ProfileTemplate,
-					// data: ProfileData{
-					// 	username: "",
-					// 	todaysGame: Game{
-					// 		question: Question{
-					// 			questionText:  "",
-					// 			askerId:       0,
-					// 			askerUsername: "",
-					// 		},
-					// 		// answers: []Answer{
-					// 		// 	{
-					// 		// 		answerText:       "",
-					// 		// 		answererId:       0,
-					// 		// 		answererUsername: "",
-					// 		// 		votes: []Vote{
-					// 		// 			{
-					// 		// 				voterId:       0,
-					// 		// 				voterUsername: "",
-					// 		// 			},
-					// 		// 		},
-					// 		// 	},
-					// 		// },
-					// 	},
-					// },
-				},
-				query: &Query{
-					withQueries: []string{""},
-					mainQuery:   "SELECT * FROM users WHERE username = :Username",
-					claimArgConfigs: []ClaimArgConfig{
-						{claim: auth.Username, Type: reflect.String},
-					},
-				},
+				path:               "/profile",
+				method:             GET,
+				claimArgConfigs:    []ClaimArgConfig{},
+				urlParamArgConfigs: []UrlParamArgConfig{},
+				withQueries:        []string{},
+				query: `SELECT username, email, date_created
+                FROM users
+                WHERE id = :user_id`,
+				typ: struct {
+					Username    string
+					Email       string
+					DateCreated string
+				}{},
 			},
 		},
 	)
