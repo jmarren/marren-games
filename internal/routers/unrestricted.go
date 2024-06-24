@@ -32,22 +32,22 @@ type TemplateData struct {
 }
 
 // Simplified version of the Answer struct
-type SimplifiedAnswer struct {
-	AnswerText       string
-	AnswererID       int64
-	AnswererUsername string
-	QuestionID       int64
-}
-
-// Function to convert Answer to SimplifiedAnswer
-func simplifyAnswer(a *Answer) *SimplifiedAnswer {
-	return &SimplifiedAnswer{
-		AnswerText:       a.AnswerText.String,
-		AnswererID:       a.AnswererID.Int64,
-		AnswererUsername: a.AnswererUsername.String,
-		QuestionID:       a.QuestionID.Int64,
-	}
-}
+// type SimplifiedAnswer struct {
+// 	AnswerText       string
+// 	AnswererID       int64
+// 	AnswererUsername string
+// 	QuestionID       int64
+// }
+//
+// // Function to convert Answer to SimplifiedAnswer
+// func simplifyAnswer(a *Answer) *SimplifiedAnswer {
+// 	return &SimplifiedAnswer{
+// 		AnswerText:       a.AnswerText.String,
+// 		AnswererID:       a.AnswererID.Int64,
+// 		AnswererUsername: a.AnswererUsername.String,
+// 		QuestionID:       a.QuestionID.Int64,
+// 	}
+// }
 
 func printStruct(s interface{}) {
 	val := reflect.ValueOf(s)
@@ -75,6 +75,7 @@ func QueryTestHandler(group *echo.Group) {
 			group.GET(routeConfig.path,
 
 				func(c echo.Context) error {
+					dataType := reflect.TypeOf(routeConfig.typ)
 					// convert params to the type specified in config
 					params, err := GetParamsFromUrlAndClaims(routeConfig.claimArgConfigs, routeConfig.urlParamArgConfigs, c)
 					if err != nil {
@@ -96,7 +97,7 @@ func QueryTestHandler(group *echo.Group) {
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
 
-					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(routeConfig.typ), 0, 0)
+					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(dataType), 0, 0)
 
 					// Check if the result is a slice
 					if resultsValue.Kind() == reflect.Slice {
@@ -111,8 +112,8 @@ func QueryTestHandler(group *echo.Group) {
 							// Convert the dereferencedItem to the concrete type specified in routeConfig
 							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
 
-							if dereferencedItemValue.Type().ConvertibleTo(routeConfig.typ) {
-								concrete := reflect.ValueOf(dereferencedItem).Convert(routeConfig.typ)
+							if dereferencedItemValue.Type().ConvertibleTo(dataType) {
+								concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
 								fmt.Println("concrete: ", concrete)
 								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
 
@@ -125,17 +126,18 @@ func QueryTestHandler(group *echo.Group) {
 					}
 
 					// Create a TemplateData struct to pass to the template
-					templateData := TemplateData{
-						Data: concreteDataSlice.Interface(),
-					}
+					// templateData := TemplateData{
+					// 	Data: concreteDataSlice.Interface(),
+					// }
 					//
 
 					for i := 0; i < concreteDataSlice.Len(); i++ {
 						item := concreteDataSlice.Index(i).Interface()
 						printStruct(item)
-					}
+					} //
 
-					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
+					return nil
+					// return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})
 
 			// POST Requests

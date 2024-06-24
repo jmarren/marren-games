@@ -39,7 +39,7 @@ type RestrictedRouteConfig struct {
 	claims   []auth.ClaimsType
 	pageData *PageData
 	query    *Query
-	typ      reflect.Type
+	typ      interface{}
 }
 
 type UrlParam string
@@ -83,25 +83,25 @@ type Vote struct {
 // 	answererUsername string
 // 	votes            []Vote
 // }
-
-type Question struct {
-	questionText  string
-	askerId       int
-	askerUsername string
-}
-
-type Game struct {
-	question Question
-	answers  []Answer
-}
-
-type ProfileData struct {
-	username   string
-	todaysGame Game
-}
-
-func (p ProfileData) executeQuery(query string) {
-}
+//
+// type Question struct {
+// 	questionText  string
+// 	askerId       int
+// 	askerUsername string
+// }
+//
+// type Game struct {
+// 	question Question
+// 	answers  []Answer
+// }
+// //
+// type ProfileData struct {
+// 	username   string
+// 	todaysGame Game
+// }
+//
+// func (p ProfileData) executeQuery(query string) {
+// }
 
 func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
 	return CreateNewRestrictedRouteConfigs(
@@ -113,29 +113,29 @@ func GetRestrictedRouteConfigs() []*RestrictedRouteConfig {
 				pageData: &PageData{
 					title:    "Profile",
 					template: controllers.ProfileTemplate,
-					data: ProfileData{
-						username: "",
-						todaysGame: Game{
-							question: Question{
-								questionText:  "",
-								askerId:       0,
-								askerUsername: "",
-							},
-							// answers: []Answer{
-							// 	{
-							// 		answerText:       "",
-							// 		answererId:       0,
-							// 		answererUsername: "",
-							// 		votes: []Vote{
-							// 			{
-							// 				voterId:       0,
-							// 				voterUsername: "",
-							// 			},
-							// 		},
-							// 	},
-							// },
-						},
-					},
+					// data: ProfileData{
+					// 	username: "",
+					// 	todaysGame: Game{
+					// 		question: Question{
+					// 			questionText:  "",
+					// 			askerId:       0,
+					// 			askerUsername: "",
+					// 		},
+					// 		// answers: []Answer{
+					// 		// 	{
+					// 		// 		answerText:       "",
+					// 		// 		answererId:       0,
+					// 		// 		answererUsername: "",
+					// 		// 		votes: []Vote{
+					// 		// 			{
+					// 		// 				voterId:       0,
+					// 		// 				voterUsername: "",
+					// 		// 			},
+					// 		// 		},
+					// 		// 	},
+					// 		// },
+					// 	},
+					// },
 				},
 				query: &Query{
 					withQueries: []string{""},

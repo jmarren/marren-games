@@ -12,6 +12,8 @@
 </head>
 
 <body>
+
+  <script src="/static/js/hello-world.js"></script>
   <h1 class="jersey-15-regular main-header">Marren Games</h1>
   <div id="background"></div>
   <div class="content">
@@ -22,6 +24,7 @@
     <div class="welcome-screen jersey-15-regular" id="welcome-screen">
       <div id="home-container">
 
+        <hello-world></hello-world>
         {{ if eq .PartialTemplate "sign-in" }}
         {{ template "sign-in" .Data}}
         {{ else if eq .PartialTemplate "create-account" }}

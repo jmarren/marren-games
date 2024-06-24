@@ -7,11 +7,53 @@ import (
 	"unicode"
 )
 
-type RowContainer interface {
-	GetPtrs() []interface{}
-}
-
-func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, concreteType reflect.Type) (interface{}, string, error) {
+// // Function to get an array of pointers to each field of a struct
+//
+//	func getFieldPointers(s interface{}) []any {
+//		// Get the reflect.Value of the struct
+//		v := reflect.ValueOf(s)
+//		fmt.Println("v: ", v)
+//		if v.Kind() != reflect.Struct {
+//			panic("expected a struct")
+//		}
+//
+//		// Create a slice to hold the pointers
+//		pointers := reflect.MakeSlice(, len int, cap int)
+//
+//		// Iterate over the fields and get pointers to each field
+//		for i := 0; i < v.NumField(); i++ {
+//			field := v.Field(i)
+//			// Create a new interface{} to hold the pointer
+//			var ptr interface{}
+//			// Set the pointer to the address of the field
+//			reflect.ValueOf(&ptr).Elem().Set(field.Addr())
+//			// Add the pointer to the slice
+//			pointers[i] = &ptr
+//		}
+//
+//		return pointers
+//	}
+//
+// // Function to create a new instance of an anonymous struct type
+//
+//	func createNewStructInstance(data interface{}) interface{} {
+//		// Get the type of the passed-in struct
+//		dataType := reflect.TypeOf(data)
+//
+//		// Ensure the passed-in data is a struct
+//		if dataType.Kind() != reflect.Struct {
+//			fmt.Println("Passed data is not a struct")
+//			return nil
+//		}
+//
+//		// Create a new instance of the struct type
+//		newInstance := reflect.New(dataType).Elem()
+//		fmt.Println("newInstance: ", newInstance)
+//
+//		// Return the new instance as an interface{}
+//		return newInstance.Interface()
+//	}
+func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruct interface{}) (interface{}, string, error) {
 	// Convert Named Params to Interface so they can be passed to Query
 	var paramsInterface []interface{}
 	for _, param := range params {
@@ -24,40 +66,48 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, concreteT
 		return nil, "Error Executing Query", err
 	}
 
-	structValue := reflect.New(concreteType).Elem()
+	fmt.Println("rows: ", rows)
 
-	// Create a slice to hold pointers
-	// to each field
-	slicePtrs := make([]interface{}, structValue.NumField())
+	// Get the type of the passed-in struct
+	dataType := reflect.TypeOf(anonStruct)
+	fmt.Println("dataType: ", dataType)
 
-	// Create a slice to hold slicePtrs
-	// for each row
-	results := reflect.MakeSlice(reflect.TypeOf(slicePtrs), 0, 0)
+	// Ensure the passed in data is a struct
+	if dataType.Kind() != reflect.Struct {
+		fmt.Println("expected struct")
+	}
+
+	// Create a new instance of the struct type
+	structValue := reflect.New(dataType).Elem()
+
+	// Get the number of fields in the struct
+	numFields := structValue.NumField()
+
+	// Create a slice to hold the pointers
+	slicePointers := make([]interface{}, numFields)
+
+	results := reflect.MakeSlice(reflect.TypeOf(slicePointers), 0, 0)
 
 	for rows.Next() {
+		// Create a new instance of the struct type
+		newStructPtr := reflect.New(dataType)
 
-		newStructPtr := reflect.New(concreteType)
+		slicePointers := make([]interface{}, numFields)
 
-		// Create a slice to hold pointers to each field
-		slicePtrs := make([]interface{}, concreteType.NumField())
-
-		// Iterate over the fields and get pointers
-		for i := 0; i < concreteType.NumField(); i++ {
-			field := newStructPtr.Elem().Field(i)
-			slicePtrs[i] = field.Addr().Interface()
+		for i := 0; i < numFields; i++ {
+			slicePointers[i] = newStructPtr.Elem().Field(i).Addr().Interface()
 		}
 
-		// Scan the rows into the slicePtrs
-		err := rows.Scan(slicePtrs...)
+		err := rows.Scan(slicePointers...)
 		if err != nil {
-			return nil, "error scanning rows", err
+			fmt.Println("error scanning rows into struct: ", err)
+			return nil, "Error scanning rows into struct", err
 		}
 
-		// Append the newStructPtr to the restuls slice
 		results = reflect.Append(results, newStructPtr)
 	}
 
-	return results.Interface(), "successfully executed query", nil
+	return results.Interface(), "Record created successfully", nil
 }
 
 func ExecTestWithNamedParams(query string, params []sql.NamedArg) (string, error) {

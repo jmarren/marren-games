@@ -19,8 +19,6 @@ package routers
 import (
 	"database/sql"
 	"reflect"
-
-	"github.com/jmarren/marren-games/internal/db"
 )
 
 type routeConfig struct {
@@ -31,7 +29,7 @@ type routeConfig struct {
 	claimArgConfigs    []ClaimArgConfig
 	urlParamArgConfigs []UrlParamArgConfig
 	partialTemplate    string
-	typ                reflect.Type
+	typ                interface{}
 }
 
 type routeConfigs []*routeConfig
@@ -47,32 +45,6 @@ func CreateNewRouteConfigs(r []routeConfig) routeConfigs {
 func CreateNewRouteConfig() *routeConfig {
 	return &routeConfig{}
 }
-
-type AnswersStruct struct {
-	Answers []Answer
-}
-
-func CreateAnswer() db.RowContainer {
-	return &Answer{
-		AnswerText:       sql.NullString{},
-		AnswererID:       sql.NullInt64{},
-		AnswererUsername: sql.NullString{},
-		QuestionID:       sql.NullInt64{},
-	}
-}
-
-type Answer struct {
-	AnswerText       sql.NullString `xml:"Answer_text"`
-	AnswererID       sql.NullInt64  `xml:"Answerer_id"`
-	AnswererUsername sql.NullString `xml:"Answerer_username"`
-	QuestionID       sql.NullInt64  `xml:"Question_id"`
-}
-
-func (a *Answer) GetPtrs() []interface{} {
-	return []interface{}{&a.AnswerText, &a.AnswererID, &a.AnswererUsername, &a.QuestionID}
-}
-
-// var AnswerSlice []Answer
 
 func GetRouteConfigs() routeConfigs {
 	routeConfigs := CreateNewRouteConfigs(
@@ -149,7 +121,6 @@ func GetRouteConfigs() routeConfigs {
                 FROM answers
                 WHERE question_id = (SELECT * FROM todays_question_id);`,
 				urlParamArgConfigs: []UrlParamArgConfig{},
-				// dataContainer:      &AnswersStruct{},
 			},
 			{
 				path:   "/check-if-todays-question-answered",
@@ -172,36 +143,37 @@ func GetRouteConfigs() routeConfigs {
 				},
 			},
 			{
-				path:   "/todays-answers",
-				method: "GET",
-				query: `SELECT *
-                FROM todays_answers;`,
-				typ: reflect.TypeOf(&Answer{}),
-			},
-			{
 				path:   "/todays-answers-2",
 				method: "GET",
 				query: `SELECT *
                 FROM todays_answers;`,
-				partialTemplate: "profile",
-				typ: reflect.StructOf([]reflect.StructField{
-					{
-						Name: "WrittenAnswer",
-						Type: reflect.TypeOf(sql.NullString{}),
-					},
-					{
-						Name: "AnswererID",
-						Type: reflect.TypeOf(sql.NullInt64{}),
-					},
-					{
-						Name: "AnswererUsername",
-						Type: reflect.TypeOf(sql.NullString{}),
-					},
-					{
-						Name: "QuestionID",
-						Type: reflect.TypeOf(sql.NullInt64{}),
-					},
-				}),
+				withQuery:          "",
+				urlParamArgConfigs: []UrlParamArgConfig{},
+				claimArgConfigs:    []ClaimArgConfig{},
+				partialTemplate:    "profile",
+				typ: struct {
+					AnswerText       sql.NullString
+					AnswererID       sql.NullInt64
+					AnswererUsername sql.NullString
+					QuestionID       sql.NullInt64
+				}{},
+			},
+			{
+				path:   "/all-answers",
+				method: "GET",
+				query: `SELECT *
+                FROM answers;`,
+				withQuery:          "",
+				urlParamArgConfigs: []UrlParamArgConfig{},
+				claimArgConfigs:    []ClaimArgConfig{},
+				partialTemplate:    "profile",
+				typ: struct {
+					AnswerId    sql.NullInt64
+					AnswerText  sql.NullString
+					DateCreated sql.NullString
+					QuestionId  sql.NullInt64
+					AnswererID  sql.NullInt64
+				}{},
 			},
 		})
 	return routeConfigs
