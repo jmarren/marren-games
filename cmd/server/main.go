@@ -48,12 +48,18 @@ func main() {
 	// Initialize Echo
 	e := initEcho()
 
+	queryTest := e.Group("/query")
+
+	routers.QueryTests(queryTest)
 	// ---- Middlewares
 	// e.Use(middleware.Logger())
 	// e.Use(middleware.Recover())
 
 	// ---- Routes
-	//
+
+	// Route for learning about go templates
+	// e.GET("/learn-go-templates", controllers.Render())
+
 	// Unrestricted Routes
 	unrestrictedRoutes := e.Group("")
 	routers.UnrestrictedRoutes(unrestrictedRoutes)

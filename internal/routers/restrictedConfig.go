@@ -26,33 +26,6 @@ const (
 	DELETE RouteMethod = "DELETE"
 )
 
-type Query struct {
-	mainQuery          string
-	withQueries        []string
-	urlParamArgConfigs []UrlParamArgConfig
-	claimArgConfigs    []ClaimArgConfig
-}
-
-// type routeConfig struct {
-// 	path               string
-// 	method             string
-// 	withQuery          string
-// 	query              string
-// 	claimArgConfigs    []ClaimArgConfig
-// 	urlParamArgConfigs []UrlParamArgConfig
-// 	partialTemplate    string
-// 	typ                interface{}
-// }
-
-// type RestrictedRouteConfig struct {
-// 	path     string
-// 	method   RouteMethod
-// 	claims   []auth.ClaimsType
-// 	pageData *PageData
-// 	query    *Query
-// 	typ      interface{}
-// }
-
 type UrlParam string
 
 const (
@@ -83,18 +56,27 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 	return CreateNewRouteConfigs(
 		[]RouteConfig{
 			{
-				path:               "/profile",
-				method:             GET,
-				claimArgConfigs:    []ClaimArgConfig{},
+				path:   "/profile",
+				method: GET,
+				claimArgConfigs: []ClaimArgConfig{
+					{claim: auth.Username, Type: reflect.String},
+				},
 				urlParamArgConfigs: []UrlParamArgConfig{},
 				withQueries:        []string{},
-				query: `SELECT username, email, date_created
+				query: `SELECT username, email,
+                  CASE
+                    WHEN questions.asker_id = users.id  THEN 1
+                    ELSE 0
+                  END AS is_asker
                 FROM users
-                WHERE id = :user_id`,
+                LEFT JOIN questions
+                  ON users.id
+                WHERE users.username = :Username;`,
+				partialTemplate: "profile",
 				typ: struct {
-					Username    string
-					Email       string
-					DateCreated string
+					Username string
+					Email    string
+					IsAsker  int
 				}{},
 			},
 		},

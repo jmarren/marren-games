@@ -26,7 +26,7 @@ func InitDB() error {
 	currentWorkingDir, _ := os.Getwd()
 
 	// Read the init script
-	initScript, err := os.ReadFile(currentWorkingDir + "/internal/db/init.sql")
+	initScript, err := os.ReadFile(currentWorkingDir + "/internal/sql/init.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read init script: %v", err)
 	}

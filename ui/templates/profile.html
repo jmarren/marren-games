@@ -1,16 +1,13 @@
 {{ define "profile" }}
 <div class="profile-container">
-  {{range .Data}}
   <li>
-    AnswerId: {{.AnswerId}}<br>
-    Answerer Id: {{.AnswerText}}<br>
-    Date Created: {{.DateCreated}}<br>
-    Question Id: {{.QuestionId}}<br>
-    AnswererId: {{.AnswererId}}<br>
-
+    Welcome back, {{ .Data.Username }}! <br>
+    Email: {{ .Data.Email }} <br>
+    {{ if eq .Data.IsAsker 1 }}
+    You are today's asker.
+    {{ else }}
+    Answer the question of the day!
+    {{ end }}
   </li>
-  {{else}}
-  <li>No data available.</li>
-  {{end}}
 </div>
 {{ end }}

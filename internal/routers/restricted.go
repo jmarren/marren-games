@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http"
+	"reflect"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
@@ -42,30 +43,78 @@ func RestrictedRoutes(r *echo.Group) {
 
 	RestrictedRouteConfigs := GetRestrictedRouteConfigs()
 
-	for _, config := range RestrictedRouteConfigs {
-		switch config.method {
+	for _, routeConfig := range RestrictedRouteConfigs {
+		switch routeConfig.method {
 		case GET:
-			r.GET(config.path,
+			r.GET(routeConfig.path,
+
 				func(c echo.Context) error {
-					params, err := GetParamsFromUrlAndClaims(config.claimArgConfigs, config.urlParamArgConfigs, c)
+					// convert params to the type specified in config
+					params, err := GetParamsFromUrlAndClaims(routeConfig.claimArgConfigs, routeConfig.urlParamArgConfigs, c)
 					if err != nil {
-						fmt.Println(err)
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
-					fmt.Println(params)
+					fmt.Println("params: ", params)
 
-					query := GetFullQuery(config.query, config.withQueries)
+					// Combine main query with WithQueries
+					query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
 
-					fmt.Println(query)
-
-					queryResult, _, err := db.QueryWithMultipleNamedParams(query, params, config.typ)
+					// Perform Query
+					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
 					if err != nil {
-						return c.String(http.StatusBadRequest, "error querying database")
+						fmt.Println(string)
+						return c.String(http.StatusInternalServerError, "failed to execute query")
+					}
+					fmt.Println("results in route:", results)
+
+					// Dynamically handle the type specified in routeConfig.typ
+					resultsValue := reflect.ValueOf(results)
+
+					dataType := reflect.TypeOf(routeConfig.typ)
+					sliceOfDataType := reflect.SliceOf(dataType)
+					concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
+
+					// Check if the result is a slice
+					// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
+					if resultsValue.Kind() == reflect.Slice {
+						for i := 0; i < resultsValue.Len(); i++ {
+							item := resultsValue.Index(i).Interface()
+
+							// dereference the pointer to get the underlying struct for each slice item
+							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
+
+							// Convert the dereferencedItem to the concrete type specified in routeConfig
+							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
+
+							if dereferencedItemValue.Type().ConvertibleTo(dataType) {
+								concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
+								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
+
+							} else {
+								fmt.Println("Unexpected type")
+							}
+						}
+					} else {
+						fmt.Println("Unexpected result type")
 					}
 
-					fmt.Println(queryResult)
+					// Simplify the results from sql generics to primitive types
+					simplifiedFields := GetSimplifiedFields(dataType)
+					simplifiedStructType := reflect.StructOf(simplifiedFields)
+					sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
+					simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
 
-					return c.String(http.StatusOK, "still building")
+					for i := 0; i < concreteDataSlice.Len(); i++ {
+						simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
+						simplifiedResults = reflect.Append(simplifiedResults, reflect.ValueOf(simplifiedResult))
+					}
+					fmt.Println("simplifiedResults: ", simplifiedResults)
+
+					// Create a TemplateData struct to pass to the template
+					templateData := TemplateData{
+						Data: concreteDataSlice.Interface(),
+					}
+					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})
 		}
 	}

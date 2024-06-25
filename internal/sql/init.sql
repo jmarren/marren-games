@@ -45,11 +45,15 @@ CREATE VIEW IF NOT EXISTS todays_question_id AS
     WHERE DATE(questions.date_created) = DATE('now');
 
 
-CREATE VIEW IF NOT EXISTS todays_answers AS
-    SELECT answers.answer_text, users.id AS answerer_id, users.username AS answerer_username, questions.id AS question_id
+ CREATE VIEW IF NOT EXISTS todays_answers AS
+    SELECT  answers.answer_text,
+            answers.id AS answer_id,
+            users.id AS answerer_id,
+            users.username AS answerer_username,
+            questions.id AS question_id
     FROM answers
     JOIN users
-      ON users.id = answers.answerer_id
+      ON users.id = answer_id
     JOIN questions
       ON question_id = answers.question_id
     WHERE DATE(answers.date_created) = DATE('now')
@@ -76,4 +80,19 @@ CREATE VIEW IF NOT EXISTS todays_game AS
             ON todays_answers.question_id = todays_question.question_id;
 
 
+
+  CREATE VIEW IF NOT EXISTS answers_by_votes AS
+    SELECT
+      answers.answer_text,
+      answers.id,
+      users.username AS answerer_username,
+      COUNT(votes.id) as total_votes
+    FROM answers
+    JOIN users
+      ON users.id = answers.answerer_id
+    JOIN votes
+      ON votes.answer_id = answers.id
+    WHERE  DATE(answers.date_created) = DATE('now')
+    GROUP BY answers.id
+    ORDER BY total_votes;
 

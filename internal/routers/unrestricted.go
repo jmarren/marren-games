@@ -17,8 +17,8 @@ func UnrestrictedRoutes(group *echo.Group) {
 	group.GET("/create-account", controllers.CreateAccountHandler)
 	group.POST("/login", controllers.LoginHandler)
 	group.POST("/create-account-submit", controllers.CreateAccountSubmitHandler)
-	queryTest := group.Group("/query")
-	QueryTestHandler(queryTest)
+	unrestricted := group.Group("/unrestricted")
+	QueryTestHandler(unrestricted)
 }
 
 type NamedParam struct {
@@ -62,9 +62,11 @@ func QueryTestHandler(group *echo.Group) {
 					resultsValue := reflect.ValueOf(results)
 
 					dataType := reflect.TypeOf(routeConfig.typ)
-					concreteDataSlice := reflect.MakeSlice(reflect.SliceOf(dataType), 0, 0)
+					sliceOfDataType := reflect.SliceOf(dataType)
+					concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
 
 					// Check if the result is a slice
+					// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
 					if resultsValue.Kind() == reflect.Slice {
 						for i := 0; i < resultsValue.Len(); i++ {
 							item := resultsValue.Index(i).Interface()
@@ -77,7 +79,6 @@ func QueryTestHandler(group *echo.Group) {
 
 							if dereferencedItemValue.Type().ConvertibleTo(dataType) {
 								concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
-								fmt.Println("concrete: ", concrete)
 								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
 
 							} else {
@@ -88,8 +89,11 @@ func QueryTestHandler(group *echo.Group) {
 						fmt.Println("Unexpected result type")
 					}
 
-					simplifiedType := reflect.StructOf(GetSimplifiedFields(dataType))
-					simplifiedResults := reflect.MakeSlice(reflect.SliceOf(simplifiedType), 0, 0)
+					// Simplify the results from sql generics to primitive types
+					simplifiedFields := GetSimplifiedFields(dataType)
+					simplifiedStructType := reflect.StructOf(simplifiedFields)
+					sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
+					simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
 
 					for i := 0; i < concreteDataSlice.Len(); i++ {
 						simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
