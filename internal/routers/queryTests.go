@@ -56,7 +56,11 @@ var QueryConfigs = []QueryConfig{
             ) AS todays_question_text,
             (
               SELECT GROUP_CONCAT(
-    '{' || 'username: ' || abv.answerer_username || ', answer: ' || abv.answer_text || ',  votes: ' || abv.total_votes) || '}'
+              '{' ||
+                    'username: ' || abv.answerer_username ||
+                    ', answer: ' || abv.answer_text ||
+                    ', votes: ' || abv.total_votes
+              || '}', ',')
                 FROM answers_by_votes abv
             ) AS answers
             FROM users

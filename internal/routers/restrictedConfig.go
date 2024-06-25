@@ -63,15 +63,46 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 				},
 				urlParamArgConfigs: []UrlParamArgConfig{},
 				withQueries:        []string{},
-				query: `SELECT username, email,
-                  CASE
-                    WHEN questions.asker_id = users.id  THEN 1
-                    ELSE 0
-                  END AS is_asker
-                FROM users
-                LEFT JOIN questions
-                  ON users.id
-                WHERE users.username = :Username;`,
+				query: `
+          SELECT users.username, users.email,
+            CASE
+                WHEN users.id = (
+                    SELECT questions.asker_id
+                    FROM questions
+                    WHERE DATE(questions.date_created) = DATE('now')
+                  ) THEN 1
+                ELSE 0
+            END AS is_asker,
+            CASE
+                WHEN (SELECT answers.answer_text
+                  FROM answers
+                  WHERE answers.answerer_id = users.id
+                  AND answers.question_id = (
+                    SELECT questions.id
+                    FROM questions
+                    WHERE DATE(questions.date_created) = DATE('now')
+                  )
+                ) IS NOT NULL THEN 1
+            ELSE 0
+            END AS answered_today,
+            (
+              SELECT q.question_text
+              FROM questions q
+              WHERE DATE(q.date_created) = DATE('now')
+              LIMIT 1
+            ) AS todays_question_text,
+            (
+              SELECT GROUP_CONCAT(
+              '{' ||
+                    'username: ' || abv.answerer_username ||
+                    ', answer: ' || abv.answer_text ||
+                    ', votes: ' || abv.total_votes
+              || '}', ',')
+                FROM answers_by_votes abv
+            ) AS answers
+            FROM users
+            WHERE users.username = :Username;
+        `,
 				partialTemplate: "profile",
 				typ: struct {
 					Username string
