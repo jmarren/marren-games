@@ -51,60 +51,31 @@ func QueryTestHandler(group *echo.Group) {
 					query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
 
 					// Perform Query
-					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
+					results, string, err := db.DynamicQuery(query, params, routeConfig.typ)
 					if err != nil {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
-					fmt.Println("results in route:", results)
+					fmt.Printf("\n\nresults in route!: %v", results)
+					fmt.Println()
 
-					// Dynamically handle the type specified in routeConfig.typ
-					resultsValue := reflect.ValueOf(results)
+					fmt.Printf("\nresults: %v\nresults.Type(): %v\n", results, results.Type())
 
-					dataType := reflect.TypeOf(routeConfig.typ)
-					sliceOfDataType := reflect.SliceOf(dataType)
-					concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
+					fmt.Println()
+					simplifiedFields := GetSimplifiedFields(reflect.TypeOf(routeConfig.typ))
+					fmt.Println("simplifiedFields: ", simplifiedFields)
 
-					// Check if the result is a slice
-					// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
-					if resultsValue.Kind() == reflect.Slice {
-						for i := 0; i < resultsValue.Len(); i++ {
-							item := resultsValue.Index(i).Interface()
+					fmt.Println()
 
-							// dereference the pointer to get the underlying struct for each slice item
-							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
-
-							// Convert the dereferencedItem to the concrete type specified in routeConfig
-							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
-
-							if dereferencedItemValue.Type().ConvertibleTo(dataType) {
-								concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
-								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
-
-							} else {
-								fmt.Println("Unexpected type")
-							}
-						}
-					} else {
-						fmt.Println("Unexpected result type")
-					}
-
-					// Simplify the results from sql generics to primitive types
-					simplifiedFields := GetSimplifiedFields(dataType)
-					simplifiedStructType := reflect.StructOf(simplifiedFields)
-					sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
-					simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
-
-					for i := 0; i < concreteDataSlice.Len(); i++ {
-						simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
-						simplifiedResults = reflect.Append(simplifiedResults, reflect.ValueOf(simplifiedResult))
-					}
-					fmt.Println("simplifiedResults: ", simplifiedResults)
+					fmt.Println()
+					simplified := SimplifySqlResult(results, simplifiedFields)
+					fmt.Println("simplified: \n    ", simplified)
 
 					// Create a TemplateData struct to pass to the template
 					templateData := TemplateData{
-						Data: concreteDataSlice.Interface(),
+						Data: simplified,
 					}
+					// return nil
 					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})
 

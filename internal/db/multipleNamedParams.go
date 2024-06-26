@@ -1,10 +1,12 @@
 package db
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"reflect"
 	"slices"
 	"strings"
@@ -24,15 +26,11 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruc
 		return nil, "Error Executing Query", err
 	}
 
-	fmt.Println("rows: ", rows)
-
 	flattenedStruct, jsonOutputs := flattenAndReturn(anonStruct)
 	numFields := flattenedStruct.NumField()
-	fmt.Println("flattenedStruct.NumField(): ", numFields)
 
 	dataType := flattenedStruct
-	fmt.Println("flattenedStruct: ", reflect.TypeOf(flattenedStruct))
-	fmt.Println("jsonOutputs: ", jsonOutputs)
+
 	// Create a slice to hold the pointers
 	slicePointers := make([]interface{}, numFields)
 
@@ -41,9 +39,6 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruc
 	for rows.Next() {
 		// Create a new instance of the struct type
 		newStructPtr := reflect.New(dataType).Elem()
-		fmt.Println("newStructPtr: ", newStructPtr)
-
-		fmt.Println(newStructPtr.Type())
 
 		slicePointers := make([]interface{}, numFields)
 
@@ -51,42 +46,50 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruc
 			slicePointers[i] = newStructPtr.Field(i).Addr().Interface()
 		}
 
-		fmt.Println("Starting Scan")
-
 		err := rows.Scan(slicePointers...)
 		if err != nil {
 			fmt.Println("error scanning rows into struct: ", err)
 			return nil, "Error scanning rows into struct", err
 		}
 
-		fmt.Println("newStructPtr[i] : ", newStructPtr)
-
 		for _, v := range jsonOutputs {
 			jsonString := newStructPtr.FieldByName(v.Name).FieldByName("String").Interface()
-			fmt.Print("\n\n------------------")
-			fmt.Println("type of jsonString: ", reflect.TypeOf(jsonString))
-			fmt.Print("\n\n------------------")
-			fmt.Println("--------- jsonString: ", reflect.ValueOf(jsonString))
-			fmt.Println("------------ v.Type: ", v.Type)
-			fmt.Print("\n\n")
 
 			// Create a new instance of the slice type
 			container := reflect.New(v.Type).Elem()
-			// containerValue := reflect.New(reflect.StructOf(v.Type)).Elem()
-			// containerSlice := reflect.MakeSlice(reflect.SliceOf(v.Type), 0, 0)
-			// ptr := reflect.PointerTo(containerSlice.Type())
-
-			// fmt.Println("type of containerSlice: ", reflect.TypeOf(containerSlice))
-			// fmt.Println("containerValue (initial): ", containerValue)
 
 			// Since containerValue is already the correct type, assign it directly to concrete
 			concrete := container.Addr().Interface()
-			fmt.Println("concrete (initial): ", concrete)
 
 			jsonAsserted, ok := jsonString.(string)
 			if !ok {
 				panic("not a valid json string")
 			}
+
+			////////////// Pretty Print JSON ////////////////////////
+			// var jsonObj map[string]interface{}
+			err := json.Unmarshal([]byte(jsonAsserted), concrete)
+			if err != nil {
+				log.Fatalf("Error unmarshalling JSON: %v", err)
+			}
+
+			// Marshal the JSON object with indentation
+			prettyJSON, err := json.MarshalIndent(concrete, "", "  ")
+			if err != nil {
+				log.Fatalf("Error marshalling JSON: %v", err)
+			}
+
+			// Convert bytes.Buffer to string for logging
+			var prettyString bytes.Buffer
+			err = json.Indent(&prettyString, prettyJSON, "", "  ")
+			if err != nil {
+				log.Fatalf("Error indenting JSON: %v", err)
+			}
+
+			// Log the pretty-printed JSON string
+			log.Println(prettyString.String())
+
+			////////////// End Pretty Print JSON ////////////////////////
 
 			dec := json.NewDecoder(strings.NewReader(jsonAsserted))
 
@@ -94,8 +97,6 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruc
 				fmt.Println(err)
 				panic("Error while decoding json")
 			}
-
-			fmt.Println("container: ", container)
 
 		}
 		results = reflect.Append(results, newStructPtr)
@@ -127,8 +128,6 @@ func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonStruc
 	} else {
 		fmt.Println("Unexpected result type")
 	}
-
-	fmt.Println("concreteDataSlice", concreteDataSlice)
 
 	return results.Interface(), "success", nil
 }
@@ -167,65 +166,6 @@ func CapitalizeFirstLetter(s string) string {
 	return string(runes)
 }
 
-func GetNumFields(s reflect.Value) int {
-	j := s.NumField()
-
-	sqlTypes := []reflect.Type{
-		reflect.TypeOf(sql.Null[any]{}),
-		reflect.TypeOf(sql.NullString{}),
-		reflect.TypeOf(sql.NullByte{}),
-		reflect.TypeOf(sql.NullInt64{}),
-		reflect.TypeOf(sql.NullInt16{}),
-		reflect.TypeOf(sql.NullBool{}),
-		reflect.TypeOf(sql.NullTime{}),
-		reflect.TypeOf(sql.NullInt32{}),
-		reflect.TypeOf(sql.NullFloat64{}),
-	}
-
-	for i := 0; i < j; i++ {
-		current := s.Field(i)
-		if !slices.Contains(sqlTypes, current.Type()) {
-			return j + GetNumFields(current)
-		}
-	}
-	return j
-}
-
-func FillPointersSlice(newStructPtr reflect.Value) []interface{} {
-	// j := s.NumField()
-	// slicePointers := make([]interface{}, numFieldsWithNested)
-
-	slicePointers := []interface{}{}
-
-	sqlTypes := []reflect.Type{
-		reflect.TypeOf(sql.Null[any]{}),
-		reflect.TypeOf(sql.NullString{}),
-		reflect.TypeOf(sql.NullByte{}),
-		reflect.TypeOf(sql.NullInt64{}),
-		reflect.TypeOf(sql.NullInt16{}),
-		reflect.TypeOf(sql.NullBool{}),
-		reflect.TypeOf(sql.NullTime{}),
-		reflect.TypeOf(sql.NullInt32{}),
-		reflect.TypeOf(sql.NullFloat64{}),
-	}
-
-	numFields := newStructPtr.NumField()
-	// numNestedFields := GetNumFields(newStructPtr)
-
-	for i := 0; i < numFields; i++ {
-		fmt.Println("i:", i)
-		if slices.Contains(sqlTypes, newStructPtr.Field(i).Type()) {
-			fmt.Println("is sql type...")
-			slicePointers = append(slicePointers, newStructPtr.Field(i).Addr().Interface())
-		} else {
-			fmt.Println("is not sql type...")
-			slicePointers = append(slicePointers, FillPointersSlice(newStructPtr.Field(i))...)
-		}
-	}
-
-	return slicePointers
-}
-
 // Helper function to check if a field is a SQL type
 func isSQLType(s reflect.Type) bool {
 	sqlTypes := []reflect.Type{
@@ -240,10 +180,7 @@ func isSQLType(s reflect.Type) bool {
 		reflect.TypeOf(sql.NullFloat64{}),
 	}
 
-	if !slices.Contains(sqlTypes, s) {
-		return false
-	}
-	return true
+	return slices.Contains(sqlTypes, s)
 }
 
 type FieldInfo struct {
@@ -254,16 +191,10 @@ type FieldInfo struct {
 func flattenAndReturn(s interface{}) (reflect.Type, []FieldInfo) {
 	v := reflect.ValueOf(s)
 	t := reflect.TypeOf(s)
-	// newStructFields := make([]reflect.StructField, t.NumField())
 	var newStructFields []reflect.StructField
 
 	var jsonFields []FieldInfo
 
-	// for i := 0; i < t.NumField(); i++ {
-	// fmt.Println("t.Field(i).Name: ", t.Field(i).Name)
-	// fmt.Println("reflect.typeof(t.Field(i)): ", reflect.TypeOf(t.Field(i)))
-	// fmt.Println("isSQLType: ", isSQLType(t.Field(i).Type))
-	//
 	for i := 0; i < t.NumField(); i++ {
 		if isSQLType(t.Field(i).Type) {
 			newStructFields = append(newStructFields,
@@ -287,12 +218,30 @@ func flattenAndReturn(s interface{}) (reflect.Type, []FieldInfo) {
 			panic("Error: typ not valid. Can only accept sql type or nested struct (for json)")
 		}
 	}
-	// }
-	fmt.Print("\n\n\n------------------")
-	fmt.Println("newStructFields: ", newStructFields)
-	fmt.Print("\n\n\n------------------")
 	newStructType := reflect.StructOf(newStructFields)
 	return newStructType, jsonFields
 }
 
-// func dereferenceResult(result interface{})
+// func GetNumFields(s reflect.Value) int {
+// 	j := s.NumField()
+//
+// 	sqlTypes := []reflect.Type{
+// 		reflect.TypeOf(sql.Null[any]{}),
+// 		reflect.TypeOf(sql.NullString{}),
+// 		reflect.TypeOf(sql.NullByte{}),
+// 		reflect.TypeOf(sql.NullInt64{}),
+// 		reflect.TypeOf(sql.NullInt16{}),
+// 		reflect.TypeOf(sql.NullBool{}),
+// 		reflect.TypeOf(sql.NullTime{}),
+// 		reflect.TypeOf(sql.NullInt32{}),
+// 		reflect.TypeOf(sql.NullFloat64{}),
+// 	}
+//
+// 	for i := 0; i < j; i++ {
+// 		current := s.Field(i)
+// 		if !slices.Contains(sqlTypes, current.Type()) {
+// 			return j + GetNumFields(current)
+// 		}
+// 	}
+// 	return j
+// }

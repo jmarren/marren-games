@@ -99,16 +99,16 @@ func RestrictedRoutes(r *echo.Group) {
 					}
 
 					// Simplify the results from sql generics to primitive types
-					simplifiedFields := GetSimplifiedFields(dataType)
-					simplifiedStructType := reflect.StructOf(simplifiedFields)
-					sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
-					simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
-
-					for i := 0; i < concreteDataSlice.Len(); i++ {
-						simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
-						simplifiedResults = reflect.Append(simplifiedResults, reflect.ValueOf(simplifiedResult))
-					}
-					fmt.Println("simplifiedResults: ", simplifiedResults)
+					// simplifiedFields := GetSimplifiedFields(dataType)
+					// simplifiedStructType := reflect.StructOf(simplifiedFields)
+					// sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
+					// simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
+					//
+					// for i := 0; i < concreteDataSlice.Len(); i++ {
+					// 	simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
+					// 	simplifiedResults = reflect.Append(simplifiedResults, reflect.ValueOf(simplifiedResult))
+					// }
+					// fmt.Println("simplifiedResults: ", simplifiedResults)
 
 					// Create a TemplateData struct to pass to the template
 					templateData := TemplateData{
