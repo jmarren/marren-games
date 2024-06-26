@@ -55,14 +55,14 @@ var QueryConfigs = []QueryConfig{
               LIMIT 1
             ) AS todays_question_text,
           (
-            SELECT json_array(
+            SELECT json_group_array(
               json_object(
                   'answerer_username', abv.answerer_username,
                   'answer_text', abv.answer_text,
                   'votes', abv.total_votes
                   )
                 )
-              FROM answers_by_votes abv
+                FROM answers_by_votes abv
             ) AS answers
             FROM users
             WHERE users.username = :Username;`,

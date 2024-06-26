@@ -212,12 +212,13 @@ func GetRouteConfigs() RouteConfigs {
             ) AS todays_question_text,
           (
             SELECT
+                json_group_array (
                   json_object(
                       'answerer_username', abv.answerer_username,
                       'answer_text', abv.answer_text,
                       'votes', abv.total_votes
                       )
-                FROM answers_by_votes abv
+                  ) FROM answers_by_votes abv
                 ) AS answers
             FROM users
             WHERE users.username = :Username;
@@ -229,7 +230,7 @@ func GetRouteConfigs() RouteConfigs {
 					IsAsker       sql.NullInt64
 					AnsweredToday sql.NullInt64
 					QuestionText  sql.NullString
-					Answers       struct {
+					Answers       []struct {
 						Username   string `json:"answerer_username"`
 						AnswerText string `json:"answer_text" `
 						Votes      int    `json:"votes"`
