@@ -175,6 +175,67 @@ func GetRouteConfigs() RouteConfigs {
 					AnswererId  sql.NullInt64
 				}{},
 			},
+			{
+				path:   "/profile",
+				method: GET,
+				urlParamArgConfigs: []UrlParamArgConfig{
+					{urlParam: "Username", Type: reflect.String},
+				},
+				withQueries: []string{},
+				query: `
+          SELECT users.username, users.email,
+            CASE
+                WHEN users.id = (
+                    SELECT questions.asker_id
+                    FROM questions
+                    WHERE DATE(questions.date_created) = DATE('now')
+                  ) THEN 1
+                ELSE 0
+            END AS is_asker,
+            CASE
+                WHEN (SELECT answers.answer_text
+                  FROM answers
+                  WHERE answers.answerer_id = users.id
+                  AND answers.question_id = (
+                    SELECT questions.id
+                    FROM questions
+                    WHERE DATE(questions.date_created) = DATE('now')
+                  )
+                ) IS NOT NULL THEN 1
+            ELSE 0
+            END AS answered_today,
+            (
+              SELECT q.question_text
+              FROM questions q
+              WHERE DATE(q.date_created) = DATE('now')
+              LIMIT 1
+            ) AS todays_question_text,
+          (
+            SELECT
+                  json_object(
+                      'answerer_username', abv.answerer_username,
+                      'answer_text', abv.answer_text,
+                      'votes', abv.total_votes
+                      )
+                FROM answers_by_votes abv
+                ) AS answers
+            FROM users
+            WHERE users.username = :Username;
+        `,
+				partialTemplate: "profile",
+				typ: struct {
+					Username      sql.NullString
+					Email         sql.NullString
+					IsAsker       sql.NullInt64
+					AnsweredToday sql.NullInt64
+					QuestionText  sql.NullString
+					Answers       struct {
+						Username   string `json:"answerer_username"`
+						AnswerText string `json:"answer_text" `
+						Votes      int    `json:"votes"`
+					}
+				}{},
+			},
 		})
 	return RouteConfigs
 }

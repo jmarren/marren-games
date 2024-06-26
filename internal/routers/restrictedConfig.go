@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"database/sql"
 	"reflect"
 
 	"github.com/jmarren/marren-games/internal/auth"
@@ -91,13 +92,14 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
               WHERE DATE(q.date_created) = DATE('now')
               LIMIT 1
             ) AS todays_question_text,
-            (
-              SELECT GROUP_CONCAT(
-              '{' ||
-                    'username: ' || abv.answerer_username ||
-                    ', answer: ' || abv.answer_text ||
-                    ', votes: ' || abv.total_votes
-              || '}', ',')
+          (
+            SELECT json_array(
+            json_object(
+                'answerer_username', abv.answerer_username,
+                'answer_text', abv.answer_text,
+                'votes', abv.total_votes
+                )
+              )
                 FROM answers_by_votes abv
             ) AS answers
             FROM users
@@ -105,11 +107,28 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
         `,
 				partialTemplate: "profile",
 				typ: struct {
-					Username string
-					Email    string
-					IsAsker  int
+					Username      sql.NullString
+					Email         sql.NullString
+					IsAsker       sql.NullInt64
+					AnsweredToday sql.NullInt64
+					QuestionText  sql.NullString
+					Answers       struct {
+						Username   sql.NullString
+						AnswerText sql.NullString
+						votes      sql.NullInt64
+					}
 				}{},
 			},
 		},
 	)
 }
+
+// (
+//   SELECT GROUP_CONCAT(
+//   '{' ||
+//         'username: ' || abv.answerer_username ||
+//         ', answer: ' || abv.answer_text ||
+//         ', votes: ' || abv.total_votes
+//   || '}', ',')
+//     FROM answers_by_votes abv
+// ) AS answers
