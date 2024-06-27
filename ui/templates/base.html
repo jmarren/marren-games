@@ -8,38 +8,45 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+  <script src="/static/js/footer-component.js"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 
 <body>
 
   <script src="/static/js/hello-world.js"></script>
-  <h1 class="jersey-15-regular main-header">Marren Games</h1>
-  <div id="background"></div>
-  <div class="content">
-    <div id="yellow-corner-top-left"></div>
-    <div id="yellow-corner-top-right"></div>
-
-
-    <div class="welcome-screen jersey-15-regular" id="welcome-screen">
-      <div id="home-container">
-
-        <hello-world></hello-world>
-        {{ if eq .PartialTemplate "sign-in" }}
-        {{ template "sign-in" .Data}}
-        {{ else if eq .PartialTemplate "create-account" }}
-        {{ template "create-account" .Data }}
-        {{ else if eq .PartialTemplate "create-question"}}
-        {{ template "create-question" .Data}}
-        {{ else if eq .PartialTemplate "profile"}}
-        {{ template "profile" .Data}}
-        {{ else }}
-        {{ template "index"}}
-        {{ end }}
-      </div>
+  <div id="boxes">
+    <div class="box">
+    </div>
+    <div class="box">
+    </div>
+    <div class="box">
+    </div>
+    <div class="box">
+    </div>
+    <div class="box">
+    </div>
+    <div class="box">
+    </div>
+    <div class="box">
     </div>
 
   </div>
+  <div id="path-test"></div>
+  {{ if eq .PartialTemplate "sign-in" }}
+  {{ template "sign-in" .Data}}
+  {{ else if eq .PartialTemplate "create-account" }}
+  {{ template "create-account" .Data }}
+  {{ else if eq .PartialTemplate "create-question"}}
+  {{ template "create-question" .Data}}
+  {{ else if eq .PartialTemplate "profile"}}
+  {{ template "profile" .Data}}
+  {{ else }}
+  {{ template "index"}}
+  {{ end }}
+  <!-- </div> -->
+  <footer-component>
+  </footer-component>
 </body>
 
 </html>

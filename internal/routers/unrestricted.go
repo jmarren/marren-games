@@ -45,7 +45,6 @@ func QueryTestHandler(group *echo.Group) {
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
-					fmt.Println("params: ", params)
 
 					// Combine main query with WithQueries
 					query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
@@ -56,26 +55,15 @@ func QueryTestHandler(group *echo.Group) {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
-					fmt.Printf("\n\nresults in route!: %v", results)
-					fmt.Println()
 
-					fmt.Printf("\nresults: %v\nresults.Type(): %v\n", results, results.Type())
-
-					fmt.Println()
 					simplifiedFields := GetSimplifiedFields(reflect.TypeOf(routeConfig.typ))
-					fmt.Println("simplifiedFields: ", simplifiedFields)
 
-					fmt.Println()
-
-					fmt.Println()
 					simplified := SimplifySqlResult(results, simplifiedFields)
-					fmt.Println("simplified: \n    ", simplified)
 
 					// Create a TemplateData struct to pass to the template
 					templateData := TemplateData{
 						Data: simplified,
 					}
-					// return nil
 					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})
 

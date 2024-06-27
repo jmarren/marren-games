@@ -1,309 +1,85 @@
-.main-header {
-  font-family: 'Roboto', sans-serif;
-  color: black;
-}
-
-#background {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #99f6f7;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -2;
-}
-
-
-.jersey-15-regular {
-  font-family: "Jersey 15", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-
-.content {
+#boxes {
   position: relative;
-  min-height: 500px;
-  height: 98vh;
-  min-width: 500px;
-  width: 96vw;
-  margin-left: 1%;
-  margin-right: 1%;
-  z-index: 1;
-  background-color: #5836ad;
 }
 
-/* Sign in form */
-
-#sign-in-title {
-  font-size: 3em;
-  color: white;
-  text-align: center;
+.box:nth-of-type(1) {
+  --box-index: 1;
+  border-color: yellow transparent transparent yellow;
 }
 
-
-
-#sign-in-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 100px;
-  width: 100%;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+.box:nth-of-type(2) {
+  --box-index: 2;
+  border-color: orange transparent transparent orange;
 }
 
-#sign-in-form {
-  width: 100%;
+.box:nth-of-type(3) {
+  --box-index: 3;
+  border-color: red transparent transparent red;
 }
 
-
-
-#sign-in-container label {
-  color: white;
-  display: block;
-  margin-bottom: 5px;
+.box:nth-of-type(4) {
+  --box-index: 4;
+  border-color: pink transparent transparent pink;
 }
 
-#sign-in-container input[type="text"], #sign-in-container input[type="password"] {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 20px; /* Increase this value to increase the vertical space */
+.box:nth-of-type(5) {
+  --box-index: 5;
+  border-color: purple transparent transparent purple;
 }
 
-#sign-in-container input[type="submit"] {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-  width: 100%; /* Increase this value to make the input boxes wider */
+.box:nth-of-type(6) {
+  --box-index: 6;
+  border-color: blue transparent transparent blue;
+}
+.box:nth-of-type(7) {
+  --box-index: 7;
+  border-color: turquoise transparent transparent turquoise;
 }
 
-#sign-in-container input[type="submit"]:hover {
-  background-color: #45a049;
+.box:nth-of-type(7) {
+  --box-index: 7;
+  border-color: lightblue transparent transparent lightblue;
+}
+.box {
+  position: absolute;
+  width: calc(500px - var(--box-index) * 10px);
+  height: calc(500px - var(--box-index) * 20px);
+  margin-top: calc(5px * var(--box-index));
+  margin-left: calc(4.5px * var(--box-index));
+  border: solid 5px;
+  border-radius: 90%/50% 0 0 0 ;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 25%, 0% 25%);
 }
 
-
-/* Game Play */
-
-#game-play-container {
-  display: flex;
-  font-size: 3em;
-  color: white;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 100px;
-  width: 100%;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#options-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.option-card {
-  text-align: center;
-  margin: 3px;
-  border-radius: 5px;
-  color: orange;
-  padding: 10px 10px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  background-color: white;
-  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-}
-
-.option-card:hover {
-  background-color: #f1f1f1;
-  /* box-shadow: 0 8px 16px 0 gray; */
-}
-
-
-
-/* Create Question */
-
-#create-question-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding-top: 100px;
-  width: 100%;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#create-question-title {
-  margin-bottom: 20px;
-  font-size: 3em;
-  color: white;
-  text-align: center;
-  width: 100%;
-}
-
-#create-question-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-#create-question-container input, form {
-display: block;
-margin: 0 auto;
-}
-
-#create-question-form textarea {
-  border-radius: 5px;
-}
-
-#create-question-form div {
-  margin-bottom: 20px;
-}
-
-#create-question-form label, 
-#create-question-form textarea {
-  vertical-align: top;
-}
-
-
-
-#create-question-container input[type="submit"] {
-  font-size: 1.5em;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-}
-
-#create-question-container input[type="submit"]:hover {
-  background-color: #45a049;
-}
-
-
-/* Create Account */
-
-/* Sign in form */
-
-#create-account-title {
-  font-size: 3em;
-  color: white;
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-
-
-#create-account-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 100px;
-  width: 100%;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* #sign-in-form { */
-/*   width: 100%; */
+/**/
+/* .box:nth-of-type(1) { */
+/*   position: absolute; */
+/*   width: 500px; */
+/*   height: 500px; */
+/*   border: solid 5px; */
+/*   border-color: black transparent transparent black ; */
+/*   border-radius: 90%/50% 0 0 0 ; */
+/*   clip-path: polygon(0% 0%, 100% 0%, 100% 25%, 0% 25%); */
+/* } */
+/**/
+/* .box:nth-of-type(2) { */
+/*   position: absolute; */
+/*   margin-top: 5px; */
+/*   margin-left: 4.5px; */
+/*   width: 490px; */
+/*   height: 480px; */
+/*   border: solid 5px; */
+/*   border-color: green transparent transparent green ; */
+/*   border-radius: 90%/50% 0 0 0 ; */
+/*   clip-path: polygon(0% 0%, 100% 0%, 100% 25%, 0% 25%); */
 /* } */
 
 
-
-#create-account-container label {
-  color: white;
-  display: block;
-  margin-bottom: 5px;
-}
-
-#create-account-container input {
-  box-sizing: border-box;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-bottom: 20px; /* Increase this value to increase the vertical space */
-}
-
-#create-account-container input[type="submit"] {
-  font-size: 1.5em;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-  width: 100%; /* Increase this value to make the input boxes wider */
-}
-
-#create-account-container input[type="submit"]:hover {
-  background-color: #45a049;
-}
+/* #path-test { */
+/*   width: 500px; */
+/*   height: 500px; */
+/*   background-color: blue; */
+/*   clip-path: polygon(0% 0%, 100% 0%, 100% 25%, 0% 25%); */
+/* } */
 
 
-#yellow-corner-top-left {
-  height: 75px;
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  width: 75px;
-  background-color: #f5c542;
-  border-radius: 3px;
-  clip-path: polygon(0 0, 100% 0, 0% 100%);
-}
-
-#yellow-corner-top-right {
-  height: 75px;
-  width: 75px;
-  top: -5px;
-  right: -5px;
-  position: absolute;
-  background-color: #f5c542;
-  border-radius: 3px;
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
-}
-
-#welcome-screen {
-  display: flex;
-  flex-direction: column;
-  color: white;
-  align-items: center;
-  height: 100vh;
-  width: 100vw;
-  background-color: #5836ad;
-}
-
-#welcome-screen button {
-  font-size: 1.5em;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-}
-
-#welcome-screen button:hover {
-  background-color: #45a049;
-}
-
-#home-container {
-  gap: 20px;
-  display: flex;
-  flex-direction: row;
-}

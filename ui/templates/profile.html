@@ -1,13 +1,39 @@
 {{ define "profile" }}
-<div class="profile-container">
-  <li>
+<script src="/static/js/profile-component.js"></script>
+<template id="profile-template">
+  <style>
+    #header {
+      color: blue;
+      text-align: center;
+      font-family: "Jersey 15", sans-serif;
+    }
+  </style>
+  <slot name="header" id="header">ADD HEADER</slot>
+  <slot name="body"> </slot>
+</template>
+<profile-component>
+  <h1 slot="header">Welcome back, {{ .Data.Username }}!</h1>
+  <div>
+    {{ $questionText := .Data.QuestionText}}
     Welcome back, {{ .Data.Username }}! <br>
-    Email: {{ .Data.Email }} <br>
-    {{ if eq .Data.IsAsker 1 }}
+    Email: {{ .Data.Email }} <br><br>
+    {{ if eq .Data.IsAsker 0 }}<br>
     You are today's asker.
-    {{ else }}
-    Answer the question of the day!
+    <br><br>
+
+    Your question is: <br>
+    {{ .Data.QuestionText }} <br><br>
+    Current Answers: <br>
+    {{ if eq .Data.AnsweredToday 1 }}
+    {{ range .Data.Answers}}
+    {{ .Username }}: {{ .AnswerText }} <br>
     {{ end }}
-  </li>
-</div>
+    {{ end }}
+    <br>
+    <br>
+    Answer the question of the day! <br>
+    {{ .Data.QuestionText }}
+    {{ end }}
+  </div>
+</profile-component>
 {{ end }}
