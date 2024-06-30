@@ -12,42 +12,33 @@
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 
-<body>
+<style>
+  div {
+    all: unset;
+  }
 
-  <script src="/static/js/hello-world.js"></script>
-  <div id="boxes">
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-    <div class="box">
-    </div>
-
-  </div>
-  <div id="path-test"></div>
-  {{ if eq .PartialTemplate "sign-in" }}
-  {{ template "sign-in" .Data}}
-  {{ else if eq .PartialTemplate "create-account" }}
-  {{ template "create-account" .Data }}
-  {{ else if eq .PartialTemplate "create-question"}}
-  {{ template "create-question" .Data}}
-  {{ else if eq .PartialTemplate "profile"}}
-  {{ template "profile" .Data}}
-  {{ else }}
-  {{ template "index"}}
-  {{ end }}
-  <!-- </div> -->
-  <footer-component>
-  </footer-component>
-</body>
+  body {
+    margin-top: 25px;
+    background-color: moccasin;
+  }
+</style>
+<script src="/static/js/top-bar.js"></script>
+<script src="/static/js/side-bar.js"></script>
+<top-bar></top-bar>
+<side-bar></side-bar>
+{{ if eq .PartialTemplate "sign-in" }}
+{{ template "sign-in" .Data}}
+{{ else if eq .PartialTemplate "create-account" }}
+{{ template "create-account" .Data }}
+{{ else if eq .PartialTemplate "create-question"}}
+{{ template "create-question" .Data}}
+{{ else if eq .PartialTemplate "profile"}}
+{{ template "profile" .Data}}
+{{ else }}
+<!-- {{ template "index"}} -->
+{{ end }}
+<footer-component>
+</footer-component>
 
 </html>
 

@@ -1,32 +1,42 @@
-class FooterComponent extends HTMLElement {
+
+
+
+class SideBar extends HTMLElement {
   constructor() {
     super();
 
     // Attach a shadow DOM to the element.
     const shadow = this.attachShadow({ mode: 'open' });
+
     const template = document.createElement("template")
 
     template.innerHTML = `
       <style>
-        #footer-element {
-          margin: 0;
-          left: 0;
-          bottom: 0;
-          background-color: skyblue;
-          width: 100%;
-          height: 58.5px;
-          border-top:  4px solid black;
+        #side-bar-container {
           position: fixed;
-        }
-      </style>
-      <div id="footer-container" >
-      <footer id="footer-element">
-      </footer>
-      </div>
+          top: 50px;
+          left: 0;
+          z-index: -1;
+          height: 100%;
+          width: 125px;
+          border-right: 4px solid black;
+          background-color: seagreen;
+      }
+
+      </style> 
+
+        <div id="side-bar-container"> 
+          
+        </div>
 `
+
+
     shadow.appendChild(template.content.cloneNode(true))
+
   }
   connectedCallback() {
+
+
     console.log("Custom element added to page.");
   }
 
@@ -44,4 +54,7 @@ class FooterComponent extends HTMLElement {
 }
 
 
-customElements.define('footer-component', FooterComponent);
+customElements.define('side-bar', SideBar);
+
+
+

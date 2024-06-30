@@ -1,52 +1,76 @@
+
+#rainbow:nth-of-type(1) {
+  position: fixed;
+  bottom: 240px;
+  right: 50vw;
+}
+
+#rainbow:nth-of-type(2) {
+  position: fixed;
+  bottom: 240px;
+  left: 50vw;
+  transform: scaleX(-1);
+}
+
 #boxes {
   position: relative;
 }
 
 .box:nth-of-type(1) {
   --box-index: 1;
+  background-color: yellow;
   border-color: yellow transparent transparent yellow;
 }
 
 .box:nth-of-type(2) {
   --box-index: 2;
+  background-color: orange;
   border-color: orange transparent transparent orange;
 }
 
 .box:nth-of-type(3) {
   --box-index: 3;
+  background-color: red;
   border-color: red transparent transparent red;
 }
 
 .box:nth-of-type(4) {
   --box-index: 4;
+  background-color: pink;
   border-color: pink transparent transparent pink;
 }
 
 .box:nth-of-type(5) {
   --box-index: 5;
+  background-color: purple;
   border-color: purple transparent transparent purple;
 }
 
 .box:nth-of-type(6) {
   --box-index: 6;
+  background-color: blue;
   border-color: blue transparent transparent blue;
-}
-.box:nth-of-type(7) {
-  --box-index: 7;
-  border-color: turquoise transparent transparent turquoise;
 }
 
 .box:nth-of-type(7) {
   --box-index: 7;
+  background-color: turquoise;
+  border-color: turquoise transparent transparent turquoise;
+}
+
+.box:nth-of-type(8) {
+  --box-index: 8;
   border-color: lightblue transparent transparent lightblue;
 }
+
 .box {
-  position: absolute;
-  width: calc(500px - var(--box-index) * 10px);
-  height: calc(500px - var(--box-index) * 20px);
-  margin-top: calc(5px * var(--box-index));
-  margin-left: calc(4.5px * var(--box-index));
-  border: solid 5px;
+  position: fixed;
+  /* width: calc(500px - var(--box-index) * 10px); */
+  width: 100vw;
+  height: calc(1000px - var(--box-index) * 80px);
+  margin-top: calc(20px * var(--box-index));
+  /* margin-left: calc(10px * var(--box-index)); */
+  /* border: solid 5px; */
   border-radius: 90%/50% 0 0 0 ;
   clip-path: polygon(0% 0%, 100% 0%, 100% 25%, 0% 25%);
 }

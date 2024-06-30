@@ -1,39 +1,56 @@
 {{ define "profile" }}
+{{ $questionText := .Data.QuestionText}}
 <script src="/static/js/profile-component.js"></script>
-<template id="profile-template">
-  <style>
-    #header {
-      color: blue;
-      text-align: center;
-      font-family: "Jersey 15", sans-serif;
-    }
-  </style>
-  <slot name="header" id="header">ADD HEADER</slot>
-  <slot name="body"> </slot>
-</template>
-<profile-component>
-  <h1 slot="header">Welcome back, {{ .Data.Username }}!</h1>
-  <div>
-    {{ $questionText := .Data.QuestionText}}
-    Welcome back, {{ .Data.Username }}! <br>
-    Email: {{ .Data.Email }} <br><br>
-    {{ if eq .Data.IsAsker 0 }}<br>
-    You are today's asker.
-    <br><br>
+<script src="/static/js/input-box-component.js"></script>
 
-    Your question is: <br>
-    {{ .Data.QuestionText }} <br><br>
-    Current Answers: <br>
-    {{ if eq .Data.AnsweredToday 1 }}
-    {{ range .Data.Answers}}
-    {{ .Username }}: {{ .AnswerText }} <br>
-    {{ end }}
-    {{ end }}
-    <br>
-    <br>
-    Answer the question of the day! <br>
-    {{ .Data.QuestionText }}
-    {{ end }}
-  </div>
-</profile-component>
+<style>
+  #page-content {
+    padding: 60px;
+  }
+</style>
+
+<div id="page-content">
+
+
+  <profile-component>
+    <div slot="header">
+      {{ .Data.Username }}
+    </div>
+    <div slot="body-1">
+      {{ if eq .Data.IsAsker 0 }}
+      It's your turn to ask a question!
+      {{ end }}
+      <br>
+      {{ if $questionText }}
+      You asked: "{{ $questionText }}"
+      {{ else }}
+      Enter your question below:
+      {{ end}}
+    </div>
+    <!-- <!-- <div> -->
+    <!-- Welcome back, {{ .Data.Username }}! <br> -->
+    <!-- Email: {{ .Data.Email }} <br><br> -->
+    <!-- {{ if eq .Data.IsAsker 0 }}<br> -->
+    <!-- You are today's asker. -->
+    <!-- <br><br> -->
+
+    <!-- <br><br> -->
+    <!-- Current Answers: <br> -->
+    <!-- {{ if eq .Data.AnsweredToday 1 }} -->
+    <!-- {{ range .Data.Answers}} -->
+    <!-- {{ .Username }}: {{ .AnswerText }} <br> -->
+    <!-- {{ end }} -->
+    <!-- {{ end }} -->
+    <!-- <br> -->
+    <!-- <br> -->
+    <!-- Answer the question of the day! <br> -->
+    <!-- {{ .Data.QuestionText }} -->
+    <!-- {{ end }} -->
+    <!-- </div> -->
+    <!-- -->
+  </profile-component>
+  <input-box-component>
+    <textarea slot="input-slot" type="text-area"></textarea>
+  </input-box-component>
+</div>
 {{ end }}
