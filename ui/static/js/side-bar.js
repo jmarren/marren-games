@@ -38,6 +38,10 @@ class SideBar extends HTMLElement {
         font-size: 30px;
         color: cornsilk;
         }
+      .side-bar-item:hover {
+        background-color: darkolivegreen;
+      }
+        
       .side-bar-item:nth-of-type(1) {
         border-top: 2px solid darkseagreen;
       }

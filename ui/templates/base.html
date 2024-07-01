@@ -19,28 +19,40 @@
 
   * {
     cursor: url('/static/public/cursor-1.png'), auto;
+    box-sizing: border-box;
   }
 
   body {
     margin-top: 25px;
     background-color: moccasin;
   }
+
+  main {
+    position: fixed;
+    height: calc(100vh - 100px - 58.5px - 11px);
+    width: calc(100% - 156px);
+    margin-top: 83px;
+    margin-left: 147px;
+    overflow-y: scroll;
+  }
 </style>
 <script src="/static/js/top-bar.js"></script>
 <script src="/static/js/side-bar.js"></script>
 <top-bar></top-bar>
 <side-bar></side-bar>
-{{ if eq .PartialTemplate "sign-in" }}
-{{ template "sign-in" .Data}}
-{{ else if eq .PartialTemplate "create-account" }}
-{{ template "create-account" .Data }}
-{{ else if eq .PartialTemplate "create-question"}}
-{{ template "create-question" .Data}}
-{{ else if eq .PartialTemplate "profile"}}
-{{ template "profile" .Data}}
-{{ else }}
-<!-- {{ template "index"}} -->
-{{ end }}
+<main>
+  {{ if eq .PartialTemplate "sign-in" }}
+  {{ template "sign-in" .Data}}
+  {{ else if eq .PartialTemplate "create-account" }}
+  {{ template "create-account" .Data }}
+  {{ else if eq .PartialTemplate "create-question"}}
+  {{ template "create-question" .Data}}
+  {{ else if eq .PartialTemplate "profile"}}
+  {{ template "profile" .Data}}
+  {{ else }}
+  {{ template "index"}}
+  {{ end }}
+</main>
 <footer-component>
 </footer-component>
 

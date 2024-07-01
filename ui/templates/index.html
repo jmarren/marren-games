@@ -1,7 +1,51 @@
 {{ define "index" }}
-<button class="jersey-15-regular" href="/sign-in" hx-get="/sign-in" hx-push-url="true" hx-swap="outerHTML"
-  hx-target="#welcome-screen">Sign
-  In</button>
-<button class="jersey-15-regular" href="/create-account" hx-get="/create-account" hx-push-url="true" hx-swap="outerHTML"
-  hx-target="#welcome-screen">Create Account</button>
+<script src="/static/js/button-component.js"> </script>
+<style>
+  #header-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1 {
+    color: darkslategray;
+    width: 400px;
+    font-family: Cheto;
+    font-style: bold;
+    text-align: center;
+  }
+
+  #buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+</style>
+<div id="header-container">
+  <h1>
+    Answer one question a day then vote for the best response!
+  </h1>
+  <div id="buttons-container">
+    <button-component>
+      <button slot="button" id="button-element" hx-get="/sign-in" hx-push-url="true" hx-swap="innerhtml"
+        hx-target="main">
+        Create An Account
+      </button>
+    </button-component>
+    <button-component>
+      <button slot="button" id="button-element" hx-get="/sign-in" hx-push-url="true" hx-swap="innerhtml"
+        hx-target="main">
+        Sign In
+      </button>
+    </button-component>
+  </div>
+</div>
+<!-- <button id="sign-in-button" href="/sign-in" hx-get="/sign-in" hx-push-url="true" hx-swap="outerHTML" -->
+<!--   hx-target="#welcome-screen"> -->
+<!--   Sign In -->
+<!-- </button> -->
+<!-- <button class="jersey-15-regular" href="/create-account" hx-get="/create-account" hx-push-url="true" hx-swap="outerHTML" -->
+<!--   hx-target="#welcome-screen">Create Account</button> -->
 {{ end }}

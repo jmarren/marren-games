@@ -36,7 +36,8 @@ class TopBar extends HTMLElement {
       }
 
       #top-container {
-        position: absolute;
+        z-index: 2;
+        position: fixed;
         left: -5px;
         width:100%;
         height: 90px;

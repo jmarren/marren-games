@@ -1,19 +1,76 @@
 {{ define "sign-in" }}
+<script src="/static/js/button-component.js"> </script>
+<style>
+  * {
+    font-family: Aruma;
+  }
+
+  #sign-in-container {
+    color: #0e6080;
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  form {
+    padding: 20px;
+    gap: 15px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    font-size: 30px;
+  }
+
+  input {
+    height: 30px;
+    font-size: 20px;
+    border-radius: 5px;
+    border: 2px solid #0e6080;
+    background-color: antiquewhite;
+  }
+
+  span {
+    font-size: 50px;
+  }
+
+  button-component {
+    flex-grow: 1;
+  }
+
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+</style>
+
 <div id="sign-in-container">
-  <span id="sign-in-title" class="jersey-15-regular">Sign In</span>
+  <span id="sign-in-title" class="jersey-15-regular">
+    Sign In
+  </span>
   <form id="sign-in-form" hx-post="/login" hx-target="#sign-in-container" hx-swap="outerHTML" hx-push-url="true"
     class="jersey-15-regular">
-    <div>
-      <label for="username">Username:{{ .Username}}</label>
+    <div class="item">
+      <label for="username">
+        Username{{ .Username}}
+      </label>
       <input type="text" id="username" name="username" required>
     </div>
-    <div>
-      <label for="password">Password:</label>
+    <div class="item">
+      <label for="password">
+        Password
+      </label>
       <input type="password" id="password" name="password" required>
     </div>
-    <div>
-      <input type="submit" value="Sign In" class="jersey-15-regular">
-    </div>
+    <button-component>
+      <button slot="button" type="submit" value="Sign In">
+        Let's go!
+      </Button>
+    </button-component>
   </form>
 </div>
 {{ end }}
