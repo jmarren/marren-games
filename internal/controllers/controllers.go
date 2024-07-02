@@ -76,6 +76,7 @@ func InitTemplates() {
 		"create-account-success.html",
 		"profile.html",
 		"user-profile.html",
+		"games.html",
 	}
 
 	// Create a base layout template
@@ -182,11 +183,11 @@ func LogoutHandler(c echo.Context) error {
 func ProfileHandler(c echo.Context) error {
 	username := auth.GetFromClaims(auth.Username, c)
 	data := ProfileData{
-		Username:      username,
+		Username:      username.(string),
 		GameCompleted: true,
 	}
 
-	id, err := db.GetUserIdFromUsername(username)
+	id, err := db.GetUserIdFromUsername(username.(string))
 	if err != nil {
 		return err
 	}

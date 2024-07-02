@@ -113,22 +113,32 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 					AnsweredToday sql.NullInt64
 					QuestionText  sql.NullString
 					Answers       struct {
-						Username   sql.NullString
-						AnswerText sql.NullString
-						votes      sql.NullInt64
+						Username   string `json:"answerer_username"`
+						AnswerText string `json:"answer_text" `
+						Votes      int    `json:"votes"`
 					}
 				}{},
+			},
+			{
+				path:   "/games",
+				method: GET,
+				claimArgConfigs: []ClaimArgConfig{
+					{claim: auth.Username, Type: reflect.String},
+					{claim: auth.UserId, Type: reflect.Int},
+				},
+				urlParamArgConfigs: []UrlParamArgConfig{},
+				withQueries:        []string{},
+				query: `SELECT id, username, email
+                FROM users
+                WHERE users.id = :UserId;                    
+        `,
+				typ: struct {
+					Id       sql.NullInt64
+					Username sql.NullString
+					Email    sql.NullString
+				}{},
+				partialTemplate: "games",
 			},
 		},
 	)
 }
-
-// (
-//   SELECT GROUP_CONCAT(
-//   '{' ||
-//         'username: ' || abv.answerer_username ||
-//         ', answer: ' || abv.answer_text ||
-//         ', votes: ' || abv.total_votes
-//   || '}', ',')
-//     FROM answers_by_votes abv
-// ) AS answers

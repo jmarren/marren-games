@@ -2,37 +2,60 @@ PRAGMA foreign_keys = ON;
 
 
 
-CREATE  TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS games (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  name TEXT NOT NULL,
+  creator_id INTEGER NOT NULL,
+  FOREIGN KEY (creator_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS user_game_membership (
+  user_id INTEGER NOT NULL,
+  game_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (game_id) REFERENCES games(id),
+  PRIMARY KEY (user_id, game_id)
+);
+
 CREATE TABLE IF NOT EXISTS questions (
+  game_id  INTEGER NOT NULL,
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   question_text TEXT NOT NULL,
   date_created  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   asker_id INTEGER NOT NULL,
-  FOREIGN KEY (asker_id) REFERENCES users(id)
+  FOREIGN KEY (asker_id) REFERENCES users(id),
+  FOREIGN KEY (game_id) REFERENCES games(id)
 );
 
 CREATE TABLE IF NOT EXISTS answers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  game_id  INTEGER NOT NULL,
   answer_text TEXT NOT NULL,
   date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   question_id INTEGER NOT NULL,
   answerer_id INTEGER NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES games(id),
   FOREIGN KEY (question_id) REFERENCES questions(id),
   FOREIGN KEY (answerer_id) REFERENCES users(id)
 );
 
 
+
 CREATE TABLE IF NOT EXISTS votes (
+  game_id  INTEGER NOT NULL,
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   voter_id INTEGER NOT NULL,
   question_id INTEGER NOT NULL,
   answer_id INTEGER NOT NULL,
+  FOREIGN KEY (game_id) REFERENCES games(id),
   FOREIGN KEY (voter_id) REFERENCES users(id),
   FOREIGN KEY (question_id) REFERENCES questions(id),
   FOREIGN KEY (answer_id) REFERENCES answers(id)

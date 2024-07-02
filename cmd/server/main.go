@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
@@ -60,6 +62,8 @@ func main() {
 	// Route for learning about go templates
 	// e.GET("/learn-go-templates", controllers.Render())
 
+	pprofGroup := e.Group("/debug/pprof")
+	pprofGroup.GET("/*", echo.WrapHandler(http.DefaultServeMux))
 	// Unrestricted Routes
 	unrestrictedRoutes := e.Group("")
 	routers.UnrestrictedRoutes(unrestrictedRoutes)
@@ -68,7 +72,23 @@ func main() {
 	restrictedRoutes := e.Group("/auth")
 	routers.RestrictedRoutes(restrictedRoutes)
 
-	// Start server
-	log.Println("Server is running at http://localhost:8080")
-	e.Logger.Fatal(e.Start(":8080"))
+	// // Register pprof routes
+
+	// Start the main server on port 8080
+	go func() {
+		if err := e.Start(":8080"); err != nil {
+			e.Logger.Info("shutting down the server")
+		}
+	}()
+
+	// Set up a separate HTTP server for pprof on port 1323
+	go func() {
+		log.Println("Starting pprof server on :1323")
+		if err := http.ListenAndServe(":1323", nil); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for the application to terminate
+	select {}
 }

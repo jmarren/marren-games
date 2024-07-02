@@ -45,9 +45,12 @@ func QueryTestHandler(group *echo.Group) {
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
+					fmt.Println("params: ", params)
 
 					// Combine main query with WithQueries
 					query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
+
+					fmt.Println("query: ", query, "\nrouteConfig.typ:", routeConfig.typ)
 
 					// Perform Query
 					results, string, err := db.DynamicQuery(query, params, routeConfig.typ)

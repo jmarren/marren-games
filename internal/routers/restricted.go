@@ -15,7 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (c ClaimArgConfig) getValue(context echo.Context) string {
+func (c ClaimArgConfig) getValue(context echo.Context) interface{} {
 	return auth.GetFromClaims(c.claim, context)
 }
 
@@ -38,7 +38,7 @@ func RestrictedRoutes(r *echo.Group) {
 		return c.String(200, "You are authenticated")
 	})
 
-	r.GET("/profile", controllers.ProfileHandler)
+	// r.GET("/profile", controllers.ProfileHandler)
 	r.GET("/create-question", controllers.CreateQuestionHandler)
 
 	RestrictedRouteConfigs := GetRestrictedRouteConfigs()
@@ -58,9 +58,11 @@ func RestrictedRoutes(r *echo.Group) {
 
 					// Combine main query with WithQueries
 					query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
+					fmt.Printf("\nquery: %v", query)
 
 					// Perform Query
-					results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
+					results, string, err := db.DynamicQuery(query, params, routeConfig.typ)
+					// results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
 					if err != nil {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
@@ -73,6 +75,8 @@ func RestrictedRoutes(r *echo.Group) {
 					dataType := reflect.TypeOf(routeConfig.typ)
 					sliceOfDataType := reflect.SliceOf(dataType)
 					concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
+
+					fmt.Printf("resultsValue: %v", resultsValue)
 
 					// Check if the result is a slice
 					// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
@@ -91,6 +95,7 @@ func RestrictedRoutes(r *echo.Group) {
 								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
 
 							} else {
+								fmt.Printf("\ndereferencedItemValue.Type(): %v", dereferencedItemValue.Type())
 								fmt.Println("Unexpected type")
 							}
 						}
@@ -98,21 +103,13 @@ func RestrictedRoutes(r *echo.Group) {
 						fmt.Println("Unexpected result type")
 					}
 
-					// Simplify the results from sql generics to primitive types
-					// simplifiedFields := GetSimplifiedFields(dataType)
-					// simplifiedStructType := reflect.StructOf(simplifiedFields)
-					// sliceOfSimplifiedStructType := reflect.SliceOf(simplifiedStructType)
-					// simplifiedResults := reflect.MakeSlice(sliceOfSimplifiedStructType, 0, 0)
-					//
-					// for i := 0; i < concreteDataSlice.Len(); i++ {
-					// 	simplifiedResult := SimplifySqlResult(concreteDataSlice.Index(i).Interface())
-					// 	simplifiedResults = reflect.Append(simplifiedResults, reflect.ValueOf(simplifiedResult))
-					// }
-					// fmt.Println("simplifiedResults: ", simplifiedResults)
+					simplifiedFields := GetSimplifiedFields(reflect.TypeOf(routeConfig.typ))
+
+					simplified := SimplifySqlResult(results, simplifiedFields)
 
 					// Create a TemplateData struct to pass to the template
 					templateData := TemplateData{
-						Data: concreteDataSlice.Interface(),
+						Data: simplified,
 					}
 					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
 				})

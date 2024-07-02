@@ -17,7 +17,7 @@ import (
 
 type JwtCustomClaims struct {
 	Username string `json:"username"`
-	Admin    bool   `json:"admin"`
+	UserId   string `json:"userId"`
 	jwt.RegisteredClaims
 }
 
@@ -50,12 +50,17 @@ func AuthenticateUser(username, password string) (string, error) {
 		return "", err
 	}
 
+	userId, err := db.GetUserIdFromUsername(username)
+	if err != nil {
+		return "", err
+	}
+
 	log.Println("User authenticated successfully")
 
 	// Set custom claims
 	claims := &JwtCustomClaims{
 		username,
-		true,
+		userId.(string),
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -117,6 +122,7 @@ type ClaimsType string
 
 const (
 	Username ClaimsType = "Username"
+	UserId   ClaimsType = "UserId"
 )
 
 func GetFromClaims(item ClaimsType, c echo.Context) string {
@@ -126,6 +132,8 @@ func GetFromClaims(item ClaimsType, c echo.Context) string {
 	switch item {
 	case Username:
 		return claims.Username
+	case UserId:
+		return claims.UserId
 	default:
 		return ""
 	}

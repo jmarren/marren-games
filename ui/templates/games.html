@@ -1,0 +1,15 @@
+{{ define "games" }}
+<style>
+  div {
+    padding-top: 100px;
+    padding-left: 100px;
+    display: block;
+    border: 3px solid black;
+  }
+</style>
+<div>
+  userId: {{ .Data.Id}}
+  {{ .Data.Username }}
+</div>
+
+{{ end }}

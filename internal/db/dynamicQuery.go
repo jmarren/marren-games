@@ -23,14 +23,11 @@ func DynamicQuery(query string, params []sql.NamedArg, anonStruct interface{}) (
 		return reflect.Value{}, "Error Executing Query", err
 	}
 
+	fmt.Println("rows: ", rows)
+
 	// Craete a flattened version of anonStruct
 	flattenedStructType, jsonOutputs, regularOutputs := CreateFlatStructType(anonStruct)
 	numFields := flattenedStructType.NumField()
-
-	// Create a slice to hold the pointers
-	// pointers := make([]interface{}, numFields)
-	// anonStructSliceType := reflect.SliceOf(reflect.TypeOf(anonStruct))
-	// results := reflect.MakeSlice(reflect.TypeOf(pointers), 0, 0)
 
 	newStructPtr := reflect.New(flattenedStructType).Elem()
 
@@ -49,10 +46,8 @@ func DynamicQuery(query string, params []sql.NamedArg, anonStruct interface{}) (
 			return reflect.Value{}, "Error scanning rows into struct", err
 		}
 
-		if err != nil {
-			panic("error while unmarshaling json outputs")
-		}
 	}
+	fmt.Printf("\njsonOutputs: %v\nnewStructPtr: %v", jsonOutputs, newStructPtr)
 	s, err := UnmarshalIntoType(anonStruct, newStructPtr, jsonOutputs, regularOutputs)
 	if err != nil {
 		panic(err)
@@ -130,45 +125,6 @@ func UnmarshalIntoType(anonStruct interface{}, newStructPtr reflect.Value, jsonO
 		fmt.Println("concrete: ", concrete)
 
 	}
-
-	// if results.Kind() == reflect.Slice {
-	// 		for i := 0; i < results.Len(); i++ {
-	// 			item := results.Index(i).Interface()
-	//
-	// 			// dereference the pointer to get the underlying struct for each slice item
-	// 			dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
-	//
-	// 			// Convert the dereferencedItem to the concrete type specified in routeConfig
-	// 			dereferencedItemValue := reflect.ValueOf(dereferencedItem)
-	//
-	// 			if dereferencedItemValue.Type().ConvertibleTo(dataType) {
-	// 				concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
-	// 				concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
-	//
-	// 			} else {
-	// 				fmt.Println("Unexpected type")
-	// 			}
-	// 		}
-	// 	} else {
-	// 		fmt.Println("Unexpected result type")
-	// 	}
-	//
-	// 	return results.Interface(), "success", ni
-
-	// finalDataType := reflect.TypeOf(anonStruct)
-	// dereferencedS := reflect.Indirect(reflect.ValueOf(s))
-	// dereferencedSValue := reflect.ValueOf(dereferencedS)
-	// var final interface{}
-	//
-	//
-	// if dereferencedSValue.Type().ConvertibleTo(finalDataType) {
-	// 	final = reflect.ValueOf(dereferencedS).Convert(finalDataType)
-	// }
-	//
-	// fmt.Println("------------------- Final -------------- ")
-	// fmt.Println("----------------- s: ", s, "------------------")
-	// fmt.Println("----------------- final: ", final, "------------------")
-	// fmt.Println("------------------------------------------")
 
 	return s, nil
 }
@@ -266,238 +222,3 @@ func CreateFlatStructType(s interface{}) (reflect.Type, []FieldInfo, []FieldInfo
 	newStructType := reflect.StructOf(newStructFields)
 	return newStructType, jsonFields, regularFields
 }
-
-// func QueryWithMultipleNamedParams(query string, params []sql.NamedArg, anonstruct interface{}) (interface{}, string, error) {
-// 	// Convert Named Params to Interface so they can be passed to Query
-// 	var paramsInterface []interface{}
-// 	for _, param := range params {
-// 		paramsInterface = append(paramsInterface, param)
-// 	}
-// 	// Execute Query
-// 	rows, err := Sqlite.Query(query, paramsInterface...)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return nil, "Error Executing Query", err
-// 	}
-// 	// ~~
-// 	flattenedStruct, jsonOutputs := flattenAndReturn(anonStruct)
-// 	numFields := flattenedStruct.NumField()
-//
-// 	dataType := flattenedStruct
-//
-// 	// Create a slice to hold the pointers
-// 	slicePointers := make([]interface{}, numFields)
-//
-// 	results := reflect.MakeSlice(reflect.TypeOf(slicePointers), 0, 0)
-//
-// 	for rows.Next() {
-// 		// Create a new instance of the struct type
-// 		newStructPtr := reflect.New(dataType).Elem()
-//
-// 		slicePointers := make([]interface{}, numFields)
-//
-// 		for i := 0; i < numFields; i++ {
-// 			slicePointers[i] = newStructPtr.Field(i).Addr().Interface()
-// 		}
-//
-// 		err := rows.Scan(slicePointers...)
-// 		if err != nil {
-// 			fmt.Println("error scanning rows into struct: ", err)
-// 			return nil, "Error scanning rows into struct", err
-// 		}
-//
-// 		for _, v := range jsonOutputs {
-// 			jsonString := newStructPtr.FieldByName(v.Name).FieldByName("String").Interface()
-//
-// 			// Create a new instance of the slice type
-// 			container := reflect.New(v.Type).Elem()
-//
-// 			// Since containerValue is already the correct type, assign it directly to concrete
-// 			concrete := container.Addr().Interface()
-//
-// 			jsonAsserted, ok := jsonString.(string)
-// 			if !ok {
-// 				panic("not a valid json string")
-// 			}
-//
-// 			////////////// Pretty Print JSON ////////////////////////
-// 			// var jsonObj map[string]interface{}
-// 			err := json.Unmarshal([]byte(jsonAsserted), concrete)
-// 			if err != nil {
-// 				log.Fatalf("Error unmarshalling JSON: %v", err)
-// 			}
-//
-// 			// Marshal the JSON object with indentation
-// 			prettyJSON, err := json.MarshalIndent(concrete, "", "  ")
-// 			if err != nil {
-// 				log.Fatalf("Error marshalling JSON: %v", err)
-// 			}
-//
-// 			// Convert bytes.Buffer to string for logging
-// 			var prettyString bytes.Buffer
-// 			err = json.Indent(&prettyString, prettyJSON, "", "  ")
-// 			if err != nil {
-// 				log.Fatalf("Error indenting JSON: %v", err)
-// 			}
-//
-// 			// Log the pretty-printed JSON string
-// 			log.Println(prettyString.String())
-//
-// 			////////////// End Pretty Print JSON ////////////////////////
-//
-// 			dec := json.NewDecoder(strings.NewReader(jsonAsserted))
-//
-// 			if err := dec.Decode(concrete); err != nil && err != io.EOF {
-// 				fmt.Println(err)
-// 				panic("Error while decoding json")
-// 			}
-//
-// 		}
-// 		results = reflect.Append(results, newStructPtr)
-// 	}
-//
-// 	sliceOfDataType := reflect.SliceOf(dataType)
-// 	concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
-//
-// 	// Check if the result is a slice
-// 	// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
-// 	if results.Kind() == reflect.Slice {
-// 		for i := 0; i < results.Len(); i++ {
-// 			item := results.Index(i).Interface()
-//
-// 			// dereference the pointer to get the underlying struct for each slice item
-// 			dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
-//
-// 			// Convert the dereferencedItem to the concrete type specified in routeConfig
-// 			dereferencedItemValue := reflect.ValueOf(dereferencedItem)
-//
-// 			if dereferencedItemValue.Type().ConvertibleTo(dataType) {
-// 				concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
-// 				concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
-//
-// 			} else {
-// 				fmt.Println("Unexpected type")
-// 			}
-// 		}
-// 	} else {
-// 		fmt.Println("Unexpected result type")
-// 	}
-//
-// 	return results.Interface(), "success", nil
-// }
-
-// func ExecTestWithNamedParams(query string, params []sql.NamedArg) (string, error) {
-// 	var paramsInterface []interface{}
-// 	for _, param := range params {
-// 		paramsInterface = append(paramsInterface, param)
-// 	}
-//
-// 	response, err := Sqlite.Exec(query, paramsInterface...)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return "Error Executing Exec Query", err
-// 	}
-//
-// 	fmt.Println("response: ", response)
-//
-// 	return "Record created successfully", nil
-// }
-
-// Capitalize the first letter of a string
-// func CapitalizeFirstLetter(s string) string {
-// 	// Check if the string is empty
-// 	if len(s) == 0 {
-// 		return s
-// 	}
-//
-// 	// Convert the string to a rune slice for proper handling of UTF-8 characters
-// 	runes := []rune(s)
-//
-// 	// Capitalize the first rune
-// 	runes[0] = unicode.ToUpper(runes[0])
-//
-// 	// Convert the rune slice back to a string
-// 	return string(runes)
-// }
-
-// Helper function to check if a field is a SQL type
-// func isSQLType(s reflect.Type) bool {
-// 	sqlTypes := []reflect.Type{
-// 		reflect.TypeOf(sql.Null[any]{}),
-// 		reflect.TypeOf(sql.NullString{}),
-// 		reflect.TypeOf(sql.NullByte{}),
-// 		reflect.TypeOf(sql.NullInt64{}),
-// 		reflect.TypeOf(sql.NullInt16{}),
-// 		reflect.TypeOf(sql.NullBool{}),
-// 		reflect.TypeOf(sql.NullTime{}),
-// 		reflect.TypeOf(sql.NullInt32{}),
-// 		reflect.TypeOf(sql.NullFloat64{}),
-// 	}
-//
-// 	return slices.Contains(sqlTypes, s)
-// }
-//
-// type FieldInfo struct {
-// 	Name string
-// 	Type reflect.Type
-// }
-//
-////////////// Pretty Print JSON ////////////////////////
-// var jsonObj map[string]interface{}
-// err := json.Unmarshal([]byte(jsonAsserted), concrete)
-// if err != nil {
-// 	log.Fatalf("Error unmarshalling JSON: %v", err)
-// }
-//
-// // Marshal the JSON object with indentation
-// prettyJSON, err := json.MarshalIndent(concrete, "", "  ")
-// if err != nil {
-// 	log.Fatalf("Error marshalling JSON: %v", err)
-// }
-//
-// // Convert bytes.Buffer to string for logging
-// var prettyString bytes.Buffer
-// err = json.Indent(&prettyString, prettyJSON, "", "  ")
-// if err != nil {
-// 	log.Fatalf("Error indenting JSON: %v", err)
-// }
-//
-// // Log the pretty-printed JSON string
-// log.Println(prettyString.String())
-
-////////////// End Pretty Print JSON ////////////////////////
-
-//
-// func flattenAndReturn(s interface{}) (reflect.Type, []FieldInfo) {
-// 	v := reflect.ValueOf(s)
-// 	t := reflect.TypeOf(s)
-// 	var newStructFields []reflect.StructField
-//
-// 	var jsonFields []FieldInfo
-//
-// 	for i := 0; i < t.NumField(); i++ {
-// 		if isSQLType(t.Field(i).Type) {
-// 			newStructFields = append(newStructFields,
-// 				reflect.StructField{
-// 					Name: t.Field(i).Name,
-// 					Type: t.Field(i).Type,
-// 				})
-// 		} else if v.Kind() == reflect.Struct {
-// 			newStructFields = append(newStructFields,
-// 				reflect.StructField{
-// 					Name: t.Field(i).Name,
-// 					Type: reflect.TypeOf(sql.NullString{}),
-// 					Tag:  t.Field(i).Tag,
-// 				})
-// 			jsonFields = append(jsonFields,
-// 				FieldInfo{
-// 					Name: t.Field(i).Name,
-// 					Type: t.Field(i).Type,
-// 				})
-// 		} else {
-// 			panic("Error: typ not valid. Can only accept sql type or nested struct (for json)")
-// 		}
-// 	}
-// 	newStructType := reflect.StructOf(newStructFields)
-// 	return newStructType, jsonFields
-// }

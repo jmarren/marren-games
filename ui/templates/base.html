@@ -49,6 +49,8 @@
   {{ template "create-question" .Data}}
   {{ else if eq .PartialTemplate "profile"}}
   {{ template "profile" .Data}}
+  {{ else if eq .PartialTemplate "games"}}
+  {{ template "games" .Data}}
   {{ else }}
   {{ template "index"}}
   {{ end }}
