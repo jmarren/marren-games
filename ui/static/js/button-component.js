@@ -7,7 +7,7 @@ class ButtonComponent extends HTMLElement {
     super();
 
     // Attach a shadow DOM to the element.
-    const shadow = this.attachShadow({ mode: 'open' });
+    const shadow = this.attachShadow({ mode: 'closed' });
 
     const template = document.createElement("template")
 
@@ -37,33 +37,21 @@ class ButtonComponent extends HTMLElement {
 `
 
 
+    htmx.process(template) // Tell HTMX about this component's shadow DOM
     shadow.appendChild(template.content.cloneNode(true))
+
     this.shadow = shadow;
+
+
   }
 
   connectedCallback() {
     // Apply initial attribute values
-    htmx.process(this.shadow) // Tell HTMX about this component's shadow DOM
-    this.updateStyles();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue) {
-      this.updateStyles();
-    }
   }
 
-  updateStyles() {
-    const content = this.shadowRoot.getElementById('button-element');
-    const attributes = ['color', 'background-color', 'font-size']
-
-    for (let attribute of attributes) {
-      if (this.hasAttribute(attribute)) {
-        const cssProperty = attribute.replace(/-(.)/g, (_, group1) => group1.toUpperCase());
-        content.style[cssProperty] = this.getAttribute(attribute);
-      }
-    }
-  }
 }
 
 

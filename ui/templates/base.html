@@ -53,6 +53,8 @@
   {{ template "games" .Data}}
   {{ else if eq .PartialTemplate "gameplay" }}
   {{ template "gameplay" .Data}}
+  {{ else if eq .PartialTemplate "create-game" }}
+  {{ template "create-game" .Data}}
   {{ else }}
   {{ template "index"}}
   {{ end }}

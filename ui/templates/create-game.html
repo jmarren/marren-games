@@ -1,0 +1,75 @@
+{{ define "create-game" }}
+
+<style>
+  #page-content {
+    display: block;
+    border: 2px solid black;
+    padding: 25px;
+  }
+
+  #header {
+    font-family: Cheto;
+    font-size: 35px;
+  }
+
+  #subcontainer {
+    display: flex;
+    background-color: orange;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 5px 5px black;
+    font-family: Cheto;
+    padding: 15px;
+  }
+
+  input {
+    border-radius: 5px;
+    background-color: antiquewhite;
+  }
+
+  form {
+    padding: 20px;
+    gap: 15px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 2px solid black;
+  }
+</style>
+<div id="page-content">
+  <h1 id="header">
+    Create a New Game
+  </h1>
+  <div id="subcontainer">
+
+    <form>
+
+      <div class="item">
+        <label>
+          Choose a Name
+        </label>
+        <input type="text">
+      </div>
+
+
+
+      <div class="item">
+        <label>
+          Invite friends
+        </label>
+        <input type="text">
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+{{ end }}

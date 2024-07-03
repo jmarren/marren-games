@@ -1,56 +1,117 @@
 {{ define "profile" }}
 {{ $questionText := .Data.QuestionText}}
-<script src="/static/js/profile-component.js"></script>
-<script src="/static/js/input-box-component.js"></script>
 
 <style>
+  * {}
+
   #page-content {
-    padding: 60px;
+    border: 2px solid black;
+    display: block;
+    padding: 25px;
+  }
+
+  h1 {
+    font-family: Cheto;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  #profile-subcontainer {
+    border: 2px solid black;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background-color: seagreen;
+    border-radius: 10px;
+    box-shadow: 5px 5px black;
+    color: antiquewhite;
+    width: 500px;
+  }
+
+  #user-info {
+    display: flex;
+    flex-direction: column;
+    font-family: Cheto;
+    font-size: 15px;
+    flex-grow: 1;
+    gap: 5px;
+  }
+
+  #profile-photo-container {
+    border: 2px solid black;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    background-color: snow;
+    padding: 20px;
+    border-radius: 5px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+  }
+
+
+
+  #profile-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    /* or cover, depending on your needs */
   }
 </style>
 
 <div id="page-content">
+  <h1 id="username-container">
+    John
+  </h1>
+  <div id="profile-subcontainer">
+    <div id="user-info">
+      <div class="info-item">
+        <span>
+          Member since:
+        </span>
+        <span>
+          June 1st, 2024
+        </span>
+      </div>
+      <div class="info-item">
+        <span>
+          Total Points:
+        </span>
+        <span>
+          56489
+        </span>
+      </div>
+      <div class="info-item">
+        <span>
+          Streak:
+        </span>
+        <span>
+          15 days
+        </span>
+      </div>
+      <div class="info-item">
+        <span>
+          Current Games:
+        </span>
+        <span>
+          4
+        </span>
+      </div>
+      <div class="info-item">
+        <span>Email:</span>
+        <span>jmarren99@gmail.com</span>
+      </div>
 
-
-  <profile-component>
-    <div slot="header">
-      {{ .Data.Username }}
     </div>
-    <div slot="body-1">
-      {{ if eq .Data.IsAsker 0 }}
-      It's your turn to ask a question!
-      {{ end }}
-      <br>
-      {{ if $questionText }}
-      You asked: "{{ $questionText }}"
-      {{ else }}
-      Enter your question below:
-      {{ end}}
-    </div>
-    <!-- <!-- <div> -->
-    <!-- Welcome back, {{ .Data.Username }}! <br> -->
-    <!-- Email: {{ .Data.Email }} <br><br> -->
-    <!-- {{ if eq .Data.IsAsker 0 }}<br> -->
-    <!-- You are today's asker. -->
-    <!-- <br><br> -->
 
-    <!-- <br><br> -->
-    <!-- Current Answers: <br> -->
-    <!-- {{ if eq .Data.AnsweredToday 1 }} -->
-    <!-- {{ range .Data.Answers}} -->
-    <!-- {{ .Username }}: {{ .AnswerText }} <br> -->
-    <!-- {{ end }} -->
-    <!-- {{ end }} -->
-    <!-- <br> -->
-    <!-- <br> -->
-    <!-- Answer the question of the day! <br> -->
-    <!-- {{ .Data.QuestionText }} -->
-    <!-- {{ end }} -->
-    <!-- </div> -->
-    <!-- -->
-  </profile-component>
-  <input-box-component>
-    <textarea slot="input-slot" type="text-area"></textarea>
-  </input-box-component>
-</div>
-{{ end }}
+    <div id="profile-photo-container">
+      <img id="profile-photo-image" src="/static/public/blank_avatar.svg">
+
+    </div>
+  </div>
+  {{ end }}

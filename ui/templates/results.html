@@ -51,6 +51,8 @@
 
   #results-right {
     flex-grow: 1;
+    flex-direction: column;
+    display: flex;
     border: 2px solid black;
     padding: 10px;
     background-color: antiquewhite;
@@ -74,7 +76,8 @@
     padding: 10px;
     background-color: aqua;
     border-radius: 10px;
-    display: block;
+    display: flex;
+    justify-content: space-between;
     text-align: center;
     border: 2px solid white;
   }
@@ -82,6 +85,7 @@
 
 <div id="subcontainer">
   <div id="vote-counts">
+
     <div class="item">
       <div class="answer">
         Blue
@@ -123,25 +127,47 @@
     </div>
 
   </div>
+
+
   <div id="results-right">
     <span id="point-change">
       +84
     </span>
     <div id="rankings">
-      <span class="ranking">
-        1. John
-      </span>
-      <span class="ranking">
-        2. Megan
-      </span>
-      <span class="ranking">
-        3. Kevin
-      </span>
+
+      <div class="ranking">
+        <span class="ranking-player">
+          1. John
+        </span>
+        <span class="ranking-total">
+          743
+        </span>
+      </div>
+
+      <div class="ranking">
+        <span class="ranking-player">
+          2. Megan
+        </span>
+        <span class="ranking-total">
+          347
+        </span>
+      </div>
+
+      <div class="ranking">
+        <span class="ranking-player">
+          3. Kevin
+        </span>
+        <span class="ranking-total">
+          204
+        </span>
+      </div>
 
     </div>
 
-
   </div>
+
+
+</div>
 
 </div>
 

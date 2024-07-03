@@ -81,6 +81,7 @@ func InitTemplates() {
 		"gameplay.html",
 		"question.html",
 		"results.html",
+		"create-game.html",
 	}
 
 	// Create a base layout template

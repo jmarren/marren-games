@@ -11,9 +11,29 @@
     display: block;
   }
 
+
+  #top-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   h1 {
     font-family: Cheto;
-    color: darkslategray;
+
+  }
+
+  button {
+    background-color: seagreen;
+    padding: 10px;
+    font-family: Aruma;
+    font-size: 20px;
+    border-radius: 5px;
+    color: antiquewhite;
+  }
+
+  button:hover {
+    background-color: darkolivegreen;
   }
 
 
@@ -49,8 +69,6 @@
     background-color: lightskyblue;
   }
 
-
-
   tbody tr:nth-child(odd) {
     background-color: #e0e0e0;
   }
@@ -69,7 +87,16 @@
 </style>
 
 <div id="content-container">
-  <h1>Games</h1>
+  <div id="top-container">
+    <h1>
+      Games
+    </h1>
+
+    <button slot="button">
+      + Create New Game
+    </button>
+
+  </div>
   <table>
     <thead>
       <tr>
