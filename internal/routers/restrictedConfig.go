@@ -43,9 +43,14 @@ type ClaimArgConfig struct {
 	Type  reflect.Kind
 }
 
-type UrlParamArgConfig struct {
-	urlParam UrlParam
-	Type     reflect.Kind
+type UrlPathParamArgConfig struct {
+	Name string
+	Type reflect.Kind
+}
+
+type UrlQueryParamArgConfig struct {
+	Name UrlParam
+	Type reflect.Kind
 }
 
 type Vote struct {
@@ -62,8 +67,9 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 				claimArgConfigs: []ClaimArgConfig{
 					{claim: auth.Username, Type: reflect.String},
 				},
-				urlParamArgConfigs: []UrlParamArgConfig{},
-				withQueries:        []string{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				withQueries:             []string{},
 				query: `
           SELECT users.username, users.email,
             CASE
@@ -126,11 +132,12 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 					{claim: auth.Username, Type: reflect.String},
 					{claim: auth.UserId, Type: reflect.Int},
 				},
-				urlParamArgConfigs: []UrlParamArgConfig{},
-				withQueries:        []string{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				withQueries:             []string{},
 				query: `SELECT id, username, email
                 FROM users
-                WHERE users.id = :UserId;                    
+                WHERE users.id = :UserId;
         `,
 				typ: struct {
 					Id       sql.NullInt64
@@ -138,6 +145,22 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 					Email    sql.NullString
 				}{},
 				partialTemplate: "games",
+			},
+			{
+				path:                    "/game/:id",
+				method:                  GET,
+				claimArgConfigs:         []ClaimArgConfig{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{
+					{Name: "id", Type: reflect.Int},
+				},
+				query: `SELECT Username
+                          FROM users
+                          WHERE id = :id`,
+				typ: struct {
+					UserId sql.NullString
+				}{},
+				partialTemplate: "gameplay",
 			},
 		},
 	)

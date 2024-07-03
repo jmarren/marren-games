@@ -1,15 +1,101 @@
 {{ define "games" }}
 <style>
-  div {
-    padding-top: 100px;
-    padding-left: 100px;
+  * {
+    box-sizing: border-box;
+  }
+
+  #content-container {
+    padding-top: 25px;
+    padding-left: 25px;
+    padding-right: 25px;
     display: block;
-    border: 3px solid black;
+  }
+
+  h1 {
+    font-family: Cheto;
+    color: darkslategray;
+  }
+
+
+
+  table {
+    width: 80vw;
+    background-color: lightskyblue;
+    box-shadow: 2.5px 2.5px black;
+    border: 1.5px solid black;
+    font-family: Aruma;
+    padding-bottom: 10px;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1.5px solid black;
+    box-shadow: 2.5px 2.5px black;
+    width: 100%;
+    border-spacing: 0;
+  }
+
+
+
+  th,
+  td {
+    padding: 5px;
+    font-size: 20px;
+  }
+
+  th {
+    text-align: left;
+  }
+
+  thead {
+    background-color: lightskyblue;
+  }
+
+
+
+  tbody tr:nth-child(odd) {
+    background-color: #e0e0e0;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #ffffff;
+  }
+
+  tbody tr:nth-child(odd):hover {
+    background-color: #c0e9fa;
+  }
+
+  tbody tr:nth-child(even):hover {
+    background-color: #c0e9fa;
   }
 </style>
-<div>
-  userId: {{ .Data.Id}}
-  {{ .Data.Username }}
+
+<div id="content-container">
+  <h1>Games</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Members</th>
+        <th>Current Question</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>All Members</td>
+        <td>1500</td>
+        <td>What is the best day of the week?</td>
+      </tr>
+      <tr>
+        <td>Family</td>
+        <td>7</td>
+        <td>What is your favorite flavor of ice cream?</td>
+      </tr>
+      <tr>
+        <td>USF</td>
+        <td>30</td>
+        <td>Best dorm?</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 {{ end }}

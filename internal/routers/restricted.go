@@ -19,8 +19,12 @@ func (c ClaimArgConfig) getValue(context echo.Context) interface{} {
 	return auth.GetFromClaims(c.claim, context)
 }
 
-func (u UrlParamArgConfig) getValue(context echo.Context) string {
-	return context.QueryParam(string(u.urlParam))
+func (u UrlQueryParamArgConfig) getValue(context echo.Context) string {
+	return context.QueryParam(string(u.Name))
+}
+
+func (u UrlPathParamArgConfig) getValue(context echo.Context) string {
+	return context.Param(string(u.Name))
 }
 
 func RestrictedRoutes(r *echo.Group) {
@@ -38,7 +42,6 @@ func RestrictedRoutes(r *echo.Group) {
 		return c.String(200, "You are authenticated")
 	})
 
-	// r.GET("/profile", controllers.ProfileHandler)
 	r.GET("/create-question", controllers.CreateQuestionHandler)
 
 	RestrictedRouteConfigs := GetRestrictedRouteConfigs()
@@ -50,7 +53,7 @@ func RestrictedRoutes(r *echo.Group) {
 
 				func(c echo.Context) error {
 					// convert params to the type specified in config
-					params, err := GetParamsFromUrlAndClaims(routeConfig.claimArgConfigs, routeConfig.urlParamArgConfigs, c)
+					params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, c)
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
@@ -62,46 +65,17 @@ func RestrictedRoutes(r *echo.Group) {
 
 					// Perform Query
 					results, string, err := db.DynamicQuery(query, params, routeConfig.typ)
-					// results, string, err := db.QueryWithMultipleNamedParams(query, params, routeConfig.typ)
 					if err != nil {
 						fmt.Println(string)
 						return c.String(http.StatusInternalServerError, "failed to execute query")
 					}
+					fmt.Println()
 					fmt.Println("results in route:", results)
 
 					// Dynamically handle the type specified in routeConfig.typ
 					resultsValue := reflect.ValueOf(results)
 
-					dataType := reflect.TypeOf(routeConfig.typ)
-					sliceOfDataType := reflect.SliceOf(dataType)
-					concreteDataSlice := reflect.MakeSlice(sliceOfDataType, 0, 0)
-
 					fmt.Printf("resultsValue: %v", resultsValue)
-
-					// Check if the result is a slice
-					// If it is, iterate through the slice and convert the items to the concrete type specified in routeConfig
-					if resultsValue.Kind() == reflect.Slice {
-						for i := 0; i < resultsValue.Len(); i++ {
-							item := resultsValue.Index(i).Interface()
-
-							// dereference the pointer to get the underlying struct for each slice item
-							dereferencedItem := reflect.Indirect(reflect.ValueOf(item)).Interface()
-
-							// Convert the dereferencedItem to the concrete type specified in routeConfig
-							dereferencedItemValue := reflect.ValueOf(dereferencedItem)
-
-							if dereferencedItemValue.Type().ConvertibleTo(dataType) {
-								concrete := reflect.ValueOf(dereferencedItem).Convert(dataType)
-								concreteDataSlice = reflect.Append(concreteDataSlice, concrete)
-
-							} else {
-								fmt.Printf("\ndereferencedItemValue.Type(): %v", dereferencedItemValue.Type())
-								fmt.Println("Unexpected type")
-							}
-						}
-					} else {
-						fmt.Println("Unexpected result type")
-					}
 
 					simplifiedFields := GetSimplifiedFields(reflect.TypeOf(routeConfig.typ))
 
@@ -125,31 +99,37 @@ func GetFullQuery(mainQuery string, withQueries []string) string {
 	return mainQuery + "\n" + query
 }
 
-func GetParamsFromUrlAndClaims(claimArgConfigs []ClaimArgConfig, urlParamConfigs []UrlParamArgConfig, c echo.Context) ([]sql.NamedArg, error) {
+func GetParams(claimArgConfigs []ClaimArgConfig, urlQueryParamArgConfigs []UrlQueryParamArgConfig, urlPathParamArgConfigs []UrlPathParamArgConfig, c echo.Context) ([]sql.NamedArg, error) {
 	// Get params from urlParamArgConfigs and claimArgConfigs
 	var params []sql.NamedArg
 
 	// convert urlParamArgConfigs into their specified type, convert to namedParams and append to params
-	for _, urlParamConfig := range urlParamConfigs {
-		value := urlParamConfig.getValue(c)
-		convertedValue, err := ConvertType(string(value), urlParamConfig.Type)
+	for _, urlQueryParamConfig := range urlQueryParamArgConfigs {
+		value := urlQueryParamConfig.getValue(c)
+		convertedValue, err := ConvertType(string(value), urlQueryParamConfig.Type)
 		if err != nil {
 			fmt.Println("error converting urlparms to specified Type", err)
 			return params, err
 		}
-		namedParam := sql.Named(string(urlParamConfig.urlParam), convertedValue)
+		namedParam := sql.Named(string(urlQueryParamConfig.Name), convertedValue)
 		params = append(params, namedParam)
 	}
 
-	// convert claimArgConfigs into their specified type, convert to namedParams and append to params
+	// claims are already typed
 	for _, claimConfig := range claimArgConfigs {
 		value := claimConfig.getValue(c)
-		convertedValue, err := ConvertType(value, claimConfig.Type)
+		namedParam := sql.Named(string(claimConfig.claim), value)
+		params = append(params, namedParam)
+	}
+
+	for _, urlPathParamArgConfig := range urlPathParamArgConfigs {
+		value := urlPathParamArgConfig.getValue(c)
+		convertedValue, err := ConvertType(string(value), urlPathParamArgConfig.Type)
 		if err != nil {
-			fmt.Println("error converting claims to specified Type", err)
+			fmt.Println("error converting urlparms to specified Type", err)
 			return params, err
 		}
-		namedParam := sql.Named(string(claimConfig.claim), convertedValue)
+		namedParam := sql.Named(string(urlPathParamArgConfig.Name), convertedValue)
 		params = append(params, namedParam)
 	}
 

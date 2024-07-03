@@ -57,6 +57,7 @@ const (
 	CreateAccountTemplate  TemplateName = "create-account"
 	ProfileTemplate        TemplateName = "profile"
 	CreateQuestionTemplate TemplateName = "create-question"
+	GamePlay               TemplateName = "gameplay"
 )
 
 // Initialize templates
@@ -77,6 +78,7 @@ func InitTemplates() {
 		"profile.html",
 		"user-profile.html",
 		"games.html",
+		"gameplay.html",
 	}
 
 	// Create a base layout template

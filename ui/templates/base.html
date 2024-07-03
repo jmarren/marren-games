@@ -51,6 +51,8 @@
   {{ template "profile" .Data}}
   {{ else if eq .PartialTemplate "games"}}
   {{ template "games" .Data}}
+  {{ else if eq .PartialTemplate "gameplay" }}
+  {{ template "gameplay" .Data}}
   {{ else }}
   {{ template "index"}}
   {{ end }}

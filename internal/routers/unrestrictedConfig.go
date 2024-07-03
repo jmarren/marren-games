@@ -11,7 +11,7 @@
 ////////////  an abstraction for some commonly accessed piece of data.
 ////////////
 ////////////  NOTE: Any named parameters prepended with a ':' (ie :user_id) within a query should
-////////////  be included in urlParamArgConfigs. queryParams should also include any named parameters
+////////////  be included in urlQueryParamArgConfigs. queryParams should also include any named parameters
 ////////////  used by any corresponding withQueries provided.
 
 package routers
@@ -22,14 +22,15 @@ import (
 )
 
 type RouteConfig struct {
-	path               string
-	method             RouteMethod
-	withQueries        []string
-	query              string
-	claimArgConfigs    []ClaimArgConfig
-	urlParamArgConfigs []UrlParamArgConfig
-	partialTemplate    string
-	typ                interface{}
+	path                    string
+	method                  RouteMethod
+	withQueries             []string
+	query                   string
+	claimArgConfigs         []ClaimArgConfig
+	urlPathParamArgConfigs  []UrlPathParamArgConfig
+	urlQueryParamArgConfigs []UrlQueryParamArgConfig
+	partialTemplate         string
+	typ                     interface{}
 }
 
 type RouteConfigs []*RouteConfig
@@ -53,9 +54,10 @@ func GetRouteConfigs() RouteConfigs {
 				path:   "/get-username-with-id",
 				method: GET,
 				query:  `SELECT username FROM users WHERE id = :user_id`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/questions-by-user-id",
@@ -65,54 +67,60 @@ func GetRouteConfigs() RouteConfigs {
                       INNER JOIN users
                       ON users.id = questions.asker_id
                       WHERE questions.asker_id = :user_id;`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/create-question",
 				method: POST,
 				query: `INSERT INTO questions (asker_id, question_text)
                 VALUES ($user_id,$question_text);`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
-					{urlParam: "question_text", Type: reflect.String},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
+					{Name: "question_text", Type: reflect.String},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
-				path:               "/todays-question",
-				method:             GET,
-				query:              `SELECT * FROM todays_question;`,
-				urlParamArgConfigs: []UrlParamArgConfig{},
+				path:                    "/todays-question",
+				method:                  GET,
+				query:                   `SELECT * FROM todays_question;`,
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
 			},
 			{
 				path:        "/answer-to-todays-question",
 				method:      GET,
 				withQueries: []string{"todays_answer_by_user_id"},
 				query:       `SELECT answer_text FROM todays_answer;`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/answer-to-todays-question",
 				method: POST,
 				query: `INSERT INTO answers (answerer_id, question_id, answer_text)
         VALUES (:user_id, (SELECT questions.id FROM questions WHERE DATE(CURRENT_TIMESTAMP) = DATE(questions.date_created)), :answer_text);`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
-					{urlParam: "answer_text", Type: reflect.String},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
+					{Name: "answer_text", Type: reflect.String},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/vote-for-answer",
 				method: POST,
 				query: `INSERT INTO votes (voter_id, question_id, answer_id)
         VALUES (:user_id, (SELECT * FROM todays_question_id), :answer_id);`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
-					{urlParam: "answer_id", Type: reflect.Int},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
+					{Name: "answer_id", Type: reflect.Int},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/all-answers-to-todays-question",
@@ -120,7 +128,8 @@ func GetRouteConfigs() RouteConfigs {
 				query: `SELECT answer_text
                 FROM answers
                 WHERE question_id = (SELECT * FROM todays_question_id);`,
-				urlParamArgConfigs: []UrlParamArgConfig{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/check-if-todays-question-answered",
@@ -137,20 +146,22 @@ func GetRouteConfigs() RouteConfigs {
                       THEN 1
                     ELSE 0
                   END AS todays_question_answered;`,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "user_id", Type: reflect.Int},
-					{urlParam: "user_id", Type: reflect.Int},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "user_id", Type: reflect.Int},
+					{Name: "user_id", Type: reflect.Int},
 				},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
 			},
 			{
 				path:   "/todays-answers-2",
 				method: GET,
 				query: `SELECT *
                 FROM todays_answers;`,
-				withQueries:        []string{},
-				urlParamArgConfigs: []UrlParamArgConfig{},
-				claimArgConfigs:    []ClaimArgConfig{},
-				partialTemplate:    "profile",
+				withQueries:             []string{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				claimArgConfigs:         []ClaimArgConfig{},
+				partialTemplate:         "profile",
 				typ: struct {
 					AnswerText       sql.NullString
 					AnswererID       sql.NullInt64
@@ -163,10 +174,11 @@ func GetRouteConfigs() RouteConfigs {
 				method: GET,
 				query: `SELECT *
                 FROM answers;`,
-				withQueries:        []string{},
-				urlParamArgConfigs: []UrlParamArgConfig{},
-				claimArgConfigs:    []ClaimArgConfig{},
-				partialTemplate:    "profile",
+				withQueries:             []string{},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				claimArgConfigs:         []ClaimArgConfig{},
+				partialTemplate:         "profile",
 				typ: struct {
 					AnswerId    sql.NullInt64
 					AnswerText  sql.NullString
@@ -178,10 +190,11 @@ func GetRouteConfigs() RouteConfigs {
 			{
 				path:   "/profile",
 				method: GET,
-				urlParamArgConfigs: []UrlParamArgConfig{
-					{urlParam: "Username", Type: reflect.String},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{
+					{Name: "Username", Type: reflect.String},
 				},
-				withQueries: []string{},
+				urlPathParamArgConfigs: []UrlPathParamArgConfig{},
+				withQueries:            []string{},
 				query: `
           SELECT users.username, users.email,
             CASE

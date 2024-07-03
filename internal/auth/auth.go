@@ -17,7 +17,7 @@ import (
 
 type JwtCustomClaims struct {
 	Username string `json:"username"`
-	UserId   string `json:"userId"`
+	UserId   int    `json:"userId"`
 	jwt.RegisteredClaims
 }
 
@@ -60,7 +60,7 @@ func AuthenticateUser(username, password string) (string, error) {
 	// Set custom claims
 	claims := &JwtCustomClaims{
 		username,
-		userId.(string),
+		userId,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -125,7 +125,7 @@ const (
 	UserId   ClaimsType = "UserId"
 )
 
-func GetFromClaims(item ClaimsType, c echo.Context) string {
+func GetFromClaims(item ClaimsType, c echo.Context) interface{} {
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*JwtCustomClaims)
 
