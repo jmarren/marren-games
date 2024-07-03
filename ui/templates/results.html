@@ -1,12 +1,105 @@
 {{ define "results" }}
-<div id="results-container">
-  <span id="results-title" class="jersey-15-regular">Results</span>
-  <div id="results-list">
-    {{ range .Results }}
-    <div class="result-card">
-      <span class="jersey-15-regular">{{ . }}</span>
+<script src="/static/js/button-component.js"> </script>
+
+<style>
+  @keyframes slide-in-from-left {
+    0% {
+      translate: -100vw 0;
+    }
+
+    100% {
+      translate: 0 0;
+    }
+  }
+
+  #subcontainer {
+    padding-bottom: 15px;
+    padding-right: 20px;
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 5px 5px black;
+    border: 2.5px solid black;
+    justify-content: center;
+    padding-top: 20px;
+    padding-left: 20px;
+    background-color: skyblue;
+    border-radius: 10px;
+    animation-name: slide-in-from-left;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    gap: 5px;
+  }
+
+  #vote-counts {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 2px solid black;
+    width: 50%;
+  }
+
+  .item {
+    display: flex;
+    justify-content: space-between;
+    background-color: orange;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid black;
+  }
+
+  #results-right {
+    flex-grow: 1;
+    border: 2px solid black;
+  }
+</style>
+
+<div id="subcontainer">
+  <div id="vote-counts">
+    <div class="item">
+      <div class="answer">
+        Blue
+      </div>
+      <div class="votes">
+        105
+      </div>
     </div>
-    {{ end }}
+
+
+    <div class="item">
+      <div class="answer">
+        Green
+      </div>
+      <div class="votes">
+        84
+      </div>
+    </div>
+
+
+
+    <div class="item">
+      <div class="answer">
+        Purple
+      </div>
+      <div class="votes">
+        37
+      </div>
+    </div>
+
+
+    <div class="item">
+      <div class="answer">
+        Yellow
+      </div>
+      <div class="votes">
+        15
+      </div>
+    </div>
+
   </div>
+  <div id="results-right">
+
+  </div>
+
 </div>
+
 {{ end }}

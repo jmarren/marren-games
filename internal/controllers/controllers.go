@@ -79,6 +79,8 @@ func InitTemplates() {
 		"user-profile.html",
 		"games.html",
 		"gameplay.html",
+		"question.html",
+		"results.html",
 	}
 
 	// Create a base layout template
