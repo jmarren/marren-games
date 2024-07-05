@@ -205,6 +205,3 @@ func ProfileHandler(c echo.Context) error {
 
 	return RenderTemplate(c, "profile", data)
 }
-
-// func CreateQuestion(c echo.Context) error {
-// }

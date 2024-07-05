@@ -28,12 +28,15 @@
 
 
   .form-item {
+    width: 100%;
     align-items: center;
     display: flex;
     gap: 20px;
   }
 
-  input {
+  input[type=text],
+  input[type=email],
+  input[type=password] {
     flex-grow: 1;
     padding: 3px;
     height: 30px;
@@ -48,11 +51,31 @@
     font-family: Cheto;
   }
 
+  #profile-photo-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+
   #photo-container {
     background-color: snow;
     padding: 10px;
     border: 2px solid black;
     border-radius: 5px;
+  }
+
+  #profile-photo-label {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: start;
+  }
+
+
+  #profile-photo-label input {
+    flex-grow: 1;
+    padding: 10px;
   }
 </style>
 
@@ -81,10 +104,13 @@
       <input type="email" id="email" name="email" value={{ .Email }} required>
     </div>
 
-    <div class="form-item">
-      <label>
-        Upload Profile Photo
-      </label>
+    <div id="profile-photo-item">
+      <div id="profile-photo-label">
+        <label>
+          Upload Profile Photo
+        </label>
+        <input type="file" name="profileImage" accept="image/*" required />
+      </div>
       <div id="photo-container">
         <img src="/static/public/blank_avatar.svg">
       </div>
