@@ -1,11 +1,113 @@
 {{ define "create-question" }}
-<div id="create-question-container">
-  <h1 id="create-question-title" class="jersey-15-regular">Create a Question</h1>
-  <form id="create-question-form" class="jersey-15-regular">
-    <div>
-      <textarea id="question" name="question" required></textarea>
-    </div>
-    <input type="submit" value="Submit" class="jersey-15-regular">
-  </form>
-</div>
-{{ end }}
+<style>
+  #page-content {
+    display: flex;
+    padding: 25px;
+    justify-content: center;
+  }
+
+  #content-container {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #create-question-title {
+    font-family: Cheto;
+  }
+
+
+  form {
+    width: 400px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: seagreen;
+    border: 2px solid black;
+    box-shadow: 5px 5px black;
+    border-radius: 10px;
+  }
+
+  input[type=text] {
+    border-radius: 5px;
+    background-color: antiquewhite;
+    flex-grow: 1;
+    padding: 5px;
+  }
+
+  .form-item {
+    font-size: 25px;
+    font-family: Aruma;
+    color: antiquewhite;
+    display: flex;
+    gap: 10px;
+  }
+
+  button {
+    font-family: Aruma;
+    font-size: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #fcb603;
+    color: seagreen;
+  }
+
+  button:hover {
+    background-color: darkolivegreen;
+  }
+</style>
+
+
+<div id="page-content">
+  <div id="content-container">
+    <h1 id="create-question-title">
+      Create a Question
+    </h1>
+    <form id="create-question-form">
+
+      <div class="form-item">
+        <label>
+          Question
+        </label>
+        <input type="text" id="question" name="question" required>
+      </div>
+
+
+      <div class="form-item">
+        <label>
+          Option 1
+        </label>
+        <input type="text" id="option-1" name="option-1" required>
+      </div>
+
+
+      <div class="form-item">
+        <label>
+          Option 2
+        </label>
+        <input type="text" id="option-2" name="option-2" required>
+      </div>
+
+
+
+      <div class="form-item">
+        <label>
+          Option 3
+        </label>
+        <input type="text" id="option-3" name="option-3" required>
+      </div>
+
+
+      <div class="form-item">
+        <label>
+          Option 4
+        </label>
+        <input type="text" id="option-4" name="option-4" required>
+      </div>
+      <button type="submit" value="Submit">
+        Go
+      </button>
+    </form>
+  </div>
+  {{ end }}

@@ -55,6 +55,8 @@
   {{ template "gameplay" .Data}}
   {{ else if eq .PartialTemplate "create-game" }}
   {{ template "create-game" .Data}}
+  {{ else if eq .PartialTemplate "friends" }}
+  {{ template "friends" .Data}}
   {{ else }}
   {{ template "index"}}
   {{ end }}

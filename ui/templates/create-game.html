@@ -1,5 +1,5 @@
 {{ define "create-game" }}
-
+<script src="/static/js/button-component.js"></script>
 <style>
   #page-content {
     display: block;
@@ -28,11 +28,30 @@
   }
 
   form {
+    flex-grow: 1;
     padding: 20px;
     gap: 15px;
     display: flex;
-    justify-content: center;
     flex-direction: column;
+    justify-content: space-between;
+  }
+
+  #subcontainer-left {
+    gap: 5px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #subcontainer-right {
+    gap: 5px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #form-fields {
+    display: flex;
   }
 
 
@@ -40,7 +59,6 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    border: 2px solid black;
   }
 </style>
 <div id="page-content">
@@ -51,21 +69,70 @@
 
     <form>
 
-      <div class="item">
-        <label>
-          Choose a Name
-        </label>
-        <input type="text">
+      <div id="form-fields">
+        <div id="subcontainer-left">
+          <div class="item">
+            <label>
+              Choose a Name
+            </label>
+            <input type="text">
+          </div>
+
+
+          <div class="item">
+            <label>
+              Invite friends
+            </label>
+            <input type="text">
+          </div>
+        </div>
+
+        <div id="subcontainer-right">
+          <div class="item">
+            <label>
+              First Question
+            </label>
+            <input type="text">
+          </div>
+
+
+          <div class="item">
+            <label>
+              Option 1
+            </label>
+            <input type="text">
+          </div>
+
+
+          <div class="item">
+            <label>
+              Option 2
+            </label>
+            <input type="text">
+          </div>
+
+          <div class="item">
+            <label>
+              Option 3
+            </label>
+            <input type="text">
+          </div>
+
+
+          <div class="item">
+            <label>
+              Option 4
+            </label>
+            <input type="text">
+          </div>
+        </div>
       </div>
 
-
-
-      <div class="item">
-        <label>
-          Invite friends
-        </label>
-        <input type="text">
-      </div>
+      <button-component>
+        <button slot="button" type="submit">
+          Create
+        </button>
+      </button-component>
 
     </form>
   </div>

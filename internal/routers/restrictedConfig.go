@@ -178,6 +178,38 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 				}{},
 				partialTemplate: "create-game",
 			},
+			{
+				path:   "/friends",
+				method: GET,
+				claimArgConfigs: []ClaimArgConfig{
+					{claim: auth.UserId, Type: reflect.Int},
+				},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				query: `SELECT Username
+                FROM users
+                WHERE id = :UserId`,
+				typ: struct {
+					UserId sql.NullString
+				}{},
+				partialTemplate: "friends",
+			},
+			{
+				path:   "/create-question",
+				method: GET,
+				claimArgConfigs: []ClaimArgConfig{
+					{claim: auth.UserId, Type: reflect.Int},
+				},
+				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
+				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
+				query: `SELECT Username
+                FROM users
+                WHERE id = :UserId`,
+				typ: struct {
+					UserId sql.NullString
+				}{},
+				partialTemplate: "create-question",
+			},
 		},
 	)
 }

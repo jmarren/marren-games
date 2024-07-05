@@ -8,7 +8,6 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	// echoprometheus  "github.com/labstack/echo-contrib"
 	// "github.com/labstack/echo/v4/middleware"
@@ -34,10 +33,10 @@ func initEcho() *echo.Echo {
 
 func main() {
 	// ---- Env Variables
-	envError := godotenv.Load()
-	if envError != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// envError := godotenv.Load()
+	// if envError != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	// ---- Database
 	dbConnectionError := db.InitDB()

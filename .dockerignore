@@ -1,0 +1,17 @@
+.env
+
+memory:
+
+/cmd/server/memory:
+
+backup.db
+
+.air.toml
+
+tmp/
+
+.git
+
+.cache
+
+*/tmp

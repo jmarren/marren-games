@@ -1,0 +1,68 @@
+{{ define "friends" }}
+<style>
+  #page-content {
+    display: block;
+    padding: 25px;
+  }
+
+  h1 {
+    font-family: Cheto;
+  }
+
+  #friends-container {
+    padding: 20px;
+    display: flex;
+    background-color: skyblue;
+    border: 2px solid black;
+    box-shadow: 5px 5px black;
+    border-radius: 10px;
+    height: 400px;
+  }
+
+  #search-bar-container {
+    background-color: peachpuff;
+    height: 30px;
+    border: 2px solid black;
+    border-radius: 10px;
+    flex-grow: 1;
+    display: flex;
+    padding: 7.5px;
+  }
+
+  #search-input {
+    font-family: Aruma;
+    font-size: 25px;
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+
+  #search-input:focus:hover {
+    border: none;
+    outline: none;
+  }
+
+  #search-icon {
+    display: block;
+    justify-self: end;
+  }
+</style>
+<div id="page-content">
+  <h1>
+    Friends
+  </h1>
+  <div id="friends-container">
+    <div id="search-bar-container">
+      <input type="text" id="search-input">
+
+      <img id="search-icon" src="/static/public/search_icon.svg">
+
+
+    </div>
+
+  </div>
+</div>
+
+
+{{ end }}
