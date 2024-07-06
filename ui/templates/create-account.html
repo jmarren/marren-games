@@ -1,100 +1,77 @@
 {{ define "create-account" }}
-
+<script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
 <script src="/static/js/button-component.js"> </script>
 
-<style>
-  * {
-    font-family: Aruma;
-  }
+<div id="create-account-container" hx-ext="response-targets">
+  <style>
+    * {
+      font-family: Aruma;
+    }
 
-  #create-account-container {
-    color: #0e6080;
-    padding: 40px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-  }
+    #create-account-container {
+      color: #0e6080;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+    }
 
-  form {
-    padding: 20px;
-    gap: 15px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: right;
-    font-size: 30px;
-  }
+    form {
+      padding: 20px;
+      gap: 15px;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: right;
+      font-size: 30px;
+    }
 
+    span {
+      font-size: 50px;
+      font-family: Cheto;
+    }
 
-  .form-item {
-    width: 100%;
-    align-items: center;
-    display: flex;
-    gap: 20px;
-  }
-
-  input[type=text],
-  input[type=email],
-  input[type=password] {
-    flex-grow: 1;
-    padding: 3px;
-    height: 30px;
-    font-size: 20px;
-    border-radius: 5px;
-    border: 2px solid #0e6080;
-    background-color: antiquewhite;
-  }
-
-  span {
-    font-size: 50px;
-    font-family: Cheto;
-  }
-
-  #profile-photo-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-  }
-
-  #photo-container {
-    background-color: snow;
-    padding: 10px;
-    border: 2px solid black;
-    border-radius: 5px;
-  }
-
-  #profile-photo-label {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: start;
-  }
+    input[type=text],
+    input[type=email],
+    input[type=password] {
+      flex-grow: 1;
+      padding: 3px;
+      height: 30px;
+      font-size: 20px;
+      border-radius: 5px;
+      border: 2px solid #0e6080;
+      background-color: antiquewhite;
+    }
 
 
-  #profile-photo-label input {
-    flex-grow: 1;
-    padding: 10px;
-  }
-</style>
-<!-- <script> -->
-<!--   document.body.addEventListener('htmx:configRequest', (event) => { -->
-<!--     event.detail.headers['Content-Type'] = 'multipart/form-data'; -->
-<!--   }); -->
-<!-- </script> -->
-<!---->
+    .form-item {
+      width: 100%;
+      align-items: center;
+      display: flex;
+      gap: 20px;
+    }
+  </style>
 
-<div id="create-account-container">
-  <span id="create-account-title" class="jersey-15-regular">Create Account</span>
+  <script>
+    document.addEventListener('htmx:afterRequest', e => {
+      if (!e.detail.xhr.status.toString().startsWith('2')) {
+        let errorDiv = document.getElementById("create-account-error");
+        errorDiv.innerHTML = e.detail.xhr.responseText;
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+
+
+  <span id="create-account-title">Create Account</span>
   <form id="create-account-form" hx-post="/create-account-submit" hx-target="#create-account-container"
-    enctype='multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p' hx-swap="outerHTML"
-    hx-headers='{"Content-Type":"multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p"}'>
+    hx-target-5*="#create-account-error" hx-target-error="next #create-acount-error">
     <div class="form-item">
       <label for="username">
         Username
       </label>
-      <input type="text" id="username" name="username" value={{ .Username }} required>
+      <input type="text" id="username" name="username" required>
     </div>
     <div class="form-item">
       <label for="password">
@@ -106,7 +83,7 @@
       <label for="email">
         Email
       </label>
-      <input type="email" id="email" name="email" value={{ .Email }} required>
+      <input type="email" id="email" name="email" required>
     </div>
 
     <div class="form-item">
@@ -118,7 +95,7 @@
 
     </div>
   </form>
-  <div id="create-account-error">{{ .Error }}</div>
+  <div id="create-account-error"></div>
 </div>
 
 

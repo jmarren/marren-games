@@ -3,7 +3,9 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"math"
 	"net/mail"
 	"slices"
 	"time"
@@ -80,42 +82,73 @@ func AuthenticateUser(username, password string) (string, error) {
 
 // RegisterUser creates a new user in the database.
 // It hashes the password before storing it.
-func RegisterUser(username, password, email string) error {
+func RegisterUser(username, password, email string) (string, error) {
 	// First determine if the data is valid
 	// Validate the username
 	acceptableUsernames := []string{"admin", "John", "Kevin", "Anna", "Megan", "Tom", "Kristin", "Allie", "Robby", "Mom", "Dad"}
 
 	if !slices.Contains(acceptableUsernames, username) {
-		return errors.New("username is not allowed")
+		return "", errors.New("username is not allowed")
 	}
 	// Validate the password
 	// This is a simple check, you may want to enforce more complex rules
 	if len(password) < 8 {
-		return errors.New("password must be at least 8 characters")
+		return "", errors.New("password must be at least 8 characters")
 	}
 	if len(password) > 16 {
-		return errors.New("password must be less than 16 characters")
+		return "", errors.New("password must be less than 16 characters")
 	}
 
 	// Validate the email
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return errors.New("invalid email")
+		return "", errors.New("invalid email")
 	}
 
 	// Hash the password
 	hashedPassword, err := HashPassword(password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Insert user into database
-	err = db.AddUser(username, hashedPassword, email)
+	result, err := db.AddUser(username, hashedPassword, email)
 	if err != nil {
-		return err
+		fmt.Println("error adding user: ", err)
+		return "", err
+	}
+	insertId, err := result.LastInsertId()
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	var userId int
+	// Ensure the value fits in an int to avoid overflow
+	if insertId < math.MinInt || insertId > math.MaxInt {
+		fmt.Println("Error: int64 value is out of int range")
+	} else {
+		userId = int(insertId)
+		fmt.Printf("Converted value: %d\n", userId)
+	}
+
+	// Set custom claims
+	claims := &JwtCustomClaims{
+		username,
+		userId,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return "", err
+	}
+	log.Println("token: ", t)
+
+	return t, nil
 }
 
 type ClaimsType string

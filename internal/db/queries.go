@@ -1,24 +1,37 @@
 package db // import "github.com/jmarren/marren-games/internal/db"
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"os"
+
+	"github.com/mattn/go-sqlite3"
 )
 
-func AddUser(username, hashedPassword, email string) error {
+func AddUser(username, hashedPassword, email string) (sql.Result, error) {
 	// Ensure the database connection is initialized
 	if Sqlite == nil {
 		fmt.Println("db not connected")
 	}
 
 	fmt.Printf("username: %s \n hashedPassword: %s \n email: %s", username, hashedPassword, email)
-	_, err := Sqlite.Exec(`INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)`, username, string(hashedPassword), email)
+	results, err := Sqlite.Exec(`INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)`, username, string(hashedPassword), email)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to execute query: %v\n", err)
-		os.Exit(1)
+		sqliteErr, ok := err.(sqlite3.Error)
+		if ok {
+			if ok && sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+				return nil, errors.New(`username or email already exists`)
+			}
+			return nil, errors.New(`an error occurred, please try again later`)
+		} else {
+			fmt.Println("could not assert to sqliteErr")
+		}
+
+		return results, err
 	}
 
-	return nil
+	return results, nil
 }
 
 // func GetCurrentAnswer(username) error {

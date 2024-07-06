@@ -1,70 +1,68 @@
 {{ define "profile" }}
-{{ $questionText := .Data.QuestionText}}
-
-<style>
-  * {}
-
-  #page-content {
-    border: 2px solid black;
-    display: block;
-    padding: 25px;
-  }
-
-  h1 {
-    font-family: Cheto;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-  }
-
-  #profile-subcontainer {
-    border: 2px solid black;
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 20px;
-    background-color: seagreen;
-    border-radius: 10px;
-    box-shadow: 5px 5px black;
-    color: antiquewhite;
-    width: 500px;
-  }
-
-  #user-info {
-    display: flex;
-    flex-direction: column;
-    font-family: Cheto;
-    font-size: 15px;
-    flex-grow: 1;
-    gap: 5px;
-  }
-
-  #profile-photo-container {
-    border: 2px solid black;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    background-color: snow;
-    padding: 20px;
-    border-radius: 5px;
-  }
-
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-  }
-
-
-
-  #profile-image {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    /* or cover, depending on your needs */
-  }
-</style>
 
 <div id="page-content">
+  <style>
+    * {}
+
+    #page-content {
+      border: 2px solid black;
+      display: block;
+      padding: 25px;
+    }
+
+    h1 {
+      font-family: Cheto;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+    }
+
+    #profile-subcontainer {
+      border: 2px solid black;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 20px;
+      background-color: seagreen;
+      border-radius: 10px;
+      box-shadow: 5px 5px black;
+      color: antiquewhite;
+      width: 500px;
+    }
+
+    #user-info {
+      display: flex;
+      flex-direction: column;
+      font-family: Cheto;
+      font-size: 15px;
+      flex-grow: 1;
+      gap: 5px;
+    }
+
+    #profile-photo-container {
+      border: 2px solid black;
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      background-color: snow;
+      padding: 20px;
+      border-radius: 5px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+
+
+    #profile-image {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+  </style>
+
   <h1 id="username-container">
     {{ .Data.Username }}
   </h1>
@@ -110,7 +108,7 @@
     </div>
 
     <div id="profile-photo-container">
-      <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/Donuts.png">
+      <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Data.Username}}">
 
     </div>
   </div>

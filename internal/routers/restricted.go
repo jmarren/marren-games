@@ -42,6 +42,7 @@ func RestrictedRoutes(r *echo.Group) {
 		return c.String(200, "You are authenticated")
 	})
 
+	r.POST("/upload-profile-photo", controllers.UploadProfilePhotoHandler)
 	r.GET("/create-question", controllers.CreateQuestionHandler)
 
 	RestrictedRouteConfigs := GetRestrictedRouteConfigs()

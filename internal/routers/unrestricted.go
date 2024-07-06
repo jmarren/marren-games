@@ -17,7 +17,6 @@ func UnrestrictedRoutes(group *echo.Group) {
 	group.GET("/create-account", controllers.CreateAccountHandler)
 	group.POST("/login", controllers.LoginHandler)
 	group.POST("/create-account-submit", controllers.CreateAccountSubmitHandler)
-	group.POST("/upload-profile-photo", controllers.UploadProfilePhotoHandler)
 	unrestricted := group.Group("/unrestricted")
 	QueryTestHandler(unrestricted)
 }

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
@@ -86,6 +85,7 @@ func InitTemplates() {
 		"create-game.html",
 		"friends.html",
 		"upload-profile-photo.html",
+		"create-account-err.html",
 	}
 
 	// Create a base layout template
@@ -110,22 +110,31 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 
 	if hx {
 		// HTMX Request: Render only the partial content
-		return c.Render(http.StatusOK, partialTemplate, data)
-	} else {
-		// Full Page Reload: Render the base layout with the partial content
-		fmt.Println("data: ", data)
 		pageData := PageData{
-			Title:           "Marren Games",
+			Title:           "", // TODO
 			PartialTemplate: partialTemplate,
 			Data:            data,
 		}
-		fmt.Println(pageData)
-		err := c.Render(http.StatusOK, "base", pageData)
+		err := c.Render(http.StatusOK, partialTemplate, pageData)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error rendering template from hx-request:", err)
+			return err
 		}
 		return err
 	}
+	// Full Page Reload: Render the base layout with the partial content
+	fmt.Println("data: ", data)
+	pageData := PageData{
+		Title:           "Marren Games",
+		PartialTemplate: partialTemplate,
+		Data:            data,
+	}
+	fmt.Println(pageData)
+	err := c.Render(http.StatusOK, "base", pageData)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err
 }
 
 func IndexHandler(c echo.Context) error {
@@ -145,56 +154,34 @@ func CreateQuestionHandler(c echo.Context) error {
 }
 
 func CreateAccountSubmitHandler(c echo.Context) error {
-	// err := c.Request().ParseMultipartForm(1000)
-	// fmt.Println(c.Request().Header)
-	// if err != nil {
-	// 	fmt.Println("error parsing multipartform ", err)
-	// }
+	jwt, registrationErr := auth.RegisterUser(c.FormValue("username"), c.FormValue("password"), c.FormValue("email"))
 
-	registrationError := auth.RegisterUser(c.FormValue("username"), c.FormValue("password"), c.FormValue("email"))
+	if registrationErr != nil {
+		data := struct {
+			Error string
+		}{
+			Error: registrationErr.Error(),
+		}
 
-	fmt.Println("hit create account submit handler")
+		fmt.Println(data)
 
-	// profilePhoto, err := c.FormFile("profileImage")
-	// if err != nil {
-	// 	fmt.Println("error getting FormFile: ", err)
-	// 	return err
-	// }
-	//
-	// src, err := profilePhoto.Open()
-	// if err != nil {
-	// 	fmt.Println("error opening file: ", err)
-	// 	return err
-	// }
-	// defer src.Close()
-	//
-	// // Destination
-	// dst, err := os.Create(profilePhoto.Filename)
-	// if err != nil {
-	// 	fmt.Println("error creating file with os.Create(): ", err)
-	// 	return err
-	// }
-	// defer dst.Close()
-	//
-	// // Copy
-	// if _, err = io.Copy(dst, src); err != nil {
-	// 	fmt.Println("error copying file: ", err)
-	// 	return err
-	// }
-	//
-	if registrationError == nil {
-		return RenderTemplate(c, "upload-profile-photo", CreateAccountSuccessData{
-			Username: c.FormValue("username"),
-		})
+		// err := c.HTML(http.StatusConflict, `<div id="create-account-error" >`+registrationErr.Error()+`</div>`)
+		err := c.HTML(http.StatusConflict, registrationErr.Error())
+		if err != nil {
+			fmt.Println("error rendering err message: ", err)
+		}
+		fmt.Println("returning: ", err)
+		return err
 	}
 
-	data := CreateAccountData{
-		Username: c.FormValue("username"),
-		Email:    c.FormValue("email"),
-		Error:    registrationError,
+	cookie := &http.Cookie{
+		Name:    "auth",
+		Value:   jwt,
+		Expires: time.Now().Add(24 * time.Hour),
 	}
 
-	return RenderTemplate(c, "create-account", data)
+	c.SetCookie(cookie)
+	return RenderTemplate(c, "upload-profile-photo", nil)
 }
 
 func LoginHandler(c echo.Context) error {
@@ -254,15 +241,21 @@ func UploadProfilePhotoHandler(c echo.Context) error {
 		return err
 	}
 
-	fmt.Println("\n\nfile: ", f)
+	username := auth.GetFromClaims(auth.Username, c).(string)
 
-	fmt.Println(reflect.TypeOf(f))
-
-	uploadErr := awssdk.UploadToS3(f)
+	uploadErr := awssdk.UploadToS3(f, username)
 	if uploadErr != nil {
 		fmt.Println("uploadError uploading to s3: ", uploadErr)
 		return uploadErr
 	}
 
-	return c.Redirect(http.StatusFound, "/sign-in")
+	data := struct {
+		Username string
+	}{
+		Username: username,
+	}
+
+	fmt.Println(data)
+
+	return RenderTemplate(c, "profile", data)
 }

@@ -54,7 +54,7 @@ func InitAWS() {
 	}
 }
 
-func UploadToS3(fileHeader *multipart.FileHeader) error {
+func UploadToS3(fileHeader *multipart.FileHeader, key string) error {
 	file, err := fileHeader.Open()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error opening file:", err)
@@ -66,7 +66,6 @@ func UploadToS3(fileHeader *multipart.FileHeader) error {
 
 	defer cancel()
 
-	key := "test-3.png"
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, file); err != nil {
 		fmt.Fprintln(os.Stderr, "Error reading file:", err)
