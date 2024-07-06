@@ -66,7 +66,7 @@ func UploadToS3(fileHeader *multipart.FileHeader) error {
 
 	defer cancel()
 
-	key := "test-2.png"
+	key := "test-3.png"
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, file); err != nil {
 		fmt.Fprintln(os.Stderr, "Error reading file:", err)

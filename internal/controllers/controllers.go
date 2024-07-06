@@ -264,29 +264,5 @@ func UploadProfilePhotoHandler(c echo.Context) error {
 		return uploadErr
 	}
 
-	// for _, file := range files {
-	// 	// Source
-	// 	src, err := file.Open()
-	// 	if err != nil {
-	// 		fmt.Println("error during file.Open(): ", err)
-	// 		return err
-	// 	}
-	// 	defer src.Close()
-	//
-	// 	// Destination
-	// 	dst, err := os.Create(file.Filename)
-	// 	fmt.Println("error during os.Create(): ", err)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	defer dst.Close()
-	//
-	// 	// Copy
-	// 	if _, err = io.Copy(dst, src); err != nil {
-	// 		fmt.Println("error while copying: ", err)
-	// 		return err
-	// 	}
-	//
-	// }
-	return c.Redirect(http.StatusFound, "/auth/profile")
+	return c.Redirect(http.StatusFound, "/sign-in")
 }
