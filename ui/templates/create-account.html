@@ -78,13 +78,18 @@
     padding: 10px;
   }
 </style>
-
-
+<!-- <script> -->
+<!--   document.body.addEventListener('htmx:configRequest', (event) => { -->
+<!--     event.detail.headers['Content-Type'] = 'multipart/form-data'; -->
+<!--   }); -->
+<!-- </script> -->
+<!---->
 
 <div id="create-account-container">
   <span id="create-account-title" class="jersey-15-regular">Create Account</span>
   <form id="create-account-form" hx-post="/create-account-submit" hx-target="#create-account-container"
-    hx-swap="outerHTML" class="jersey-15-regular">
+    enctype='multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p' hx-swap="outerHTML"
+    hx-headers='{"Content-Type":"multipart/mixed; boundary=gc0p4Jq0M2Yt08jU534c0p"}'>
     <div class="form-item">
       <label for="username">
         Username
@@ -104,17 +109,6 @@
       <input type="email" id="email" name="email" value={{ .Email }} required>
     </div>
 
-    <div id="profile-photo-item">
-      <div id="profile-photo-label">
-        <label>
-          Upload Profile Photo
-        </label>
-        <input type="file" name="profileImage" accept="image/*" required />
-      </div>
-      <div id="photo-container">
-        <img src="/static/public/blank_avatar.svg">
-      </div>
-    </div>
     <div class="form-item">
       <button-component>
         <button slot="button" type="submit" value="Sign In">

@@ -57,6 +57,8 @@
   {{ template "create-game" .Data}}
   {{ else if eq .PartialTemplate "friends" }}
   {{ template "friends" .Data}}
+  {{ else if eq .PartialTemplate "upload-profile-photo"}}
+  {{ template "upload-profile-photo" .Data}}
   {{ else }}
   {{ template "index"}}
   {{ end }}

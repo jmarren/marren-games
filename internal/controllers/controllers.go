@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
+	"github.com/jmarren/marren-games/internal/awssdk"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
@@ -83,6 +85,7 @@ func InitTemplates() {
 		"results.html",
 		"create-game.html",
 		"friends.html",
+		"upload-profile-photo.html",
 	}
 
 	// Create a base layout template
@@ -142,13 +145,49 @@ func CreateQuestionHandler(c echo.Context) error {
 }
 
 func CreateAccountSubmitHandler(c echo.Context) error {
+	// err := c.Request().ParseMultipartForm(1000)
+	// fmt.Println(c.Request().Header)
+	// if err != nil {
+	// 	fmt.Println("error parsing multipartform ", err)
+	// }
+
 	registrationError := auth.RegisterUser(c.FormValue("username"), c.FormValue("password"), c.FormValue("email"))
 
+	fmt.Println("hit create account submit handler")
+
+	// profilePhoto, err := c.FormFile("profileImage")
+	// if err != nil {
+	// 	fmt.Println("error getting FormFile: ", err)
+	// 	return err
+	// }
+	//
+	// src, err := profilePhoto.Open()
+	// if err != nil {
+	// 	fmt.Println("error opening file: ", err)
+	// 	return err
+	// }
+	// defer src.Close()
+	//
+	// // Destination
+	// dst, err := os.Create(profilePhoto.Filename)
+	// if err != nil {
+	// 	fmt.Println("error creating file with os.Create(): ", err)
+	// 	return err
+	// }
+	// defer dst.Close()
+	//
+	// // Copy
+	// if _, err = io.Copy(dst, src); err != nil {
+	// 	fmt.Println("error copying file: ", err)
+	// 	return err
+	// }
+	//
 	if registrationError == nil {
-		return RenderTemplate(c, "create-account-success", CreateAccountSuccessData{
+		return RenderTemplate(c, "upload-profile-photo", CreateAccountSuccessData{
 			Username: c.FormValue("username"),
 		})
 	}
+
 	data := CreateAccountData{
 		Username: c.FormValue("username"),
 		Email:    c.FormValue("email"),
@@ -204,4 +243,50 @@ func ProfileHandler(c echo.Context) error {
 	fmt.Println("")
 
 	return RenderTemplate(c, "profile", data)
+}
+
+func UploadProfilePhotoHandler(c echo.Context) error {
+	fmt.Println(c.Request().Header)
+
+	f, err := c.FormFile("profileImage")
+	if err != nil {
+		fmt.Println("error during c.FormFile: ", err)
+		return err
+	}
+
+	fmt.Println("\n\nfile: ", f)
+
+	fmt.Println(reflect.TypeOf(f))
+
+	uploadErr := awssdk.UploadToS3(f)
+	if uploadErr != nil {
+		fmt.Println("uploadError uploading to s3: ", uploadErr)
+		return uploadErr
+	}
+
+	// for _, file := range files {
+	// 	// Source
+	// 	src, err := file.Open()
+	// 	if err != nil {
+	// 		fmt.Println("error during file.Open(): ", err)
+	// 		return err
+	// 	}
+	// 	defer src.Close()
+	//
+	// 	// Destination
+	// 	dst, err := os.Create(file.Filename)
+	// 	fmt.Println("error during os.Create(): ", err)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	defer dst.Close()
+	//
+	// 	// Copy
+	// 	if _, err = io.Copy(dst, src); err != nil {
+	// 		fmt.Println("error while copying: ", err)
+	// 		return err
+	// 	}
+	//
+	// }
+	return c.Redirect(http.StatusFound, "/auth/profile")
 }

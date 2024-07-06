@@ -1,0 +1,20 @@
+{{ define "upload-profile-photo"}}
+<form enctype="multipart/form-data" hx-post="/upload-profile-photo">
+  <div id="profile-photo-item">
+    <div id="profile-photo-label">
+      <label>
+        Upload Profile Photo
+      </label>
+      <input type="file" name="profileImage" accept="image/jpeg" required />
+    </div>
+    <div id="photo-container">
+      <img src="/static/public/blank_avatar.svg">
+    </div>
+    <button-component>
+      <button slot="button" type="submit"></button>
+    </button-component>
+  </div>
+
+</form>
+
+{{ end }}
