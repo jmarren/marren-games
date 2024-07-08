@@ -77,6 +77,15 @@
       height: auto;
       object-fit: contain;
     }
+
+    #log-out-button {
+      background-color: salmon;
+      font-family: Cheto;
+      color: antiquewhite;
+      padding: 5px;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
   </style>
 
   <h1 id="username-container">
@@ -121,14 +130,15 @@
         <span>jmarren99@gmail.com</span>
       </div>
 
+      <button id="log-out-button" hx-post="/auth/profile/logout" hx-target="#page-content" hx-swap="innerHTML">
+        Log Out
+      </button>
+
     </div>
 
     <div id="profile-photo-container">
       <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Data.Username}}">
-
     </div>
 
-    <button hx-get="/auth/profile/transition/friends" hx-target="#transition-styles" hx-swap="outerHTML">Slide
-      Out</button>
   </div>
   {{ end }}

@@ -31,7 +31,7 @@ func RestrictedRoutes(r *echo.Group) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(auth.JwtCustomClaims)
 		},
-		SigningKey:  []byte("secret"),
+		SigningKey:  []byte("secret"), // TODO
 		TokenLookup: "cookie:auth",
 	}
 	r.Use(echojwt.WithConfig(jwtConfig))

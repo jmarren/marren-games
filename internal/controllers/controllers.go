@@ -87,6 +87,8 @@ func InitTemplates() {
 		"upload-profile-photo.html",
 		"create-account-err.html",
 		"slide-out-to-right.html",
+		"side-bar.html",
+		"login-success.html",
 	}
 
 	// Create a base layout template
@@ -194,13 +196,24 @@ func LoginHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "An error occurred during authentication.")
 	}
 	cookie := &http.Cookie{
-		Name:    "auth",
-		Value:   jwt,
-		Expires: time.Now().Add(24 * time.Hour),
+		Name:     "auth",
+		Value:    jwt,
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
 	}
 
+	data := struct {
+		Username string
+	}{
+		Username: username,
+	}
+	pageData := PageData{
+		Data: data,
+	}
 	c.SetCookie(cookie)
-	return c.Redirect(http.StatusFound, "/auth/profile")
+	return RenderTemplate(c, "profile", pageData)
+	// return RenderTemplate(c, "", nil)
+	// return c.Redirect(http.StatusFound, "/auth/transition/profile")
 }
 
 func LogoutHandler(c echo.Context) error {

@@ -1,29 +1,49 @@
 {{ define "index" }}
 <script src="/static/js/button-component.js"> </script>
-<style>
-  #header-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-  }
 
-  h1 {
-    color: darkslategray;
-    width: 400px;
-    font-family: Cheto;
-    font-style: bold;
-    text-align: center;
-  }
+<div id="page-content">
 
-  #buttons-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-</style>
-<div id="header-container">
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
+
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style id="static-styles">
+    #page-content {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: darkslategray;
+      width: 400px;
+      font-family: Cheto;
+      font-style: bold;
+      text-align: center;
+    }
+
+    #buttons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
   <h1>
     Answer one question a day then vote for the best response!
   </h1>

@@ -12,26 +12,27 @@ class SideBar extends HTMLElement {
 
     template.innerHTML = `
       <style>
-      #side-bar-container {
-        position: fixed;
-        top: 50px;
-        left: 0;
-        z-index: -1;
-        height: 100%;
-        border-right: 4px solid black;
-        background-color: seagreen;
-        padding-top: 100px;
-        gap: 50px;
-      }
+  #side-bar-container {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    z-index: -1;
+    height: 100%;
+    border-right: 4px solid black;
+    background-color: seagreen;
+    padding-top: 100px;
+    gap: 50px;
+  }
+
       nav {
         display: flex;
         flex-direction: column;
         justify-content: space-around;
       }
-      
+
+
 
       </style> 
-
         <div id="side-bar-container"> 
           <nav>
             <slot name="profile" id="profile" class="side-bar-item"></slot>

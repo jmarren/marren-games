@@ -1,12 +1,30 @@
 {{ define "sign-in" }}
 <script src="/static/js/button-component.js"> </script>
-<div id="sign-in-container">
-  <style>
+<div id="page-content">
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
+
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style id="static-styles">
     * {
       font-family: Aruma;
     }
 
-    #sign-in-container {
+    #page-content {
       color: #0e6080;
       padding: 40px;
       display: flex;
@@ -51,11 +69,10 @@
   </style>
 
 
-  <span id="sign-in-title" class="jersey-15-regular">
+  <span id="sign-in-title">
     Sign In
   </span>
-  <form id="sign-in-form" hx-post="/login" hx-target="#sign-in-container" hx-swap="outerHTML" hx-push-url="true"
-    class="jersey-15-regular">
+  <form id="sign-in-form" hx-post="/login" hx-target="#page-content" hx-swap="outerHTML" hx-push-url="true">
     <div class="item">
       <label for="username">
         Username{{ .Username}}

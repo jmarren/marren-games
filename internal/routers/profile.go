@@ -2,9 +2,12 @@ package routers
 
 import (
 	"database/sql"
+	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
+	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/labstack/echo/v4"
 )
 
@@ -79,4 +82,15 @@ func GetProfileRoutes() []*RouteConfig {
 }
 
 func ProfileRouter(r *echo.Group) {
+	r.POST("/logout", func(c echo.Context) error {
+		cookie := &http.Cookie{
+			Name:     "auth",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  time.Now().Add(-1 * time.Hour),
+		}
+		c.SetCookie(cookie)
+		return controllers.RenderTemplate(c, "index", nil)
+	})
 }

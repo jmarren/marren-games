@@ -1,0 +1,37 @@
+{{ define "side-bar" }}
+<style id="side-bar-styles" hx-swap-oob="innerHTML">
+  .side-bar-item {
+    text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid darkseagreen;
+    font-family: Cheto;
+    font-size: 30px;
+    color: cornsilk;
+  }
+
+  .side-bar-item:hover {
+    background-color: darkolivegreen;
+  }
+
+  .side-bar-item:nth-of-type(1) {
+    border-top: 2px solid darkseagreen;
+  }
+</style>
+
+
+<side-bar id="side-bar" hx-swap-oob="outerHTML">
+  <div slot="profile" hx-trigger="click" hx-get="/auth/transition/profile" hx-target="#transition-styles"
+    hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item">Profile
+  </div>
+  <div slot="games" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles"
+    hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item">Games
+  </div>
+  <div slot="friends" hx-trigger="click" hx-get="/auth/transition/friends" hx-target="#transition-styles"
+    hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item">
+    Friends
+  </div>
+</side-bar>
+{{ end }}
