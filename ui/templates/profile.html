@@ -1,13 +1,29 @@
 {{ define "profile" }}
 
 <div id="page-content">
-  <style>
-    * {}
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
 
     #page-content {
-      border: 2px solid black;
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style id="static-styles">
+    #page-content {
       display: block;
       padding: 25px;
+
     }
 
     h1 {
@@ -111,5 +127,8 @@
       <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Data.Username}}">
 
     </div>
+
+    <button hx-get="/auth/profile/transition/friends" hx-target="#transition-styles" hx-swap="outerHTML">Slide
+      Out</button>
   </div>
   {{ end }}

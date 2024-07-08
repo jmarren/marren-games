@@ -1,54 +1,72 @@
 {{ define "friends" }}
-<style>
-  #page-content {
-    display: block;
-    padding: 25px;
-  }
-
-  h1 {
-    font-family: Cheto;
-  }
-
-  #friends-container {
-    padding: 20px;
-    display: flex;
-    background-color: skyblue;
-    border: 2px solid black;
-    box-shadow: 5px 5px black;
-    border-radius: 10px;
-    height: 400px;
-  }
-
-  #search-bar-container {
-    background-color: peachpuff;
-    height: 30px;
-    border: 2px solid black;
-    border-radius: 10px;
-    flex-grow: 1;
-    display: flex;
-    padding: 7.5px;
-  }
-
-  #search-input {
-    font-family: Aruma;
-    font-size: 25px;
-    flex-grow: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-  }
-
-  #search-input:focus:hover {
-    border: none;
-    outline: none;
-  }
-
-  #search-icon {
-    display: block;
-    justify-self: end;
-  }
-</style>
 <div id="page-content">
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
+
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style id="static-styles">
+    #page-content {
+      display: block;
+      padding: 25px;
+    }
+
+    h1 {
+      font-family: Cheto;
+    }
+
+    #friends-container {
+      padding: 20px;
+      display: flex;
+      background-color: skyblue;
+      border: 2px solid black;
+      box-shadow: 5px 5px black;
+      border-radius: 10px;
+      height: 400px;
+    }
+
+    #search-bar-container {
+      background-color: peachpuff;
+      height: 30px;
+      border: 2px solid black;
+      border-radius: 10px;
+      flex-grow: 1;
+      display: flex;
+      padding: 7.5px;
+    }
+
+    #search-input {
+      font-family: Aruma;
+      font-size: 25px;
+      flex-grow: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+    }
+
+    #search-input:focus:hover {
+      border: none;
+      outline: none;
+    }
+
+    #search-icon {
+      display: block;
+      justify-self: end;
+    }
+  </style>
   <h1>
     Friends
   </h1>

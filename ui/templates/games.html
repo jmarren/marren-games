@@ -1,92 +1,110 @@
 {{ define "games" }}
-<style>
-  * {
-    box-sizing: border-box;
-  }
 
-  #content-container {
-    padding-top: 25px;
-    padding-left: 25px;
-    padding-right: 25px;
-    display: block;
-  }
+<div id="page-content">
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
 
-
-  #top-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  h1 {
-    font-family: Cheto;
-
-  }
-
-  button {
-    background-color: seagreen;
-    padding: 10px;
-    font-family: Aruma;
-    font-size: 20px;
-    border-radius: 5px;
-    color: antiquewhite;
-  }
-
-  button:hover {
-    background-color: darkolivegreen;
-  }
+      100% {
+        translate: 0 0;
+      }
+    }
 
 
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style id="static-styles">
+    * {
+      box-sizing: border-box;
+    }
 
-  table {
-    width: 80vw;
-    background-color: lightskyblue;
-    box-shadow: 2.5px 2.5px black;
-    border: 1.5px solid black;
-    font-family: Aruma;
-    padding-bottom: 10px;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 1.5px solid black;
-    box-shadow: 2.5px 2.5px black;
-    width: 100%;
-    border-spacing: 0;
-  }
+    #page-content {
+      padding-top: 25px;
+      padding-left: 25px;
+      padding-right: 25px;
+      display: block;
+    }
+
+
+    #top-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-family: Cheto;
+
+    }
+
+    button {
+      background-color: seagreen;
+      padding: 10px;
+      font-family: Aruma;
+      font-size: 20px;
+      border-radius: 5px;
+      color: antiquewhite;
+    }
+
+    button:hover {
+      background-color: darkolivegreen;
+    }
 
 
 
-  th,
-  td {
-    padding: 5px;
-    font-size: 20px;
-  }
+    table {
+      width: 80vw;
+      background-color: lightskyblue;
+      box-shadow: 2.5px 2.5px black;
+      border: 1.5px solid black;
+      font-family: Aruma;
+      padding-bottom: 10px;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1.5px solid black;
+      box-shadow: 2.5px 2.5px black;
+      width: 100%;
+      border-spacing: 0;
+    }
 
-  th {
-    text-align: left;
-  }
 
-  thead {
-    background-color: lightskyblue;
-  }
 
-  tbody tr:nth-child(odd) {
-    background-color: #e0e0e0;
-  }
+    th,
+    td {
+      padding: 5px;
+      font-size: 20px;
+    }
 
-  tbody tr:nth-child(even) {
-    background-color: #ffffff;
-  }
+    th {
+      text-align: left;
+    }
 
-  tbody tr:nth-child(odd):hover {
-    background-color: #c0e9fa;
-  }
+    thead {
+      background-color: lightskyblue;
+    }
 
-  tbody tr:nth-child(even):hover {
-    background-color: #c0e9fa;
-  }
-</style>
+    tbody tr:nth-child(odd) {
+      background-color: #e0e0e0;
+    }
 
-<div id="content-container">
+    tbody tr:nth-child(even) {
+      background-color: #ffffff;
+    }
+
+    tbody tr:nth-child(odd):hover {
+      background-color: #c0e9fa;
+    }
+
+    tbody tr:nth-child(even):hover {
+      background-color: #c0e9fa;
+    }
+  </style>
   <div id="top-container">
     <h1>
       Games

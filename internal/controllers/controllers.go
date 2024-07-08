@@ -86,6 +86,7 @@ func InitTemplates() {
 		"friends.html",
 		"upload-profile-photo.html",
 		"create-account-err.html",
+		"slide-out-to-right.html",
 	}
 
 	// Create a base layout template
@@ -110,12 +111,12 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 
 	if hx {
 		// HTMX Request: Render only the partial content
-		pageData := PageData{
-			Title:           "", // TODO
-			PartialTemplate: partialTemplate,
-			Data:            data,
-		}
-		err := c.Render(http.StatusOK, partialTemplate, pageData)
+		// pageData := PageData{
+		// 	Title:           "", // TODO
+		// 	PartialTemplate: partialTemplate,
+		// 	Data:            data,
+		// }
+		err := c.Render(http.StatusOK, partialTemplate, data)
 		if err != nil {
 			fmt.Println("Error rendering template from hx-request:", err)
 			return err

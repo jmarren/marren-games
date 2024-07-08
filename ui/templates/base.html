@@ -35,33 +35,67 @@
     margin-left: 147px;
     overflow-y: scroll;
   }
+
+  .side-bar-item {
+    text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid darkseagreen;
+    font-family: Cheto;
+    font-size: 30px;
+    color: cornsilk;
+  }
+
+  .side-bar-item:hover {
+    background-color: darkolivegreen;
+  }
+
+  .side-bar-item:nth-of-type(1) {
+    border-top: 2px solid darkseagreen;
+  }
 </style>
 <script src="/static/js/top-bar.js"></script>
 <script src="/static/js/side-bar.js"></script>
 <top-bar></top-bar>
-<side-bar></side-bar>
+<side-bar>
+  <div slot="profile" hx-trigger="click" hx-get="/auth/transition/profile" hx-target="#transition-styles"
+    hx-swap="outerHTML" class="side-bar-item">Profile
+  </div>
+  <div slot="games" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles"
+    hx-swap="outerHTML" class="side-bar-item">Games
+  </div>
+  <div slot="friends" hx-trigger="click" hx-get="/auth/transition/friends" hx-target="#transition-styles"
+    hx-swap="outerHTML" class="side-bar-item">
+    Friends
+  </div>
+</side-bar>
 <main>
-  {{ if eq .PartialTemplate "sign-in" }}
-  {{ template "sign-in" .Data}}
-  {{ else if eq .PartialTemplate "create-account" }}
-  {{ template "create-account" .Data }}
-  {{ else if eq .PartialTemplate "create-question"}}
-  {{ template "create-question" .Data}}
-  {{ else if eq .PartialTemplate "profile"}}
-  {{ template "profile" .Data}}
-  {{ else if eq .PartialTemplate "games"}}
-  {{ template "games" .Data}}
-  {{ else if eq .PartialTemplate "gameplay" }}
-  {{ template "gameplay" .Data}}
-  {{ else if eq .PartialTemplate "create-game" }}
-  {{ template "create-game" .Data}}
-  {{ else if eq .PartialTemplate "friends" }}
-  {{ template "friends" .Data}}
-  {{ else if eq .PartialTemplate "upload-profile-photo"}}
-  {{ template "upload-profile-photo" .Data}}
-  {{ else }}
-  {{ template "index"}}
-  {{ end }}
+  <div id="page-container">
+    {{ if eq .PartialTemplate "sign-in" }}
+    {{ template "sign-in" .Data}}
+    {{ else if eq .PartialTemplate "create-account" }}
+    {{ template "create-account" .Data }}
+    {{ else if eq .PartialTemplate "create-question"}}
+    {{ template "create-question" .Data}}
+    {{ else if eq .PartialTemplate "profile"}}
+    {{ template "profile" .Data}}
+    {{ else if eq .PartialTemplate "games"}}
+    {{ template "games" .Data}}
+    {{ else if eq .PartialTemplate "gameplay" }}
+    {{ template "gameplay" .Data}}
+    {{ else if eq .PartialTemplate "create-game" }}
+    {{ template "create-game" .Data}}
+    {{ else if eq .PartialTemplate "friends" }}
+    {{ template "friends" .Data}}
+    {{ else if eq .PartialTemplate "upload-profile-photo"}}
+    {{ template "upload-profile-photo" .Data}}
+    {{ else }}
+    {{ template "index"}}
+    {{ end }}
+  </div>
+
 </main>
 <footer-component>
 </footer-component>

@@ -1,0 +1,26 @@
+{{ define "slide-out-to-right"}}
+
+<div id="temp-{{ .Data.TargetPage}}" hx-trigger="htmx:afterSettle delay:1s" hx-get="/auth/{{ .Data.TargetPage }} "
+  hx-target="#page-container" hx-swap="innerHTML">
+</div>
+<style>
+  @keyframes slide-out-to-right {
+    0% {
+      translate: 0 0;
+    }
+
+    100% {
+      translate: 100vw 0;
+    }
+  }
+
+  #page-content {
+    animation-name: slide-out-to-right;
+    animation-fill-mode: forwards;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+  }
+</style>
+
+
+{{ end }}

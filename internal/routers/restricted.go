@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	_ "net/http"
 	"reflect"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -35,8 +34,16 @@ func RestrictedRoutes(r *echo.Group) {
 		SigningKey:  []byte("secret"),
 		TokenLookup: "cookie:auth",
 	}
-
 	r.Use(echojwt.WithConfig(jwtConfig))
+
+	profileGroup := r.Group("/profile")
+	ProfileRouter(profileGroup)
+	transitionGroup := r.Group("/transition")
+	TransitionRouter(transitionGroup)
+
+	// games := r.Group("/games")
+	// play := r.Group("/play")
+	// friends := r.Group("/friends")
 
 	r.GET("/test", func(c echo.Context) error {
 		return c.String(200, "You are authenticated")
