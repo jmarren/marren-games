@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/jmarren/marren-games/internal/auth"
-	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/labstack/echo/v4"
 )
 
@@ -80,17 +79,4 @@ func GetProfileRoutes() []*RouteConfig {
 }
 
 func ProfileRouter(r *echo.Group) {
-	r.GET("/transition/:target-page", func(c echo.Context) error {
-		targetPage := c.Param("target-page")
-		dataStruct := struct {
-			TargetPage string
-		}{
-			TargetPage: targetPage,
-		}
-
-		data := TemplateData{
-			Data: dataStruct,
-		}
-		return controllers.RenderTemplate(c, "slide-out-to-right", data)
-	})
 }
