@@ -3,10 +3,14 @@ package routers
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 	"reflect"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/jmarren/marren-games/internal/db"
+	"github.com/labstack/echo/v4"
 )
 
 // Utility function to convert query parameter from string to specified type
@@ -148,7 +152,7 @@ func PrintStruct(s interface{}) {
 	typ := reflect.TypeOf(s)
 
 	if val.Kind() == reflect.Struct {
-		fmt.Printf("Struct type: %s\n", typ)
+		// fmt.Printf("Struct type: %s\n", typ)
 		for i := 0; i < val.NumField(); i++ {
 			fieldName := typ.Field(i).Name
 			fieldValue := val.Field(i).Interface()
@@ -157,4 +161,81 @@ func PrintStruct(s interface{}) {
 	} else {
 		fmt.Println("Provided value is not a struct")
 	}
+}
+
+func GetFullQuery(mainQuery string, withQueries []string) string {
+	query := ""
+	for _, withQuery := range withQueries {
+		query += "\n" + db.WithQueries.GetWithQuery(withQuery)
+	}
+	return mainQuery + "\n" + query
+}
+
+func GetParams(claimArgConfigs []ClaimArgConfig, urlQueryParamArgConfigs []UrlQueryParamArgConfig, urlPathParamArgConfigs []UrlPathParamArgConfig, c echo.Context) ([]sql.NamedArg, error) {
+	// Get params from urlParamArgConfigs and claimArgConfigs
+	var params []sql.NamedArg
+
+	// convert urlParamArgConfigs into their specified type, convert to namedParams and append to params
+	for _, urlQueryParamConfig := range urlQueryParamArgConfigs {
+		value := urlQueryParamConfig.getValue(c)
+		convertedValue, err := ConvertType(string(value), urlQueryParamConfig.Type)
+		if err != nil {
+			fmt.Println("error converting urlparms to specified Type", err)
+			return params, err
+		}
+		namedParam := sql.Named(string(urlQueryParamConfig.Name), convertedValue)
+		params = append(params, namedParam)
+	}
+
+	// claims are already typed
+	for _, claimConfig := range claimArgConfigs {
+		value := claimConfig.getValue(c)
+		namedParam := sql.Named(string(claimConfig.claim), value)
+		params = append(params, namedParam)
+	}
+
+	for _, urlPathParamArgConfig := range urlPathParamArgConfigs {
+		value := urlPathParamArgConfig.getValue(c)
+		convertedValue, err := ConvertType(string(value), urlPathParamArgConfig.Type)
+		if err != nil {
+			fmt.Println("error converting urlparms to specified Type", err)
+			return params, err
+		}
+		namedParam := sql.Named(string(urlPathParamArgConfig.Name), convertedValue)
+		params = append(params, namedParam)
+	}
+
+	return params, nil
+}
+
+func GetRequestWithDbQuery(routeConfig *RouteConfig, c echo.Context) (interface{}, error) {
+	params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, c)
+	if err != nil {
+		return nil, c.String(http.StatusBadRequest, "error getting params")
+	}
+	// fmt.Println("params: ", params)
+
+	// Combine main query with WithQueries
+	query := GetFullQuery(routeConfig.query, routeConfig.withQueries)
+	// fmt.Printf("\nquery: %v", query)
+
+	// Perform Query
+	results, _, err := db.DynamicQuery(query, params, routeConfig.typ)
+	if err != nil {
+		// fmt.Println(string)
+		return nil, c.String(http.StatusInternalServerError, "failed to execute query")
+	}
+	// fmt.Println()
+	// fmt.Println("results in route:", results)
+
+	// Dynamically handle the type specified in routeConfig.typ
+	// resultsValue := reflect.ValueOf(results)
+	//
+	// fmt.Printf("resultsValue: %v", resultsValue)
+	//
+	simplifiedFields := GetSimplifiedFields(reflect.TypeOf(routeConfig.typ))
+
+	simplified := SimplifySqlResult(results, simplifiedFields)
+
+	return simplified, nil
 }

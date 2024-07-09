@@ -9,7 +9,7 @@ import (
 
 func TransitionRouter(r *echo.Group) {
 	r.GET("/:target-page", func(c echo.Context) error {
-		fmt.Println("hit")
+		fmt.Printf("\n\nhit\n\n")
 		targetPage := c.Param("target-page")
 		dataStruct := struct {
 			TargetPage string

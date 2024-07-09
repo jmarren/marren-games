@@ -2,6 +2,7 @@ package routers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -11,11 +12,53 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func ProfileRouter(r *echo.Group) {
+	r.POST("/logout", func(c echo.Context) error {
+		cookie := &http.Cookie{
+			Name:     "auth",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  time.Now().Add(-1 * time.Hour),
+		}
+		c.SetCookie(cookie)
+		return controllers.RenderTemplate(c, "index", nil)
+	})
+
+	routeConfigs := GetProfileRoutes()
+
+	for _, routeConfig := range routeConfigs {
+		switch routeConfig.method {
+		case GET:
+
+			r.GET(routeConfig.path,
+				func(c echo.Context) error {
+					if routeConfig.query == "" {
+						return controllers.RenderTemplate(c, routeConfig.partialTemplate, nil)
+					}
+
+					data, err := GetRequestWithDbQuery(routeConfig, c)
+					if err != nil {
+						fmt.Println("error performing dynamic query: ", err)
+						return c.String(http.StatusInternalServerError, "error")
+					}
+
+					// Create a TemplateData struct to pass to the template
+					templateData := TemplateData{
+						Data: data,
+					}
+
+					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
+				})
+		}
+	}
+}
+
 func GetProfileRoutes() []*RouteConfig {
 	return CreateNewRouteConfigs(
 		[]RouteConfig{
 			{
-				path:   "/",
+				path:   "",
 				method: GET,
 				claimArgConfigs: []ClaimArgConfig{
 					{claim: auth.Username, Type: reflect.String},
@@ -79,18 +122,4 @@ func GetProfileRoutes() []*RouteConfig {
 				}{},
 			},
 		})
-}
-
-func ProfileRouter(r *echo.Group) {
-	r.POST("/logout", func(c echo.Context) error {
-		cookie := &http.Cookie{
-			Name:     "auth",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  time.Now().Add(-1 * time.Hour),
-		}
-		c.SetCookie(cookie)
-		return controllers.RenderTemplate(c, "index", nil)
-	})
 }

@@ -250,6 +250,10 @@ func GetRouteConfigs() RouteConfigs {
 					}
 				}{},
 			},
+			{
+				path:   "/create-account",
+				method: "POST",
+			},
 		})
 	return RouteConfigs
 }

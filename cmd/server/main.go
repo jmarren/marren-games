@@ -11,6 +11,7 @@ import (
 	"github.com/jmarren/marren-games/internal/routers"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	// echoprometheus  "github.com/labstack/echo-contrib"
 	// "github.com/labstack/echo/v4/middleware"
 )
@@ -54,11 +55,14 @@ func main() {
 	// Initialize Echo
 	e := initEcho()
 
+	e.Use(middleware.Logger())
+
 	queryTest := e.Group("/query")
 
 	routers.QueryTests(queryTest)
 	// ---- Middlewares
-	// e.Use(middleware.Logger())
+	// e.Use(fmt.Println(e.Logger()))
+	// e.Use(e.Logger)
 	// e.Use(middleware.Recover())
 
 	// ---- Routes
@@ -76,8 +80,7 @@ func main() {
 	restrictedRoutes := e.Group("/auth")
 	routers.RestrictedRoutes(restrictedRoutes)
 
-	// // Register pprof routes
-
+	// Register pprof routes
 	// Start the main server on port 8080
 	go func() {
 		if err := e.Start(":8080"); err != nil {
