@@ -171,9 +171,19 @@ func GetFullQuery(mainQuery string, withQueries []string) string {
 	return mainQuery + "\n" + query
 }
 
-func GetParams(claimArgConfigs []ClaimArgConfig, urlQueryParamArgConfigs []UrlQueryParamArgConfig, urlPathParamArgConfigs []UrlPathParamArgConfig, c echo.Context) ([]sql.NamedArg, error) {
+func GetParams(claimArgConfigs []ClaimArgConfig, urlQueryParamArgConfigs []UrlQueryParamArgConfig, urlPathParamArgConfigs []UrlPathParamArgConfig, formValueArgs []FormValueArg, c echo.Context) ([]sql.NamedArg, error) {
 	// Get params from urlParamArgConfigs and claimArgConfigs
 	var params []sql.NamedArg
+
+	for _, formValueArg := range formValueArgs {
+		value := c.FormValue(formValueArg.Name)
+		convertedValue, err := ConvertType(value, formValueArg.Type)
+		if err != nil {
+			return params, err
+		}
+		namedParam := sql.Named(formValueArg.Name, convertedValue)
+		params = append(params, namedParam)
+	}
 
 	// convert urlParamArgConfigs into their specified type, convert to namedParams and append to params
 	for _, urlQueryParamConfig := range urlQueryParamArgConfigs {
@@ -209,7 +219,7 @@ func GetParams(claimArgConfigs []ClaimArgConfig, urlQueryParamArgConfigs []UrlQu
 }
 
 func GetRequestWithDbQuery(routeConfig *RouteConfig, c echo.Context) (interface{}, error) {
-	params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, c)
+	params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, routeConfig.formValueArgs, c)
 	if err != nil {
 		return nil, c.String(http.StatusBadRequest, "error getting params")
 	}

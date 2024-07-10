@@ -41,7 +41,7 @@ func QueryTestHandler(group *echo.Group) {
 
 				func(c echo.Context) error {
 					// convert params to the type specified in config
-					params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, c)
+					params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, routeConfig.formValueArgs, c)
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error getting params")
 					}
@@ -74,7 +74,7 @@ func QueryTestHandler(group *echo.Group) {
 		case POST:
 			group.POST(routeConfig.path,
 				func(c echo.Context) error {
-					params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, c)
+					params, err := GetParams(routeConfig.claimArgConfigs, routeConfig.urlQueryParamArgConfigs, routeConfig.urlPathParamArgConfigs, routeConfig.formValueArgs, c)
 					if err != nil {
 						return c.String(http.StatusBadRequest, "error getting params")
 					}

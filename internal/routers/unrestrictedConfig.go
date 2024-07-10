@@ -30,7 +30,13 @@ type RouteConfig struct {
 	urlPathParamArgConfigs  []UrlPathParamArgConfig
 	urlQueryParamArgConfigs []UrlQueryParamArgConfig
 	partialTemplate         string
+	formValueArgs           []FormValueArg
 	typ                     interface{}
+}
+
+type FormValueArg struct {
+	Name string
+	Type reflect.Kind
 }
 
 type RouteConfigs []*RouteConfig

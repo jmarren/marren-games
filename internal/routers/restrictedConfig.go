@@ -94,22 +94,6 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 				partialTemplate: "create-game",
 			},
 			{
-				path:   "/friends",
-				method: GET,
-				claimArgConfigs: []ClaimArgConfig{
-					{claim: auth.UserId, Type: reflect.Int},
-				},
-				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
-				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
-				query: `SELECT Username
-                FROM users
-                WHERE id = :UserId`,
-				typ: struct {
-					UserId sql.NullString
-				}{},
-				partialTemplate: "friends",
-			},
-			{
 				path:   "/create-question",
 				method: GET,
 				claimArgConfigs: []ClaimArgConfig{
@@ -128,25 +112,3 @@ func GetRestrictedRouteConfigs() []*RouteConfig {
 		},
 	)
 }
-
-// {
-// 	path:   "/games",
-// 	method: GET,
-// 	claimArgConfigs: []ClaimArgConfig{
-// 		{claim: auth.Username, Type: reflect.String},
-// 		{claim: auth.UserId, Type: reflect.Int},
-// 	},
-// 	urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
-// 	urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
-// 	withQueries:             []string{},
-// 	query: `SELECT id, username, email
-//              FROM users
-//              WHERE users.id = :UserId;
-//      `,
-// 	typ: struct {
-// 		Id       sql.NullInt64
-// 		Username sql.NullString
-// 		Email    sql.NullString
-// 	}{},
-// 	partialTemplate: "games",
-// },

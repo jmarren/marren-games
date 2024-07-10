@@ -1,140 +1,193 @@
 {{ define "create-game" }}
 <script src="/static/js/button-component.js"></script>
-<style>
-  #page-content {
-    display: block;
-    border: 2px solid black;
-    padding: 25px;
-  }
-
-  #header {
-    font-family: Cheto;
-    font-size: 35px;
-  }
-
-  #subcontainer {
-    display: flex;
-    background-color: orange;
-    border: 2px solid black;
-    border-radius: 10px;
-    box-shadow: 5px 5px black;
-    font-family: Cheto;
-    padding: 15px;
-  }
-
-  input {
-    border-radius: 5px;
-    background-color: antiquewhite;
-  }
-
-  form {
-    flex-grow: 1;
-    padding: 20px;
-    gap: 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  #subcontainer-left {
-    gap: 5px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #subcontainer-right {
-    gap: 5px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #form-fields {
-    display: flex;
-  }
-
-
-  .item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-</style>
+<script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
 <div id="page-content">
+  <script>
+    document.addEventListener('htmx:afterRequest', e => {
+      if (!e.detail.xhr.status.toString().startsWith('2')) {
+        let errorDiv = document.getElementById("create-game-error");
+        errorDiv.innerHTML = e.detail.xhr.responseText;
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+  <style id="transition-styles">
+  </style>
+  <style id="static-styles">
+    #page-content {
+      display: flex;
+      flex-direction: column;
+      border: 2px solid black;
+      padding: 25px;
+      align-items: center;
+    }
+
+    #header {
+      font-family: Cheto;
+      font-size: 35px;
+    }
+
+    #subcontainer {
+      color: black;
+      display: flex;
+      background-color: orange;
+      border: 2px solid black;
+      border-radius: 10px;
+      box-shadow: 5px 5px black;
+      font-family: Cheto;
+      padding: 15px;
+      max-width: 800px;
+      min-width: 350px;
+    }
+
+
+
+    form {
+      flex-grow: 1;
+      padding: 20px;
+      gap: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    #subcontainer-left {
+      gap: 5px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #subcontainer-right {
+      gap: 5px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #form-fields {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      gap: 5px;
+    }
+
+    input {
+      border-radius: 5px;
+      background-color: antiquewhite;
+      width: 300px;
+    }
+
+    button {
+      margin-top: 10px;
+      width: 300px;
+      background-color: skyblue;
+      font-family: Aruma;
+      padding: 5px;
+      font-size: 20px;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: deepskyblue;
+    }
+
+    button:active {
+      transform: scale(0.95)
+    }
+
+    #create-game-error {
+      color: red;
+      font-family: Aruma;
+    }
+  </style>
+
   <h1 id="header">
     Create a New Game
   </h1>
   <div id="subcontainer">
 
-    <form>
+    <form hx-post="/auth/games/create-game" hx-target="#page-content" hx-target-error="#create-game-error">
 
       <div id="form-fields">
-        <div id="subcontainer-left">
-          <div class="item">
-            <label>
-              Choose a Name
-            </label>
-            <input type="text">
-          </div>
-
-
-          <div class="item">
-            <label>
-              Invite friends
-            </label>
-            <input type="text">
-          </div>
+        <!-- <div> -->
+        <div class="item">
+          <label for="game-name">
+            Choose a Name
+          </label>
+          <input type="text" id="game-name" name="game-name">
         </div>
 
-        <div id="subcontainer-right">
-          <div class="item">
-            <label>
-              First Question
-            </label>
-            <input type="text">
-          </div>
 
-
-          <div class="item">
-            <label>
-              Option 1
-            </label>
-            <input type="text">
-          </div>
-
-
-          <div class="item">
-            <label>
-              Option 2
-            </label>
-            <input type="text">
-          </div>
-
-          <div class="item">
-            <label>
-              Option 3
-            </label>
-            <input type="text">
-          </div>
-
-
-          <div class="item">
-            <label>
-              Option 4
-            </label>
-            <input type="text">
-          </div>
+        <div class="item">
+          <label for="friends">
+            Invite friends
+          </label>
+          <input type="text" id="friends" name="friends">
         </div>
-      </div>
 
-      <button-component>
-        <button slot="button" type="submit">
-          Create
+        <button type="submit">
+          Next
         </button>
-      </button-component>
 
+        <!--   <div id="subcontainer-right"> -->
+        <!--     <div class="item"> -->
+        <!--       <label> -->
+        <!--         First Question -->
+        <!--       </label> -->
+        <!--       <input type="text"> -->
+        <!--     </div> -->
+        <!---->
+        <!---->
+        <!--     <div class="item"> -->
+        <!--       <label> -->
+        <!--         Option 1 -->
+        <!--       </label> -->
+        <!--       <input type="text"> -->
+        <!--     </div> -->
+        <!---->
+        <!---->
+        <!--     <div class="item"> -->
+        <!--       <label> -->
+        <!--         Option 2 -->
+        <!--       </label> -->
+        <!--       <input type="text"> -->
+        <!--     </div> -->
+        <!---->
+        <!--     <div class="item"> -->
+        <!--       <label> -->
+        <!--         Option 3 -->
+        <!--       </label> -->
+        <!--       <input type="text"> -->
+        <!--     </div> -->
+        <!---->
+        <!---->
+        <!--     <div class="item"> -->
+        <!--       <label> -->
+        <!--         Option 4 -->
+        <!--       </label> -->
+        <!--       <input type="text"> -->
+        <!--     </div> -->
+        <!--   </div> -->
+        <!-- </div> -->
+        <!---->
+        <!-- <button-component> -->
+        <!--   <button slot="button" type="submit"> -->
+        <!--     Create -->
+        <!--   </button> -->
+        <!-- </button-component> -->
+        <!---->
     </form>
+    <div id="create-game-error">
+    </div>
   </div>
 
 </div>

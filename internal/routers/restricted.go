@@ -33,25 +33,15 @@ func RestrictedRoutes(r *echo.Group) {
 	}
 	r.Use(echojwt.WithConfig(jwtConfig))
 
-	// r.GET("/games", func(c echo.Context) error {
-	// 	fmt.Println("hi")
-	//
-	// 	return controllers.RenderTemplate(c, "games", nil)
-	// })
 	transitionGroup := r.Group("/transition")
 	TransitionRouter(transitionGroup)
 	gamesGroup := r.Group("/games")
 	GamesRouter(gamesGroup)
 	profileGroup := r.Group("/profile")
 	ProfileRouter(profileGroup)
+	friendsGroup := r.Group("/friends")
+	FriendsRouter(friendsGroup)
 
-	// games := r.Group("/games")
-	// play := r.Group("/play")
-	// friends := r.Group("/friends")
-
-	r.GET("/test", func(c echo.Context) error {
-		return c.String(200, "You are authenticated")
-	})
 	r.POST("/upload-profile-photo", controllers.UploadProfilePhotoHandler)
 	r.GET("/create-question", controllers.CreateQuestionHandler)
 
