@@ -31,6 +31,7 @@
     #friends-container {
       padding: 20px;
       display: flex;
+      flex-direction: column;
       background-color: skyblue;
       border: 2px solid black;
       box-shadow: 5px 5px black;
@@ -43,7 +44,6 @@
       height: 30px;
       border: 2px solid black;
       border-radius: 10px;
-      flex-grow: 1;
       display: flex;
       padding: 7.5px;
     }
@@ -66,20 +66,48 @@
       display: block;
       justify-self: end;
     }
+
+    .table {
+      font-family: Aruma;
+      font-size: 20px;
+    }
+
+    thead,
+    tfoot {
+      background-color: rgb(228 240 245);
+    }
+
+    tbody>tr:nth-of-type(even) {
+      background-color: rgb(237 238 242);
+    }
   </style>
   <h1>
     Friends
   </h1>
-  <div id="friends-container">
+
+  <form id="friends-container">
     <div id="search-bar-container">
-      <input type="text" id="search-input">
+      <input id="search-input" type="search" name="search" placeholder="Begin Typing To Search Users..."
+        hx-post="/auth/friends/search" hx-trigger="input changed delay:500ms, search" hx-target="#search-results"
+        hx-indicator=".htmx-indicator">
 
       <img id="search-icon" src="/static/public/search_icon.svg">
 
 
     </div>
 
-  </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="search-results">
+      </tbody>
+    </table>
+  </form>
+
 </div>
 
 

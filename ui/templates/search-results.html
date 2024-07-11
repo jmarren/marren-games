@@ -1,0 +1,11 @@
+{{ define "search-results"}}
+{{ range .Data }}
+<tr>
+  <th>
+    <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
+    {{ .Username}}
+  </th>
+  <th>{{ .Email}}</th>
+</tr>
+{{ end }}
+{{ end }}

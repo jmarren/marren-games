@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
-	"github.com/jmarren/marren-games/internal/awssdk"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
@@ -89,6 +88,8 @@ func InitTemplates() {
 		"slide-out-to-right.html",
 		"side-bar.html",
 		"login-success.html",
+		"search-results.html",
+		"profile-photo-viewer.html",
 	}
 
 	// Create a base layout template
@@ -242,34 +243,6 @@ func ProfileHandler(c echo.Context) error {
 
 	fmt.Println("\n----------- Username: ", username, "---------------")
 	fmt.Println("")
-
-	return RenderTemplate(c, "profile", data)
-}
-
-func UploadProfilePhotoHandler(c echo.Context) error {
-	fmt.Println(c.Request().Header)
-
-	f, err := c.FormFile("profileImage")
-	if err != nil {
-		fmt.Println("error during c.FormFile: ", err)
-		return err
-	}
-
-	username := auth.GetFromClaims(auth.Username, c).(string)
-
-	uploadErr := awssdk.UploadToS3(f, username)
-	if uploadErr != nil {
-		fmt.Println("uploadError uploading to s3: ", uploadErr)
-		return uploadErr
-	}
-
-	data := struct {
-		Username string
-	}{
-		Username: username,
-	}
-
-	fmt.Println(data)
 
 	return RenderTemplate(c, "profile", data)
 }

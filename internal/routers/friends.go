@@ -1,79 +1,83 @@
 package routers
 
 import (
+	"database/sql"
 	"fmt"
-	"net/http"
 
 	"github.com/jmarren/marren-games/internal/controllers"
+	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
 
 func FriendsRouter(r *echo.Group) {
-	routeConfigs := GetFriendsRoutes()
+	r.GET("", getFriendsPage)
 
-	for _, routeConfig := range routeConfigs {
-		switch routeConfig.method {
-		case GET:
-			r.GET(routeConfig.path,
-
-				func(c echo.Context) error {
-					// convert params to the type specified in config
-					data, err := GetRequestWithDbQuery(routeConfig, c)
-					if err != nil {
-						fmt.Println("error performing dynamic query: ", err)
-						return c.String(http.StatusInternalServerError, "error")
-					}
-					// Create a TemplateData struct to pass to the template
-					templateData := TemplateData{
-						Data: data,
-					}
-					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
-				})
-		}
-	}
-
-	for _, routeConfig := range routeConfigs {
-		switch routeConfig.method {
-		case GET:
-
-			r.GET(routeConfig.path,
-				func(c echo.Context) error {
-					fmt.Println(" hit new gamesRouter")
-
-					if routeConfig.query == "" {
-						return controllers.RenderTemplate(c, routeConfig.partialTemplate, nil)
-					}
-
-					data, err := GetRequestWithDbQuery(routeConfig, c)
-					if err != nil {
-						fmt.Println("error performing dynamic query: ", err)
-						return c.String(http.StatusInternalServerError, "error")
-					}
-
-					// Create a TemplateData struct to pass to the template
-					templateData := TemplateData{
-						Data: data,
-					}
-
-					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
-				})
-		}
-	}
+	r.POST("/search", searchUsers)
 }
 
-func GetFriendsRoutes() RouteConfigs {
-	return CreateNewRouteConfigs(
-		[]RouteConfig{
-			{
-				path:                    "",
-				method:                  GET,
-				claimArgConfigs:         []ClaimArgConfig{},
-				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
-				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
-				withQueries:             []string{},
-				query:                   ``,
-				typ:                     struct{}{},
-				partialTemplate:         "friends",
-			},
+func getFriendsPage(c echo.Context) error {
+	return controllers.RenderTemplate(c, "friends", nil)
+}
+
+func searchUsers(c echo.Context) error {
+	searchParam := c.FormValue("search")
+	fmt.Println("()()()() \nquery received for: ", searchParam)
+
+	query := `
+    SELECT username, email
+    FROM users
+    WHERE username LIKE ?;
+  `
+
+	rows, err := db.Sqlite.Query(query, searchParam+"%")
+	if err != nil {
+		fmt.Println("error querying db:", err)
+		return err
+	}
+
+	var users []struct {
+		Username string
+		Email    string
+	}
+
+	for rows.Next() {
+		var (
+			username sql.NullString
+			email    sql.NullString
+		)
+		if err := rows.Scan(&username, &email); err != nil {
+			fmt.Println("error scanning rows:", err)
+			return err
+		}
+
+		fmt.Println(" \n\n username: ", username.String)
+		users = append(users, struct {
+			Username string
+			Email    string
+		}{
+			Username: username.String,
+			Email:    email.String,
 		})
+	}
+
+	for _, user := range users {
+		fmt.Println(user.Username)
+		fmt.Println(user.Email)
+	}
+
+	type DataStruct struct {
+		Data []struct {
+			Username string
+			Email    string
+		}
+	}
+
+	dataStruct := DataStruct{
+		Data: users,
+	}
+	// pageData := PageData{
+	// 	data: users,
+	// }
+
+	return controllers.RenderTemplate(c, "search-results", dataStruct)
 }

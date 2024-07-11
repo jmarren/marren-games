@@ -1,10 +1,10 @@
 package routers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -13,79 +13,59 @@ import (
 )
 
 func GamesRouter(r *echo.Group) {
-	r.POST("/create-game", createGame)
+	r.POST("/game", createGame)
+	r.GET("", getGamesPage)
+	r.GET("/ui/create-game", getCreateGameUI)
 
-	routeConfigs := GetGamesRoutes()
-
-	for _, routeConfig := range routeConfigs {
-		switch routeConfig.method {
-		case GET:
-			r.GET(routeConfig.path,
-				func(c echo.Context) error {
-					fmt.Println(" hit new gamesRouter")
-
-					if routeConfig.query == "" {
-						return controllers.RenderTemplate(c, routeConfig.partialTemplate, nil)
-					}
-
-					data, err := GetRequestWithDbQuery(routeConfig, c)
-					if err != nil {
-						fmt.Println("error performing dynamic query: ", err)
-						return c.String(http.StatusInternalServerError, "error")
-					}
-
-					// Create a TemplateData struct to pass to the template
-					templateData := TemplateData{
-						Data: data,
-					}
-
-					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
-				})
-		}
-	}
+	r.GET("/all", getAllGames)
 }
 
-func GetGamesRoutes() RouteConfigs {
-	return CreateNewRouteConfigs(
-		[]RouteConfig{
-			{
-				path:                    "",
-				method:                  GET,
-				claimArgConfigs:         []ClaimArgConfig{},
-				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
-				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
-				withQueries:             []string{},
-				query: `SELECT (
-                 json_group_array(
-                    json_object(
-                      id, name, creator_id
-                    )
-                 ) 
-                ) as Games 
-                 FROM games;`,
-				typ: struct {
-					Games []struct {
-						GameId    int    `json:"id"`
-						GameName  string `json:"name"`
-						CreatorId int    `json:"creator_id"`
-					}
-				}{},
-				partialTemplate: "games",
-			},
-			{
-				path:   "/create-game",
-				method: GET,
-				claimArgConfigs: []ClaimArgConfig{
-					{claim: auth.UserId, Type: reflect.Int},
-				},
-				urlPathParamArgConfigs:  []UrlPathParamArgConfig{},
-				urlQueryParamArgConfigs: []UrlQueryParamArgConfig{},
-				withQueries:             []string{},
-				query:                   "",
-				typ:                     struct{}{},
-				partialTemplate:         "create-game",
-			},
-		})
+func getGamesPage(c echo.Context) error {
+	return controllers.RenderTemplate(c, "games", nil)
+}
+
+type Game struct {
+	gameId      sql.NullInt64
+	dateCreated sql.NullTime
+	gameName    sql.NullString
+	creatorId   sql.NullInt64
+}
+
+func getAllGames(c echo.Context) error {
+	query := `
+      SELECT * FROM games;
+  `
+
+	rows, err := db.Sqlite.Query(query, nil)
+	if err != nil {
+		fmt.Println("error querying db")
+		return err
+	}
+	var games []Game
+
+	for rows.Next() {
+		var (
+			gameId      sql.NullInt64
+			dateCreated sql.NullTime
+			gameName    sql.NullString
+			creatorId   sql.NullInt64
+		)
+		if err := rows.Scan(&gameId, &dateCreated, &gameName, &creatorId); err != nil {
+			fmt.Println("error scanning rows:", err)
+			return err
+		}
+		game := Game{
+			gameId:      gameId,
+			dateCreated: dateCreated,
+			gameName:    gameName,
+			creatorId:   creatorId,
+		}
+		games = append(games, game)
+	}
+
+	fmt.Println(games)
+
+	return c.HTML(http.StatusOK, "done")
 }
 
 func createGame(c echo.Context) error {
@@ -121,4 +101,8 @@ func createGame(c echo.Context) error {
 	}
 
 	return controllers.RenderTemplate(c, "create-question", data)
+}
+
+func getCreateGameUI(c echo.Context) error {
+	return controllers.RenderTemplate(c, "create-game", nil)
 }

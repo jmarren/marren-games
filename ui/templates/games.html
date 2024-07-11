@@ -109,7 +109,7 @@
       Games
     </h1>
 
-    <button slot="button">
+    <button hx-get="/auth/games/ui/create-game" hx-target="#page-content">
       + Create New Game
     </button>
 
@@ -140,6 +140,9 @@
       </tr>
     </tbody>
   </table>
+  <button hx-get="/auth/games/all">
+    get all games
+  </button>
 </div>
 
 {{ end }}

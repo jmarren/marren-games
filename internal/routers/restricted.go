@@ -42,7 +42,6 @@ func RestrictedRoutes(r *echo.Group) {
 	friendsGroup := r.Group("/friends")
 	FriendsRouter(friendsGroup)
 
-	r.POST("/upload-profile-photo", controllers.UploadProfilePhotoHandler)
 	r.GET("/create-question", controllers.CreateQuestionHandler)
 
 	RestrictedRouteConfigs := GetRestrictedRouteConfigs()
