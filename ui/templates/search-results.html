@@ -1,9 +1,19 @@
 {{ define "search-results"}}
 {{ range .Data }}
+
 <tr>
   <th>
-    <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
+    <div class="user-container">
+      <div class="photo-container">
+        <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
+        <div class="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content"></div>
+      </div>
+    </div>
+  <th>
     {{ .Username}}
+  </th>
+  </th>
+  <th>
   </th>
   <th>{{ .Email}}</th>
 </tr>
