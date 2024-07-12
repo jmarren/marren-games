@@ -3,7 +3,10 @@ package routers
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strconv"
 
+	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
@@ -13,6 +16,8 @@ func FriendsRouter(r *echo.Group) {
 	r.GET("", getFriendsPage)
 
 	r.POST("/search", searchUsers)
+	r.GET("/profiles/:userId", getUserProfile)
+	r.POST("/friend-requests/:user-id", createFriendRequest)
 }
 
 func getFriendsPage(c echo.Context) error {
@@ -24,7 +29,7 @@ func searchUsers(c echo.Context) error {
 	fmt.Println("()()()() \nquery received for: ", searchParam)
 
 	query := `
-    SELECT username, email
+    SELECT username, email, id
     FROM users
     WHERE username LIKE ?;
   `
@@ -38,14 +43,16 @@ func searchUsers(c echo.Context) error {
 	var users []struct {
 		Username string
 		Email    string
+		UserId   int64
 	}
 
 	for rows.Next() {
 		var (
 			username sql.NullString
 			email    sql.NullString
+			userId   sql.NullInt64
 		)
-		if err := rows.Scan(&username, &email); err != nil {
+		if err := rows.Scan(&username, &email, &userId); err != nil {
 			fmt.Println("error scanning rows:", err)
 			return err
 		}
@@ -54,9 +61,11 @@ func searchUsers(c echo.Context) error {
 		users = append(users, struct {
 			Username string
 			Email    string
+			UserId   int64
 		}{
 			Username: username.String,
 			Email:    email.String,
+			UserId:   userId.Int64,
 		})
 	}
 
@@ -69,15 +78,88 @@ func searchUsers(c echo.Context) error {
 		Data []struct {
 			Username string
 			Email    string
+			UserId   int64
 		}
 	}
 
 	dataStruct := DataStruct{
 		Data: users,
 	}
-	// pageData := PageData{
-	// 	data: users,
-	// }
 
 	return controllers.RenderTemplate(c, "search-results", dataStruct)
+}
+
+func getUserProfile(c echo.Context) error {
+	profileUserId := c.Param("userId")
+	fmt.Println(profileUserId)
+	userId := auth.GetFromClaims(auth.UserId, c)
+
+	query := `
+    SELECT username, email,
+    (SELECT MAX(
+        CASE
+        WHEN from_user_id = ? AND to_user_id = ? THEN 1
+          ELSE 0
+      END)
+    FROM friend_requests) AS requested
+    FROM users
+    WHERE id = ?
+  `
+	row := db.Sqlite.QueryRow(query, userId, profileUserId, profileUserId)
+
+	var (
+		username  string
+		email     string
+		requested int64
+	)
+	err := row.Scan(&username, &email, &requested)
+	if err != nil {
+		fmt.Println("error querying db:", err)
+		panic(err)
+	}
+
+	profileUserIdInt, err := strconv.Atoi(profileUserId)
+	if err != nil {
+		fmt.Println("userId is not convertible to int", err)
+		panic(err)
+	}
+
+	data := struct {
+		Username  string
+		UserId    int
+		Email     string
+		Requested int64
+	}{
+		Username:  username,
+		UserId:    profileUserIdInt,
+		Email:     email,
+		Requested: requested,
+	}
+
+	return controllers.RenderTemplate(c, "other-user-profile", data)
+}
+
+func createFriendRequest(c echo.Context) error {
+	from_user_id := auth.GetFromClaims(auth.UserId, c)
+	to_user_id := c.Param("user-id")
+	query := `
+      INSERT INTO friend_requests (from_user_id, to_user_id)
+      VALUES(?, ?);
+  `
+
+	_, err := db.Sqlite.Exec(query, from_user_id, to_user_id)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	return c.HTML(http.StatusOK, `
+        <style>
+          #add-friend-button {
+            background-color: skyblue;
+            color: navy;
+          }
+        </style>
+        Requested
+    `)
 }

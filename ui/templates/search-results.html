@@ -1,17 +1,17 @@
 {{ define "search-results"}}
 {{ range .Data }}
 
-<tr>
+<tr hx-get="/auth/friends/profiles/{{ .UserId }}" hx-target="#page-content" hx-trigger="click">
   <th>
     <div class="user-container">
       <div class="photo-container">
         <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
-        <div class="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content"></div>
+        <div class="crop-filter"></div>
       </div>
     </div>
+  </th>
   <th>
     {{ .Username}}
-  </th>
   </th>
   <th>
   </th>

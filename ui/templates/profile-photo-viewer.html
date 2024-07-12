@@ -70,14 +70,14 @@
       overflow: hidden;
       object-fit: contain;
       position: relative;
-      width: 100px;
-      height: 100px;
+      width: 300px;
+      height: 300px;
     }
 
     #profile-photo-image {
       position: absolute;
-      width: 100px;
-      height: 100px;
+      width: 300px;
+      height: 300px;
       object-fit: cover;
     }
 
@@ -90,19 +90,10 @@
       z-index: 5;
     }
   </style>
-  <script>
-    photoImage = document.getElementById("#profile-photo-image")
 
-    console.log(photoImage)
-    console.log(photoImage.src)
-
-  </script>
   <div id="container">
     <div id="photo-options">
-      <button>
-        Edit
-      </button>
-      <button>
+      <button hx-get="/auth/profile/ui/profile-photo-upload" hx-target="#page-content">
         Change
       </button>
     </div>

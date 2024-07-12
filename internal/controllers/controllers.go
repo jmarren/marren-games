@@ -90,6 +90,7 @@ func InitTemplates() {
 		"login-success.html",
 		"search-results.html",
 		"profile-photo-viewer.html",
+		"other-user-profile.html",
 	}
 
 	// Create a base layout template

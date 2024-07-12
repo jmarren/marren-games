@@ -26,6 +26,7 @@ func ProfileRouter(r *echo.Group) {
 	})
 
 	r.POST("/profile-photo", uploadProfilePhoto)
+	r.GET("/ui/profile-photo-upload", getProfilePhotoUpload)
 	r.GET("/ui/profile-photo", getProfilePhotoViewer)
 }
 
@@ -77,4 +78,15 @@ func getProfilePage(c echo.Context) error {
 		Username: username.(string),
 	}
 	return controllers.RenderTemplate(c, "profile", data)
+}
+
+func getProfilePhotoUpload(c echo.Context) error {
+	username := auth.GetFromClaims(auth.Username, c)
+
+	data := struct {
+		Username string
+	}{
+		Username: username.(string),
+	}
+	return controllers.RenderTemplate(c, "upload-profile-photo", data)
 }

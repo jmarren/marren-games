@@ -9,6 +9,22 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS friendships (
+  user_1_id INTEGER NOT NULL,
+  user_2_id INTEGER NOT NULL,
+  FOREIGN KEY (user_1_id) REFERENCES users(id),
+  FOREIGN KEY (user_2_id) REFERENCES users(id),
+  PRIMARY KEY (user_1_id, user_2_id)
+);
+
+CREATE TABLE IF NOT EXISTS friend_requests (
+  from_user_id INTEGER NOT NULL,
+  to_user_id INTEGER NOT NULL,
+  FOREIGN KEY (from_user_id) REFERENCES users(id),
+  FOREIGN KEY (to_user_id) REFERENCES users(id),
+  PRIMARY KEY (from_user_id, to_user_id)
+);
+
 CREATE TABLE IF NOT EXISTS games (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

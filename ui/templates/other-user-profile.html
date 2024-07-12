@@ -1,4 +1,4 @@
-{{ define "profile" }}
+{{ define "other-user-profile" }}
 
 <div id="page-content">
   <style id="transition-styles">
@@ -101,8 +101,7 @@
       object-fit: contain;
     }
 
-    #log-out-button {
-      background-color: coral;
+    #add-friend-button {
       font-family: Cheto;
       color: antiquewhite;
       padding: 5px;
@@ -110,11 +109,11 @@
       margin-top: 5px;
     }
 
-    #log-out-button:hover {
+    #add-friend-button:hover {
       background-color: salmon;
     }
 
-    #log-out-button:active {
+    #add-friend-button:active {
       transform: scale(0.95)
     }
   </style>
@@ -161,15 +160,32 @@
         <span>jmarren99@gmail.com</span>
       </div>
 
-      <button id="log-out-button" hx-post="/auth/profile/logout" hx-target="#page-content" hx-swap="innerHTML">
-        Log Out
+      <button id="add-friend-button" hx-post="/auth/friends/friend-requests/{{ .UserId }}">
+
+        {{ if eq .Requested 0 }}
+        <style>
+          #add-friend-button {
+            background-color: coral;
+          }
+        </style>
+        Add Friend
+
+        {{ else }}
+        <style>
+          #add-friend-button {
+            background-color: skyblue;
+            color: navy;
+          }
+        </style>
+        Requested
+        {{ end }}
       </button>
 
     </div>
 
     <div id="photo-container">
       <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
-      <div id="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content"></div>
+      <div id="crop-filter"></div>
 
     </div>
 
