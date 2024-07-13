@@ -28,7 +28,7 @@
       font-family: Cheto;
     }
 
-    #friends-container {
+    #search-friends-container {
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -118,12 +118,85 @@
       align-items: center;
       justify-content: space-around;
     }
+
+
+    #friend-requests-container {
+      display: inline-block;
+      padding: 20px;
+    }
+
+    .request-card {
+      display: flex;
+      border: 2px solid black;
+      background-color: skyblue;
+      border-radius: 10px;
+      box-shadow: 5px 5px black;
+      padding: 20px;
+      font-family: Aruma;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 25px;
+      align-items: center;
+      gap: 10px;
+    }
+
+
+    #photo-container {
+      overflow: hidden;
+      object-fit: contain;
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    #profile-photo-image {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    #crop-filter {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      background-color: skyblue;
+      mask: radial-gradient(transparent 0%, transparent 69%, skyblue 70%);
+      z-index: 5;
+    }
+
+    .request-card button {
+      font-family: Aruma;
+      font-size: 20px;
+      color: antiquewhite;
+      padding: 5px;
+      border-radius: 5px;
+      border: 2px solid black;
+      width: 100%;
+    }
+
+    .request-options {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .accept-button {
+      background-color: seagreen;
+    }
+
+    .decline-button {
+      background-color: indianred;
+    }
   </style>
   <h1>
     Friends
   </h1>
 
-  <form id="friends-container">
+  <form id="search-friends-container">
     <div id="search-bar-container">
       <input id="search-input" type="search" name="search" placeholder="Begin Typing To Search Users..."
         hx-post="/auth/friends/search" hx-trigger="input changed delay:500ms, search" hx-target="#search-results"
@@ -135,18 +208,42 @@
     </div>
 
     <table class="table">
-      <!-- <thead> -->
-      <!--   <tr> -->
-      <!--     <th>Username</th> -->
-      <!--     <th>Email</th> -->
-      <!--   </tr> -->
-      <!-- </thead> -->
       <tbody id="search-results">
       </tbody>
     </table>
   </form>
 
-</div>
+  <h1>
+    Requests
+  </h1>
+  <div id="friend-requests-container">
+    {{ range .FriendRequests }}
+    <div class="request-card">
+      <div id="photo-container">
+        <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .FromUsername}}">
+        <div id="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content">
+        </div>
+      </div>
+
+      <div>
+        {{ .FromUsername}}
+      </div>
+      <div class="request-options" id="request-from-{{.FromId}}">
+        <button class="accept-button" hx-post="/auth/friends/friendships/{{ .FromId }}"
+          hx-target="#request-from-{{.FromId}}">
+          Accept
+        </button>
+
+        <button class="decline-button" hx-delete="/auth/friends/friend-requests/{{ .FromId }}"
+          hx-target="#request-from-{{ .FromId }}">
+          Decline
+        </button>
+      </div>
+
+    </div>
+
+    {{ end }}
+  </div>
 
 
-{{ end }}
+  {{ end }}

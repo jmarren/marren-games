@@ -1,10 +1,12 @@
 package routers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -18,10 +20,53 @@ func FriendsRouter(r *echo.Group) {
 	r.POST("/search", searchUsers)
 	r.GET("/profiles/:userId", getUserProfile)
 	r.POST("/friend-requests/:user-id", createFriendRequest)
+	r.POST("/friendships/:user-id", createFriendship)
+	r.DELETE("/friend-requests/:user-id", deleteRequest)
 }
 
 func getFriendsPage(c echo.Context) error {
-	return controllers.RenderTemplate(c, "friends", nil)
+	myUserId := auth.GetFromClaims(auth.UserId, c)
+	query := `
+      SELECT fr.from_user_id, u.username
+      FROM friend_requests fr
+      JOIN users u ON fr.from_user_id = u.id
+      WHERE to_user_id = ?;
+  `
+	rows, err := db.Sqlite.Query(query, myUserId)
+	if err != nil {
+		fmt.Println("error while querying for all friend requests: ", err)
+		panic(err)
+	}
+
+	type FriendRequest struct {
+		FromId       int
+		FromUsername string
+	}
+
+	var friendRequests []FriendRequest
+
+	for rows.Next() {
+		var friendRequestId int
+		var friendRequestUsername string
+		rows.Scan(&friendRequestId, &friendRequestUsername)
+		friendRequests = append(friendRequests,
+			FriendRequest{
+				FromId:       friendRequestId,
+				FromUsername: friendRequestUsername,
+			})
+	}
+
+	for _, friendRequest := range friendRequests {
+		fmt.Println("friend request from: ", friendRequest.FromUsername)
+	}
+
+	data := struct {
+		FriendRequests []FriendRequest
+	}{
+		FriendRequests: friendRequests,
+	}
+
+	return controllers.RenderTemplate(c, "friends", data)
 }
 
 func searchUsers(c echo.Context) error {
@@ -162,4 +207,72 @@ func createFriendRequest(c echo.Context) error {
         </style>
         Requested
     `)
+}
+
+func createFriendship(c echo.Context) error {
+	myUserId := sql.NamedArg{
+		Name:  "my_user_id",
+		Value: auth.GetFromClaims(auth.UserId, c),
+	}
+
+	newFriendId := sql.NamedArg{
+		Name:  "new_friend_id",
+		Value: c.Param("user-id"),
+	}
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		cancel()
+		return c.String(http.StatusInternalServerError, "error")
+	}
+	// Defer a rollback in case anything fails.
+	defer tx.Rollback()
+	deleteRequestQuery := `
+        DELETE FROM friend_requests
+        WHERE from_user_id = :new_friend_id
+        AND to_user_id = :my_user_id
+          `
+	_, err = db.Sqlite.ExecContext(ctx, deleteRequestQuery, myUserId, newFriendId)
+	if err != nil {
+		fmt.Println("error deleting friend request")
+		return err
+	}
+
+	insertFriendshipQuery := `
+        INSERT INTO friendships (user_1_id, user_2_id)
+        VALUES (:my_user_id, :new_friend_id);`
+
+	_, err = db.Sqlite.ExecContext(ctx, insertFriendshipQuery, myUserId, newFriendId)
+	if err != nil {
+		return err
+	}
+
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return c.HTML(http.StatusOK, "Accepted!")
+}
+
+func deleteRequest(c echo.Context) error {
+	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
+	otherUserId := sql.Named("other_user_id", c.Param("user-id"))
+
+	query := `
+        DELETE FROM friend_requests
+        WHERE (from_user_id = :other_user_id AND to_user_id = :my_user_id)
+        OR
+        (from_user_id = :my_user_id AND to_user_id = :other_user_id);
+      `
+	_, err := db.Sqlite.Exec(query, myUserId, otherUserId)
+	if err != nil {
+		fmt.Println("error deleting friend request: ", err)
+		return err
+	}
+	return c.HTML(http.StatusOK, "Request Declined")
 }

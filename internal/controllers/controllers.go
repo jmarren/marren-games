@@ -209,13 +209,8 @@ func LoginHandler(c echo.Context) error {
 	}{
 		Username: username,
 	}
-	// pageData := PageData{
-	// 	Data: data,
-	// }
 	c.SetCookie(cookie)
 	return RenderTemplate(c, "profile", data)
-	// return RenderTemplate(c, "", nil)
-	// return c.Redirect(http.StatusFound, "/auth/transition/profile")
 }
 
 func LogoutHandler(c echo.Context) error {
