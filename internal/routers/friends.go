@@ -25,12 +25,12 @@ func FriendsRouter(r *echo.Group) {
 }
 
 func getFriendsPage(c echo.Context) error {
-	myUserId := auth.GetFromClaims(auth.UserId, c)
+	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 	query := `
       SELECT fr.from_user_id, u.username
       FROM friend_requests fr
       JOIN users u ON fr.from_user_id = u.id
-      WHERE to_user_id = ?;
+  WHERE to_user_id = :my_user_id;
   `
 	rows, err := db.Sqlite.Query(query, myUserId)
 	if err != nil {
@@ -48,7 +48,10 @@ func getFriendsPage(c echo.Context) error {
 	for rows.Next() {
 		var friendRequestId int
 		var friendRequestUsername string
-		rows.Scan(&friendRequestId, &friendRequestUsername)
+		err := rows.Scan(&friendRequestId, &friendRequestUsername)
+		if err != nil {
+			return err
+		}
 		friendRequests = append(friendRequests,
 			FriendRequest{
 				FromId:       friendRequestId,
@@ -60,10 +63,46 @@ func getFriendsPage(c echo.Context) error {
 		fmt.Println("friend request from: ", friendRequest.FromUsername)
 	}
 
+	query = `
+      SELECT
+        CASE
+  WHEN friendships.user_1_id = :my_user_id
+            THEN friendships.user_2_id
+  WHEN friendships.user_2_id = :my_user_id
+            THEN friendships.user_1_id
+        END AS friend_id,
+        users.username AS friend_username
+        FROM friendships
+        JOIN users ON users.id = friend_id;
+  `
+
+	rows, err = db.Sqlite.Query(query, myUserId)
+	if err != nil {
+		fmt.Println("error while querying for all friend requests: ", err)
+		panic(err)
+	}
+
+	type Friend struct {
+		Username string
+		UserId   int
+	}
+	var friends []Friend
+	for rows.Next() {
+		var friend Friend
+		err := rows.Scan(&friend.UserId, &friend.Username)
+		if err != nil {
+			fmt.Println("error querying db for friends: ", err)
+			return err
+		}
+		friends = append(friends, friend)
+	}
+
 	data := struct {
 		FriendRequests []FriendRequest
+		Friends        []Friend
 	}{
 		FriendRequests: friendRequests,
+		Friends:        friends,
 	}
 
 	return controllers.RenderTemplate(c, "friends", data)
@@ -72,7 +111,9 @@ func getFriendsPage(c echo.Context) error {
 func searchUsers(c echo.Context) error {
 	searchParam := c.FormValue("search")
 	fmt.Println("()()()() \nquery received for: ", searchParam)
-
+	if searchParam == "" {
+		return c.HTML(http.StatusOK, "")
+	}
 	query := `
     SELECT username, email, id
     FROM users

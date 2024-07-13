@@ -81,6 +81,12 @@
       border: 2px solid blue;
     }
 
+    .user-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+    }
+
 
 
     .photo-container {
@@ -113,14 +119,11 @@
       height: 40px;
     }
 
-    .user-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-    }
 
 
-    #friend-requests-container {
+
+    #friend-requests-container,
+    #my-friends-container {
       display: inline-block;
       padding: 20px;
     }
@@ -140,8 +143,22 @@
       gap: 10px;
     }
 
+    .friend-card {
+      display: flex;
+      border: 2px solid black;
+      background-color: skyblue;
+      border-radius: 10px;
+      box-shadow: 5px 5px black;
+      padding: 20px;
+      font-family: Aruma;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 25px;
+      align-items: center;
+      gap: 10px;
+    }
 
-    #photo-container {
+    .photo-container {
       overflow: hidden;
       object-fit: contain;
       position: relative;
@@ -149,14 +166,24 @@
       height: 200px;
     }
 
-    #profile-photo-image {
+    #search-results .photo-container {
+      width: 30px;
+      height: 30px;
+    }
+
+    .profile-photo-image {
       position: absolute;
       width: 200px;
       height: 200px;
       object-fit: cover;
     }
 
-    #crop-filter {
+    #search-results .profile-photo-image {
+      width: 30px;
+      height: 30px;
+    }
+
+    .crop-filter {
       width: 100%;
       height: 100%;
       position: absolute;
@@ -165,7 +192,7 @@
       z-index: 5;
     }
 
-    .request-card button {
+    button {
       font-family: Aruma;
       font-size: 20px;
       color: antiquewhite;
@@ -190,6 +217,10 @@
 
     .decline-button {
       background-color: indianred;
+    }
+
+    .friend-card button {
+      background-color: salmon;
     }
   </style>
   <h1>
@@ -219,9 +250,9 @@
   <div id="friend-requests-container">
     {{ range .FriendRequests }}
     <div class="request-card">
-      <div id="photo-container">
-        <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .FromUsername}}">
-        <div id="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content">
+      <div class="photo-container">
+        <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .FromUsername}}">
+        <div class="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content">
         </div>
       </div>
 
@@ -244,6 +275,29 @@
 
     {{ end }}
   </div>
+  <h1>
+    My Friends
+  </h1>
 
+  <div id="my-friends-container">
+    {{ range .Friends }}
+    <div class="friend-card">
+      <div class="photo-container">
+        <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
+        <div class="crop-filter">
+        </div>
+      </div>
+      <div>
+        {{ .Username }}
+      </div>
+      <button hx-get="/auth/friends/profiles/{{ .UserId }}" hx-target="#page-content">
+        View Profile
+      </button>
+    </div>
 
-  {{ end }}
+    {{ end }}
+
+  </div>
+</div>
+
+{{ end }}
