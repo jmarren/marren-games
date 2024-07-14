@@ -22,6 +22,7 @@ func FriendsRouter(r *echo.Group) {
 	r.POST("/friend-requests/:user-id", createFriendRequest)
 	r.POST("/friendships/:user-id", createFriendship)
 	r.DELETE("/friend-requests/:user-id", deleteRequest)
+	r.DELETE("/friendships/:user-id", deleteFriendship)
 }
 
 func getFriendsPage(c echo.Context) error {
@@ -176,78 +177,111 @@ func searchUsers(c echo.Context) error {
 }
 
 func getUserProfile(c echo.Context) error {
-	profileUserId := c.Param("userId")
-	fmt.Println(profileUserId)
-	userId := auth.GetFromClaims(auth.UserId, c)
+	otherUserId := sql.Named("other_user_id", c.Param("userId"))
+	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 
 	query := `
     SELECT username, email,
     (SELECT MAX(
         CASE
-        WHEN from_user_id = ? AND to_user_id = ? THEN 1
+  WHEN from_user_id = :my_user_id AND to_user_id = :other_user_id THEN 1
           ELSE 0
       END)
-    FROM friend_requests) AS requested
+    FROM friend_requests) AS requested,
+    (SELECT MAX(
+      CASE
+      WHEN (friendships.user_1_id = :my_user_id AND friendships.user_2_id = :other_user_id)
+      OR
+      (friendships.user_1_id = :other_user_id AND friendships.user_2_id = :my_user_id)
+      THEN 1
+      ELSE 0
+    END)
+    FROM friendships) AS is_friend
     FROM users
-    WHERE id = ?
+  WHERE id = :other_user_id;
   `
-	row := db.Sqlite.QueryRow(query, userId, profileUserId, profileUserId)
+	row := db.Sqlite.QueryRow(query, myUserId, otherUserId)
 
 	var (
 		username  string
 		email     string
-		requested int64
+		requested sql.NullInt64
+		isFriend  sql.NullInt64
 	)
-	err := row.Scan(&username, &email, &requested)
+	err := row.Scan(&username, &email, &requested, &isFriend)
 	if err != nil {
 		fmt.Println("error querying db:", err)
 		panic(err)
 	}
 
-	profileUserIdInt, err := strconv.Atoi(profileUserId)
+	otherUserIdInt, err := strconv.Atoi(otherUserId.Value.(string))
 	if err != nil {
 		fmt.Println("userId is not convertible to int", err)
 		panic(err)
+	}
+
+	var requestedVal int
+	var isFriendVal int
+	if requested.Int64 == 0 || !requested.Valid {
+		requestedVal = 0
+	} else {
+		requestedVal = 1
+	}
+
+	if isFriend.Int64 == 0 || !isFriend.Valid {
+		isFriendVal = 0
+	} else {
+		isFriendVal = 1
 	}
 
 	data := struct {
 		Username  string
 		UserId    int
 		Email     string
-		Requested int64
+		Requested int
+		IsFriend  int
 	}{
 		Username:  username,
-		UserId:    profileUserIdInt,
+		UserId:    otherUserIdInt,
 		Email:     email,
-		Requested: requested,
+		Requested: requestedVal,
+		IsFriend:  isFriendVal,
 	}
 
 	return controllers.RenderTemplate(c, "other-user-profile", data)
 }
 
 func createFriendRequest(c echo.Context) error {
-	from_user_id := auth.GetFromClaims(auth.UserId, c)
-	to_user_id := c.Param("user-id")
+	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
+	otherUserId := sql.Named("other_user_id", c.Param("user-id"))
+	otherUserIdInt, err := strconv.Atoi(c.Param("user-id"))
+	if err != nil {
+		fmt.Println("error converting toUserId to int")
+		return err
+	}
+
 	query := `
       INSERT INTO friend_requests (from_user_id, to_user_id)
-      VALUES(?, ?);
+  VALUES(:my_user_id, :other_user_id);
   `
 
-	_, err := db.Sqlite.Exec(query, from_user_id, to_user_id)
+	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
 
-	return c.HTML(http.StatusOK, `
-        <style>
-          #add-friend-button {
-            background-color: skyblue;
-            color: navy;
-          }
-        </style>
-        Requested
-    `)
+	if err != nil {
+		fmt.Println("error: otherUserId is not convertible to int: ", err)
+		return err
+	}
+
+	data := struct {
+		UserId int
+	}{
+		UserId: otherUserIdInt,
+	}
+	return controllers.RenderTemplate(c, "request-sent-button", data)
 }
 
 func createFriendship(c echo.Context) error {
@@ -302,18 +336,91 @@ func createFriendship(c echo.Context) error {
 
 func deleteRequest(c echo.Context) error {
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
-	otherUserId := sql.Named("other_user_id", c.Param("user-id"))
-
+	otherId, err := strconv.Atoi(c.Param("user-id"))
+	if err != nil {
+		fmt.Println("error converting user-id url param to int: ", err)
+		return err
+	}
+	otherUserId := sql.Named("other_user_id", otherId)
 	query := `
+          SELECT MAX(
+            CASE 
+                WHEN (from_user_id = :my_user_id AND to_user_id = :other_user_id) THEN 1
+                ELSE 0
+              END) AS is_requester
+          FROM friend_requests;
+  `
+
+	result := db.Sqlite.QueryRow(query, myUserId, otherUserId)
+
+	var isRequester sql.NullInt64
+	err = result.Scan(&isRequester)
+	if err != nil {
+		fmt.Println("error while querying to determine who requested:", err)
+		return err
+	}
+
+	fmt.Println()
+	fmt.Println("@@@@ isRequester: ", isRequester)
+	fmt.Println()
+	var isRequesterVal int
+	if !isRequester.Valid || isRequester.Int64 == 0 {
+		isRequesterVal = 0
+	} else {
+		isRequesterVal = 1
+	}
+	fmt.Println()
+	fmt.Println("@@@@ isRequesterVal: ", isRequesterVal)
+	fmt.Println()
+	query = `
         DELETE FROM friend_requests
         WHERE (from_user_id = :other_user_id AND to_user_id = :my_user_id)
         OR
         (from_user_id = :my_user_id AND to_user_id = :other_user_id);
       `
-	_, err := db.Sqlite.Exec(query, myUserId, otherUserId)
+	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
 	if err != nil {
 		fmt.Println("error deleting friend request: ", err)
 		return err
 	}
+
+	if isRequesterVal == 1 {
+		data := struct {
+			UserId int
+		}{
+			UserId: otherId,
+		}
+		return controllers.RenderTemplate(c, "add-friend-button", data)
+	}
 	return c.HTML(http.StatusOK, "Request Declined")
+}
+
+func deleteFriendship(c echo.Context) error {
+	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
+	otherId, err := strconv.Atoi(c.Param("user-id"))
+	if err != nil {
+		fmt.Println("error converting user-id url param to int: ", err)
+		return err
+	}
+	otherUserId := sql.Named("other_user_id", otherId)
+
+	query := `
+  DELETE FROM friendships
+  WHERE (friendships.user_1_id = :my_user_id AND friendships.user_2_id = :other_user_id) 
+      OR
+        (friendships.user_1_id = :other_user_id AND friendships.user_2_id = :my_user_id);
+`
+	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
+	if err != nil {
+		fmt.Println("error deleting friendship: ", err)
+		return err
+	}
+
+	data := struct {
+		UserId int
+	}{
+		UserId: otherId,
+	}
+
+	return controllers.RenderTemplate(c, "add-friend-button", data)
 }

@@ -91,6 +91,9 @@ func InitTemplates() {
 		"search-results.html",
 		"profile-photo-viewer.html",
 		"other-user-profile.html",
+		"add-friend-button.html",
+		"remove-friend-button.html",
+		"request-sent-button.html",
 	}
 
 	// Create a base layout template

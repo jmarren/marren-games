@@ -1,0 +1,19 @@
+{{ define "remove-friend-button"}}
+<button id="friendship-action-button" hx-delete="/auth/friends/friendships/{{ .UserId }}"
+  hx-target="#friendship-button-container">
+  <style>
+    #friendship-action-button {
+      background-color: coral;
+    }
+
+    #friendship-action-button:hover {
+      background-color: orange;
+    }
+
+    #friendship-action-button:active {
+      transform: scale(0.95);
+    }
+  </style>
+  Remove Friend
+</button>
+{{ end }}

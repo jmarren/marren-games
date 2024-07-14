@@ -1,0 +1,20 @@
+{{ define "request-sent-button"}}
+<button id="friendship-action-button" hx-delete="/auth/friends/friend-requests/{{ .UserId }}"
+  hx-target="#friendship-button-container">
+  <style>
+    #friendship-action-button {
+      background-color: skyblue;
+      color: navy;
+    }
+
+    #friendship-action-button:hover {
+      background-color: royalblue;
+    }
+
+    #friendship-action-button:active {
+      transform: scale(0.95)
+    }
+  </style>
+  Requested
+</button>
+{{ end }}

@@ -1,0 +1,19 @@
+{{ define "add-friend-button" }}
+<button id="friendship-action-button" hx-post="/auth/friends/friend-requests/{{ .UserId }}"
+  hx-target="#friendship-button-container">
+  <style>
+    #friendship-action-button {
+      background-color: orange;
+    }
+
+    #friendship-action-button:hover {
+      background-color: salmon;
+    }
+
+    #friendship-action-button:active {
+      transform: scale(0.95)
+    }
+  </style>
+  Add Friend
+</button>
+{{ end }}

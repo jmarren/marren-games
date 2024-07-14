@@ -94,14 +94,8 @@
       z-index: 5;
     }
 
-
-    #profile-image {
+    button {
       width: 100%;
-      height: auto;
-      object-fit: contain;
-    }
-
-    #add-friend-button {
       font-family: Cheto;
       color: antiquewhite;
       padding: 5px;
@@ -109,12 +103,16 @@
       margin-top: 5px;
     }
 
-    #add-friend-button:hover {
-      background-color: salmon;
+
+    #profile-image {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
     }
 
-    #add-friend-button:active {
-      transform: scale(0.95)
+    #friendship-button-container {
+      display: block;
+      width: 100%;
     }
   </style>
 
@@ -160,32 +158,23 @@
         <span>jmarren99@gmail.com</span>
       </div>
 
-      <button id="add-friend-button" hx-post="/auth/friends/friend-requests/{{ .UserId }}">
 
+
+      <!-- <button> -->
+      <div id="friendship-button-container">
         {{ if eq .Requested 0 }}
-        <style>
-          #add-friend-button {
-            background-color: coral;
-          }
-        </style>
-        Add Friend
-
-        {{ else }}
-        <style>
-          #add-friend-button {
-            background-color: skyblue;
-            color: navy;
-          }
-        </style>
-        Requested
-        {{ end }}
-      </button>
+        {{ if eq .IsFriend 1}}
+        {{ template "remove-friend-button" . }} {{ else }} {{ template "add-friend-button" . }} {{ end }} {{ else }}
+        {{ template "request-sent-button" . }} {{ end }}
+      </div>
+      <!-- </button> -->
 
     </div>
 
     <div id="photo-container">
       <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
-      <div id="crop-filter"></div>
+      <div id="crop-filter">
+      </div>
 
     </div>
 
