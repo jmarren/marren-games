@@ -23,7 +23,81 @@ func GamesRouter(r *echo.Group) {
 }
 
 func getGamesPage(c echo.Context) error {
-	return controllers.RenderTemplate(c, "games", nil)
+	// Get User Id
+	myUserId := auth.GetFromClaims(auth.UserId, c)
+
+	// Get All Games where User is a Member
+	// create named arg
+	myUserIdArg := sql.Named("my_user_id", myUserId)
+
+	query := `
+  WITH game_ids AS (
+    SELECT game_id
+    FROM user_game_membership
+    WHERE user_id = :my_user_id
+  ),
+  game_names_and_ids AS (
+    SELECT name, game_id
+    FROM games
+    WHERE id = (SELECT game_id FROM game_ids)
+  )
+   SELECT COUNT(user_id) AS members, game_id, name 
+   FROM user_game_membership
+   LEFT JOIN games
+    ON games.id = game_id
+   WHERE game_id = (SELECT game_id FROM game_names_and_ids)
+   GROUP BY game_id;
+  `
+	rows, err := db.Sqlite.Query(query, myUserIdArg)
+	if err != nil {
+		fmt.Println("error querying db for user's game ids:", err)
+		return err
+	}
+
+	type Game struct {
+		GameId           int64
+		GameName         string
+		GameTotalMembers int64
+	}
+
+	var games []Game
+
+	for rows.Next() {
+		var gameIdRaw sql.NullInt64
+		var gameNameRaw sql.NullString
+		var totalMembers sql.NullInt64
+
+		err := rows.Scan(&totalMembers, &gameIdRaw, &gameNameRaw)
+		if err != nil {
+			fmt.Println("error scanning game_id into gameId variable: ", err)
+			return err
+		}
+		if !gameIdRaw.Valid || !gameNameRaw.Valid {
+			fmt.Println("gameId not valid:", gameIdRaw, gameNameRaw)
+		}
+
+		games = append(games, Game{
+			GameId:           gameIdRaw.Int64,
+			GameName:         gameNameRaw.String,
+			GameTotalMembers: totalMembers.Int64,
+		})
+	}
+
+	fmt.Println("%%%%%%%%%% games: ", games, "%%%%%%%%%%%%")
+
+	data := struct {
+		Data []Game
+	}{
+		Data: games,
+	}
+
+	// // Get All Invites for the User
+	//  query := `
+	//        SELECT * FROM
+	//  `
+	//
+
+	return controllers.RenderTemplate(c, "games", data)
 }
 
 type Game struct {

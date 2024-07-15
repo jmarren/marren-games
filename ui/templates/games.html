@@ -39,7 +39,6 @@
 
     h1 {
       font-family: Cheto;
-
     }
 
     button {
@@ -128,11 +127,13 @@
         <td>1500</td>
         <td>What is the best day of the week?</td>
       </tr>
+      {{ range .Data }}
       <tr>
-        <td>{{ .Data.GameName}}</td>
-        <td>7</td>
-        <td>What is your favorite flavor of ice cream?</td>
+        <td>{{ .GameName}}</td>
+        <td>{{ .GameTotalMembers}}</td>
+        <td></td>
       </tr>
+      {{ end }}
       <tr>
         <td>USF</td>
         <td>30</td>
@@ -143,6 +144,19 @@
   <button hx-get="/auth/games/all">
     get all games
   </button>
+
+  <!-- Game Invites -->
+  <style>
+    h2 {
+      font-family: Cheto;
+    }
+  </style>
+  <h2>
+    Invites
+  </h2>
+  <div id="invites-container">
+
+  </div>
 </div>
 
 {{ end }}
