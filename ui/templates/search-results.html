@@ -1,21 +1,31 @@
 {{ define "search-results"}}
+{{ $gameId := .GameId }}
 {{ range .Data }}
+<style>
+
+</style>
 
 <tr hx-get="/auth/friends/profiles/{{ .UserId }}" hx-target="#page-content" hx-trigger="click">
   <th>
     <div class="user-container">
+
       <div class="photo-container">
         <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
         <div class="crop-filter"></div>
       </div>
+      <div class="username-container">
+        {{ .Username}}
+      </div>
+      <div class="spacer-div">
+      </div>
+      {{ if eq $gameId -1 }}
+      {{ else }}
+      <button hx-post="/auth/games/game/invites?user-id={{ .UserId }}&game-id={{ $gameId }}" hx-swap="outerHTML">
+        + Invite
+      </button>
+      {{ end}}
     </div>
   </th>
-  <th>
-    {{ .Username}}
-  </th>
-  <th>
-  </th>
-  <th>{{ .Email}}</th>
 </tr>
 {{ end }}
 {{ end }}

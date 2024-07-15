@@ -41,6 +41,14 @@ CREATE TABLE IF NOT EXISTS user_game_membership (
   PRIMARY KEY (user_id, game_id)
 );
 
+CREATE TABLE IF NOT EXISTS user_game_invites (
+  user_id INTEGER NOT NULL,
+  game_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (game_id) REFERENCES games(id),
+  PRIMARY KEY (user_id, game_id)
+);
+
 CREATE TABLE IF NOT EXISTS questions (
   game_id  INTEGER NOT NULL,
   id INTEGER PRIMARY KEY AUTOINCREMENT,

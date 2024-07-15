@@ -112,6 +112,14 @@ func getFriendsPage(c echo.Context) error {
 func searchUsers(c echo.Context) error {
 	searchParam := c.FormValue("search")
 	fmt.Println("()()()() \nquery received for: ", searchParam)
+	fmt.Println("()()()() from url: ", c.Request().Header.Get("Hx-Current-Url"))
+	fmt.Println("()()()() game-id: ", c.QueryParam("game-id"))
+
+	fromUrl := c.Request().Header.Get("Hx-Current-Url")
+	shortenedUrl := fromUrl[len(fromUrl)-10:]
+
+	fmt.Println("()()()() shortededUrl: ", shortenedUrl)
+
 	if searchParam == "" {
 		return c.HTML(http.StatusOK, "")
 	}
@@ -161,16 +169,41 @@ func searchUsers(c echo.Context) error {
 		fmt.Println(user.Email)
 	}
 
+	if shortenedUrl != "games/game" {
+		type DataStruct struct {
+			Data []struct {
+				Username string
+				Email    string
+				UserId   int64
+			}
+			GameId int
+		}
+
+		dataStruct := DataStruct{
+			Data:   users,
+			GameId: -1,
+		}
+		return controllers.RenderTemplate(c, "search-results", dataStruct)
+	}
+
+	gameId := c.QueryParam("game-id")
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		fmt.Println("error: game-id from params not convertible to int")
+		return err
+	}
 	type DataStruct struct {
 		Data []struct {
 			Username string
 			Email    string
 			UserId   int64
 		}
+		GameId int
 	}
 
 	dataStruct := DataStruct{
-		Data: users,
+		Data:   users,
+		GameId: gameIdInt,
 	}
 
 	return controllers.RenderTemplate(c, "search-results", dataStruct)

@@ -1,195 +1,93 @@
 {{ define "create-game" }}
-<script src="/static/js/button-component.js"></script>
-<script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
-<div id="page-content">
-  <script>
-    document.addEventListener('htmx:afterRequest', e => {
-      if (!e.detail.xhr.status.toString().startsWith('2')) {
-        let errorDiv = document.getElementById("create-game-error");
-        errorDiv.innerHTML = e.detail.xhr.responseText;
-        errorDiv.style.display = 'block';
-      }
-    });
-  </script>
-  <style id="transition-styles">
-  </style>
+
+<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
+
+
+
+<div id="page-content" hx-ext="response-targets">
+
+  <style id="transition-styles"></style>
   <style id="static-styles">
     #page-content {
+      border: 2px solid black;
+      padding: 20px;
+      display: block;
+    }
+
+    #create-game-container {
       display: flex;
       flex-direction: column;
-      border: 2px solid black;
-      padding: 25px;
+      justify-content: center;
       align-items: center;
-    }
-
-    #header {
-      font-family: Cheto;
-      font-size: 35px;
-    }
-
-    #subcontainer {
-      color: black;
-      display: flex;
-      background-color: orange;
+      background-color: lightcyan;
       border: 2px solid black;
       border-radius: 10px;
       box-shadow: 5px 5px black;
-      font-family: Cheto;
-      padding: 15px;
-      max-width: 800px;
-      min-width: 350px;
+      font-family: Aruma;
+      font-size: 25px;
+      padding: 50px 0px 50px 0px;
+      gap: 30px;
+      margin: 20px 40px 20px 40px;
     }
-
-
 
     form {
-      flex-grow: 1;
-      padding: 20px;
-      gap: 15px;
+      width: 300px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-    }
-
-    #subcontainer-left {
-      gap: 5px;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #subcontainer-right {
-      gap: 5px;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #form-fields {
-      display: flex;
-      flex-direction: column;
+      gap: 30px;
       align-items: center;
-      gap: 10px;
-    }
-
-
-    .item {
-      display: flex;
-      flex-direction: column;
-      align-items: start;
-      gap: 5px;
     }
 
     input {
+      height: 30px;
+      font-size: 20px;
       border-radius: 5px;
+      border: 2px solid #0e6080;
       background-color: antiquewhite;
-      width: 300px;
+      width: 100%;
+      font-family: Aruma;
+      padding: 20px 15px 20px 15px;
+      color: darkgreen;
     }
 
     button {
-      margin-top: 10px;
-      width: 300px;
-      background-color: skyblue;
       font-family: Aruma;
-      padding: 5px;
       font-size: 20px;
-      border-radius: 5px;
-    }
-
-    button:hover {
-      background-color: deepskyblue;
-    }
-
-    button:active {
-      transform: scale(0.95)
+      padding: 10px 5px;
+      background-color: seagreen;
+      border-radius: 10px;
+      color: antiquewhite;
+      width: 50%;
     }
 
     #create-game-error {
       color: red;
-      font-family: Aruma;
+      font-size: 15px;
+    }
+
+    h2 {
+      padding: 0;
+      margin: 0;
     }
   </style>
 
-  <h1 id="header">
-    Create a New Game
-  </h1>
-  <div id="subcontainer">
-
-    <form hx-post="/auth/games/create-game" hx-target="#page-content" hx-target-error="#create-game-error">
-
-      <div id="form-fields">
-        <!-- <div> -->
-        <div class="item">
-          <label for="game-name">
-            Choose a Name
-          </label>
-          <input type="text" id="game-name" name="game-name">
-        </div>
-
-
-        <div class="item">
-          <label for="friends">
-            Invite friends
-          </label>
-          <input type="text" id="friends" name="friends">
-        </div>
-
-        <button type="submit">
-          Next
-        </button>
-
-        <!--   <div id="subcontainer-right"> -->
-        <!--     <div class="item"> -->
-        <!--       <label> -->
-        <!--         First Question -->
-        <!--       </label> -->
-        <!--       <input type="text"> -->
-        <!--     </div> -->
-        <!---->
-        <!---->
-        <!--     <div class="item"> -->
-        <!--       <label> -->
-        <!--         Option 1 -->
-        <!--       </label> -->
-        <!--       <input type="text"> -->
-        <!--     </div> -->
-        <!---->
-        <!---->
-        <!--     <div class="item"> -->
-        <!--       <label> -->
-        <!--         Option 2 -->
-        <!--       </label> -->
-        <!--       <input type="text"> -->
-        <!--     </div> -->
-        <!---->
-        <!--     <div class="item"> -->
-        <!--       <label> -->
-        <!--         Option 3 -->
-        <!--       </label> -->
-        <!--       <input type="text"> -->
-        <!--     </div> -->
-        <!---->
-        <!---->
-        <!--     <div class="item"> -->
-        <!--       <label> -->
-        <!--         Option 4 -->
-        <!--       </label> -->
-        <!--       <input type="text"> -->
-        <!--     </div> -->
-        <!--   </div> -->
-        <!-- </div> -->
-        <!---->
-        <!-- <button-component> -->
-        <!--   <button slot="button" type="submit"> -->
-        <!--     Create -->
-        <!--   </button> -->
-        <!-- </button-component> -->
-        <!---->
+  <div id="create-game-container">
+    <h2>
+      Choose a name for your game
+    </h2>
+    <form>
+      <input type="text" name="game-name" placeholder="Marren family game" />
+      <button hx-post="/auth/games/game" hx-target="#page-content" hx-target-error="#create-game-error"
+        hx-push-url="true">
+        Next
+      </button>
     </form>
     <div id="create-game-error">
     </div>
   </div>
 
+
 </div>
+
 
 {{ end }}

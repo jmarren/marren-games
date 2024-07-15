@@ -223,26 +223,10 @@
       background-color: salmon;
     }
   </style>
-  <h1>
-    Friends
-  </h1>
-
-  <form id="search-friends-container">
-    <div id="search-bar-container">
-      <input id="search-input" type="search" name="search" placeholder="Begin Typing To Search Users..."
-        hx-post="/auth/friends/search" hx-trigger="input changed delay:500ms, search" hx-target="#search-results"
-        hx-indicator=".htmx-indicator">
-
-      <img id="search-icon" src="/static/public/search_icon.svg">
-
-
-    </div>
-
-    <table class="table">
-      <tbody id="search-results">
-      </tbody>
-    </table>
-  </form>
+  <!-- <h1> -->
+  <!--   Friends -->
+  <!-- </h1> -->
+  {{ template "search-bar" }}
 
   <h1>
     Requests
