@@ -22,14 +22,14 @@
 <div id="container">
   <h1>
     <span>
-      All Members
+      {{ .GameData.GameName}}
     </span>
     <span>
       July 2, 2024
     </span>
   </h1>
 
-  {{ template "question" }}
+  {{ template "question" .GameData }}
 </div>
 
 {{ end }}

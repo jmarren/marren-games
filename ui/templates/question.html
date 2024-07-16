@@ -148,7 +148,7 @@
   <form>
     <div id="top-container">
       <h2>
-        What is your favorite color?
+        {{ .Question }}
       </h2>
       <input type="submit">
     </div>
@@ -156,25 +156,31 @@
       <label>
         <input type="radio" id="answer-1" name="answer" value="option-1">
         <div id="blue-button">
-          Blue
+          {{ .OptionOne }}
         </div>
       </label>
       <label>
         <input type="radio" id="answer-2" name="answer" value="option-2">
         <div>
-          <span>Green</span>
+          <span>
+            {{ .OptionTwo }}
+          </span>
         </div>
       </label>
       <label>
         <input type="radio" id="answer-3" name="answer" value="option-3">
         <div>
-          <span>Yellow</span>
+          <span></span>
+          {{ .OptionThree }}
+          </span>
         </div>
       </label>
       <label>
         <input type="radio" id="answer-4" name="answer" value="option-4">
         <div>
-          <span>Purple</span>
+          <span>
+            {{ .OptionFour }}
+          </span>
         </div>
       </label>
     </div>

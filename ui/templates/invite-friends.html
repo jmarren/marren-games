@@ -2,12 +2,27 @@
 
 <style>
   #page-content {
-    display: block;
+    display: flex;
     padding: 40px;
+    flex-direction: column;
+    justify-content: start;
+    gap: 15px;
   }
 
   h1 {
     font-family: Cheto;
+  }
+
+  #next-button {
+    align-self: end;
+  }
+
+  #next-button:hover {
+    background-color: seagreen;
+  }
+
+  #next-button:active {
+    transform: scale(0.95);
   }
 </style>
 
@@ -18,5 +33,9 @@
 
 {{ template "search-bar" . }}
 
+<button id="next-button" hx-get="/auth/games/game/ui/create-question?game-id={{ .GameId }}" hx-target="#page-content"
+  hx-push-url="true">
+  Next
+</button>
 
 {{ end }}

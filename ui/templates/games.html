@@ -127,8 +127,8 @@
         <td>1500</td>
         <td>What is the best day of the week?</td>
       </tr>
-      {{ range .Data }}
-      <tr>
+      {{ range .CurrentGames }}
+      <tr hx-get="/auth/games/game/play/{{ .GameId }}" hx-target="#page-content" hx-push-url="true">
         <td>{{ .GameName}}</td>
         <td>{{ .GameTotalMembers}}</td>
         <td></td>
@@ -150,11 +150,66 @@
     h2 {
       font-family: Cheto;
     }
+
+    #invites-container {
+      display: flex;
+      justify-content: start;
+      gap: 10px;
+    }
+
+    .invite-card {
+      font-family: Aruma;
+      font-size: 25px;
+      background-color: lightcyan;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .invite-card button {
+      width: 100%;
+    }
+
+    .decline-button {
+      background-color: indianred;
+    }
+
+    .buttons-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+      align-items: center;
+    }
   </style>
   <h2>
     Invites
   </h2>
   <div id="invites-container">
+    {{ range .GameInvites }}
+    <div class="invite-card card">
+
+      <div>
+        {{ .GameName }}
+      </div>
+      <div>
+        From: {{ .CreatorName }}
+      </div>
+      <div class="buttons-container">
+        <button class="accept-button" hx-post="/auth/games/game/players?game-id={{ .GameId }}"
+          hx-target="closest .buttons-container">
+          Join
+        </button>
+
+        <button class="decline-button" hx-delete="/auth/games/game/invites?game-id={{ .GameId }}"
+          hx-target="closest .buttons-container">
+          Decline
+        </button>
+      </div>
+    </div>
+    {{ end }}
 
   </div>
 </div>

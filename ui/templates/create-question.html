@@ -1,4 +1,6 @@
 {{ define "create-question" }}
+
+<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
 <style>
   #page-content {
     display: flex;
@@ -34,6 +36,9 @@
     background-color: antiquewhite;
     flex-grow: 1;
     padding: 5px;
+    font-family: Aruma;
+    font-size: 20px;
+    padding: 5px;
   }
 
   .form-item {
@@ -59,12 +64,13 @@
 </style>
 
 
-<div id="page-content">
+<div id="page-content" hx-ext="response-targets">
   <div id="content-container">
     <h1 id="create-question-title">
       Create a Question
     </h1>
-    <form id="create-question-form">
+    <form id="create-question-form" hx-post="/auth/games/game/questions?game-id={{ .GameId }}" hx-target="#page-content"
+      hx-target-error="closest .error">
 
       <div class="form-item">
         <label>
@@ -108,6 +114,8 @@
       <button type="submit" value="Submit">
         Go
       </button>
+      <div class="error">
+      </div>
     </form>
   </div>
   {{ end }}

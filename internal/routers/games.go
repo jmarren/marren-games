@@ -1,10 +1,13 @@
 package routers
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -16,10 +19,15 @@ func GamesRouter(r *echo.Group) {
 	r.POST("/game", createGame)
 	r.POST("/game/invites", invitePlayerToGame)
 	r.DELETE("/game/invites", deleteGameInvite)
+	r.GET("/game/play/:game-id", getPlayPage)
+
 	r.GET("", getGamesPage)
 	r.GET("/ui/create-game", getCreateGameUI)
-
+	r.POST("/game/questions", createQuestion)
+	// r.GET("/ui/invite-friends", getInviteFriendUI)
+	r.POST("/game/players", acceptGameInvite)
 	r.GET("/all", getAllGames)
+	r.GET("/game/ui/create-question", getCreateQuestionUI)
 }
 
 func getGamesPage(c echo.Context) error {
@@ -41,7 +49,7 @@ func getGamesPage(c echo.Context) error {
     FROM games
     WHERE id = (SELECT game_id FROM game_ids)
   )
-   SELECT COUNT(user_id) AS members, game_id, name 
+   SELECT COUNT(user_id) AS members, game_id, name
    FROM user_game_membership
    LEFT JOIN games
     ON games.id = game_id
@@ -85,17 +93,61 @@ func getGamesPage(c echo.Context) error {
 
 	fmt.Println("%%%%%%%%%% games: ", games, "%%%%%%%%%%%%")
 
-	data := struct {
-		Data []Game
-	}{
-		Data: games,
+	// // Get All Invites for the User
+	query = `
+	       SELECT name, creator_id, game_id, users.username AS creator_name
+         FROM user_game_invites
+         LEFT JOIN games
+          ON games.id = game_id
+         LEFT JOIN users
+          ON creator_id = users.id
+         WHERE user_id = :my_user_id;
+	 `
+
+	type GameInvite struct {
+		GameName    string
+		CreatorId   int64
+		GameId      int64
+		CreatorName string
 	}
 
-	// // Get All Invites for the User
-	//  query := `
-	//        SELECT * FROM
-	//  `
-	//
+	var gameInvites []GameInvite
+
+	rows, err = db.Sqlite.Query(query, myUserIdArg)
+	if err != nil {
+		fmt.Println("error querying for game invites: ", err)
+		return err
+	}
+	for rows.Next() {
+		var (
+			gameNameRaw    sql.NullString
+			creatorIdRaw   sql.NullInt64
+			gameIdRaw      sql.NullInt64
+			creatorNameRaw sql.NullString
+		)
+
+		err := rows.Scan(&gameNameRaw, &creatorIdRaw, &gameIdRaw, &creatorNameRaw)
+		if err != nil {
+			fmt.Println("error scanning invites into vars: ", err)
+			return err
+		}
+		gameInvites = append(gameInvites, GameInvite{
+			GameName:    gameNameRaw.String,
+			CreatorId:   creatorIdRaw.Int64,
+			GameId:      gameIdRaw.Int64,
+			CreatorName: creatorNameRaw.String,
+		})
+
+	}
+	fmt.Println("%%%%%%%%%% Game Invites: ", gameInvites, "  %%%%%%%%%%%%%")
+
+	data := struct {
+		CurrentGames []Game
+		GameInvites  []GameInvite
+	}{
+		CurrentGames: games,
+		GameInvites:  gameInvites,
+	}
 
 	return controllers.RenderTemplate(c, "games", data)
 }
@@ -172,6 +224,18 @@ func createGame(c echo.Context) error {
 		return errors.New("an error occurred")
 	}
 
+	query := `
+    INSERT INTO user_game_membership (user_id, game_id)
+    VALUES (:my_user_id, :game_id);
+  `
+	gameIdArg := sql.Named("game_id", gameId)
+
+	_, err = db.Sqlite.Exec(query, myUserIdArg, gameIdArg)
+	if err != nil {
+		fmt.Println("error adding creator to user_game_membership")
+		return errors.New("internal server error")
+	}
+
 	data := struct {
 		GameId int64
 	}{
@@ -208,7 +272,25 @@ func invitePlayerToGame(c echo.Context) error {
 }
 
 func deleteGameInvite(c echo.Context) error {
-	playerId := c.QueryParam("user-id")
+	fromUrl := c.Request().Header.Get("Hx-Current-Url")
+	fmt.Println("----------- fromUrl: ", fromUrl)
+	shortenedUrl := fromUrl[len(fromUrl)-11:]
+
+	fmt.Println("----------- shortenedUrl: ", fromUrl)
+
+	var playerId int
+
+	if shortenedUrl == "/auth/games" {
+		playerId = auth.GetFromClaims(auth.UserId, c).(int)
+	} else {
+		var err error
+		playerId, err = strconv.Atoi(c.QueryParam("user-id"))
+		if err != nil {
+			fmt.Println("playerId not convertible to int")
+			return err
+		}
+	}
+
 	gameId := c.QueryParam("game-id")
 
 	playerIdArg := sql.Named("player_id", playerId)
@@ -224,7 +306,163 @@ func deleteGameInvite(c echo.Context) error {
 		return err
 	}
 
-	return c.HTML(http.StatusOK, `<button hx-post="/auth/games/game/invites?user-id=`+playerId+`&game-id=`+gameId+`" hx-swap="outerHTML">
+	if shortenedUrl == "/auth/games" {
+		return c.HTML(http.StatusOK, `declined`)
+	}
+
+	playerIdStr := strconv.Itoa(playerId)
+
+	return c.HTML(http.StatusOK, `<button hx-post="/auth/games/game/invites?user-id=`+playerIdStr+`&game-id=`+gameId+`" hx-swap="outerHTML">
        + Invite
       </button>`)
 }
+
+func acceptGameInvite(c echo.Context) error {
+	newPlayerId := auth.GetFromClaims(auth.UserId, c)
+	gameId := c.QueryParam("game-id")
+
+	newPlayerIdArg := sql.Named("new_player_id", newPlayerId)
+	gameIdArg := sql.Named("game_id", gameId)
+
+	// create a context
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		cancel()
+		return c.String(http.StatusInternalServerError, "error")
+	}
+
+	defer tx.Rollback()
+
+	query := `
+      DELETE FROM user_game_invites
+      WHERE user_id = :new_player_id AND game_id = :game_id;
+  `
+	_, err = db.Sqlite.ExecContext(ctx, query, newPlayerIdArg, gameIdArg)
+	if err != nil {
+		fmt.Println("error while deleting game invite: ", err)
+		return err
+	}
+
+	// delete invite
+	query = `
+    INSERT INTO user_game_membership (user_id, game_id)
+    VALUES (:new_player_id, :game_id);
+  `
+	_, err = db.Sqlite.ExecContext(ctx, query, newPlayerIdArg, gameIdArg)
+	if err != nil {
+		fmt.Println(" %%% Error while inserting into user_game_membership: ", err)
+		return err
+	}
+
+	return c.HTML(http.StatusOK, "Joined!")
+}
+
+func createQuestion(c echo.Context) error {
+	question := c.FormValue("question")
+	optionOne := c.FormValue("option-1")
+	optionTwo := c.FormValue("option-2")
+	optionThree := c.FormValue("option-3")
+	optionFour := c.FormValue("option-4")
+	gameId := c.QueryParam("game-id")
+	askerId := auth.GetFromClaims(auth.UserId, c)
+
+	query := `
+  INSERT INTO questions (game_id,asker_id, question_text, option_1, option_2, option_3, option_4)
+  VALUES (?, ?, ?, ?, ?, ?, ?);
+  `
+
+	_, err := db.Sqlite.Exec(query, gameId, askerId, question, optionOne, optionTwo, optionThree, optionFour)
+	if err != nil {
+		return c.HTML(http.StatusBadRequest, err.Error())
+	}
+
+	return c.HTML(http.StatusOK, `<div id="results"> Hooray</div> <style>#results {font-size: 50px;} </style>`)
+}
+
+func getCreateQuestionUI(c echo.Context) error {
+	gameId := c.QueryParam("game-id")
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		fmt.Println("error: provided game-id not convertible to int: ", err)
+		return err
+	}
+	data := struct {
+		GameId int
+	}{
+		GameId: gameIdInt,
+	}
+	return controllers.RenderTemplate(c, "create-question", data)
+}
+
+func getPlayPage(c echo.Context) error {
+	gameId := c.Param("game-id")
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		fmt.Println("game-id param is not convertible to int: ", err)
+		return err
+	}
+	gameIdArg := sql.Named("game_id", gameIdInt)
+	fmt.Println(gameIdArg)
+
+	query := `
+    SELECT games.name, question_text, option_1, option_2, option_3, option_4
+    FROM questions
+    INNER JOIN games
+      ON questions.game_id = games.id
+    WHERE questions.game_id = :game_id
+  `
+
+	result := db.Sqlite.QueryRow(query, gameIdArg)
+
+	if err != nil {
+		fmt.Println("error querying for question: ", err)
+		return err
+	}
+
+	var (
+		questionRaw    sql.NullString
+		gameNameRaw    sql.NullString
+		optionOneRaw   sql.NullString
+		optionTwoRaw   sql.NullString
+		optionThreeRaw sql.NullString
+		optionFourRaw  sql.NullString
+	)
+
+	err = result.Scan(&gameNameRaw, &questionRaw, &optionOneRaw, &optionTwoRaw, &optionThreeRaw, &optionFourRaw)
+	if err != nil {
+		fmt.Println("error scanning question data into vars: ", err)
+		return err
+	}
+
+	type GameData struct {
+		GameId      int
+		GameName    string
+		Question    string
+		OptionOne   string
+		OptionTwo   string
+		OptionThree string
+		OptionFour  string
+	}
+
+	data := struct {
+		GameData GameData
+	}{
+		GameData: GameData{
+			GameId:      gameIdInt,
+			GameName:    gameNameRaw.String,
+			Question:    questionRaw.String,
+			OptionOne:   optionOneRaw.String,
+			OptionTwo:   optionTwoRaw.String,
+			OptionThree: optionThreeRaw.String,
+			OptionFour:  optionFourRaw.String,
+		},
+	}
+
+	return controllers.RenderTemplate(c, "gameplay", data)
+}
+
+//
