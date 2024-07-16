@@ -1,151 +1,152 @@
 {{ define "question"}}
 
-<style>
-  #subcontainer {
-    padding-bottom: 15px;
-    padding-right: 20px;
-    display: block;
-    box-shadow: 5px 5px black;
-    border: 2.5px solid black;
-    justify-content: center;
-    padding-top: 20px;
-    padding-left: 20px;
-    background-color: indianred;
-    border-radius: 10px;
-  }
+<div id="subcontainer">
+  <style>
+    #subcontainer {
+      padding-bottom: 15px;
+      padding-right: 20px;
+      display: block;
+      box-shadow: 5px 5px black;
+      border: 2.5px solid black;
+      justify-content: center;
+      padding-top: 20px;
+      padding-left: 20px;
+      background-color: indianred;
+      border-radius: 10px;
+    }
 
-  #subcontainer {
-    padding-bottom: 15px;
-    padding-right: 20px;
-    display: block;
-    box-shadow: 5px 5px black;
-    border: 2.5px solid black;
-    justify-content: center;
-    padding-top: 20px;
-    padding-left: 20px;
-    background-color: indianred;
-    border-radius: 10px;
-  }
+    #subcontainer {
+      padding-bottom: 15px;
+      padding-right: 20px;
+      display: block;
+      box-shadow: 5px 5px black;
+      border: 2.5px solid black;
+      justify-content: center;
+      padding-top: 20px;
+      padding-left: 20px;
+      background-color: indianred;
+      border-radius: 10px;
+    }
 
-  form #options {
-    font-size: 40px;
-    font-family: Aruma;
-    display: grid;
-    height: 325px;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr 1fr;
-  }
+    form #options {
+      font-size: 40px;
+      font-family: Aruma;
+      display: grid;
+      height: 325px;
+      grid-template-rows: 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
+    }
 
-  label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    cursor: pointer;
-  }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+    }
 
-  input[type="radio"] {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    margin: 0px;
-    appearance: none;
-  }
+    input[type="radio"] {
+      width: 0px;
+      height: 0px;
+      padding: 0px;
+      margin: 0px;
+      appearance: none;
+    }
 
-  label div {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
+    label div {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
 
-  /* input[type="radio"]:checked+div {
+    /* input[type="radio"]:checked+div {
     color: white;
   } */
 
 
-  [id|=answer]:checked+div {
-    background-color: royalblue;
-  }
+    [id|=answer]:checked+div {
+      background-color: royalblue;
+    }
 
-  #answer-1+div {
-    border: 2px solid black;
-    border-radius: 10px 0 0 0;
-    background-color: sandybrown;
-  }
-
-
-  #answer-2+div {
-    border-radius: 0 10px 0 0;
-    border: 2px solid black;
-    border-left: 0;
-    background-color: seagreen;
-  }
-
-  #answer-3+div {
-    border: 2px solid black;
-    border-radius: 0 0 0 10px;
-    background-color: orchid;
-  }
-
-  #answer-4+div {
-    border: 2px solid black;
-    border-left: 0;
-    border-radius: 0 0 10px 0;
-    background-color: steelblue;
-  }
-
-  #answer-1:checked+div {
-    background-color: yellow;
-    z-index: 2;
-    box-shadow: 0px 0px 20px lightblue;
-  }
-
-  #answer-2:checked+div {
-    background-color: yellow;
-    z-index: 2;
-    box-shadow: 0px 0px 20px lightblue;
-  }
-
-  #answer-3:checked+div {
-    background-color: yellow;
-    z-index: 2;
-    box-shadow: 0px 0px 20px lightblue;
-  }
-
-  #answer-4:checked+div {
-    background-color: yellow;
-    z-index: 2;
-    box-shadow: 0px 0px 20px lightblue;
-  }
+    #answer-1+div {
+      border: 2px solid black;
+      border-radius: 10px 0 0 0;
+      background-color: sandybrown;
+    }
 
 
-  h2 {
-    color: bisque;
-    font-size: 25px;
-    text-align: center;
-  }
+    #answer-2+div {
+      border-radius: 0 10px 0 0;
+      border: 2px solid black;
+      border-left: 0;
+      background-color: seagreen;
+    }
 
-  #top-container {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+    #answer-3+div {
+      border: 2px solid black;
+      border-radius: 0 0 0 10px;
+      background-color: orchid;
+    }
 
-  input[type=submit] {
-    padding: 10px;
-    border-radius: 5px;
-    font-family: Aruma;
-    font-size: 20px;
-    background-color: skyblue;
-  }
-</style>
+    #answer-4+div {
+      border: 2px solid black;
+      border-left: 0;
+      border-radius: 0 0 10px 0;
+      background-color: steelblue;
+    }
 
-<div id="subcontainer">
-  <form>
+    #answer-1:checked+div {
+      background-color: yellow;
+      z-index: 2;
+      box-shadow: 0px 0px 20px lightblue;
+    }
+
+    #answer-2:checked+div {
+      background-color: yellow;
+      z-index: 2;
+      box-shadow: 0px 0px 20px lightblue;
+    }
+
+    #answer-3:checked+div {
+      background-color: yellow;
+      z-index: 2;
+      box-shadow: 0px 0px 20px lightblue;
+    }
+
+    #answer-4:checked+div {
+      background-color: yellow;
+      z-index: 2;
+      box-shadow: 0px 0px 20px lightblue;
+    }
+
+
+    h2 {
+      color: bisque;
+      font-size: 25px;
+      text-align: center;
+    }
+
+    #top-container {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    input[type=submit] {
+      padding: 10px;
+      border-radius: 5px;
+      font-family: Aruma;
+      font-size: 20px;
+      background-color: skyblue;
+    }
+  </style>
+
+  <form hx-post="/auth/games/game/{{ .GameId }}/question/{{ .QuestionId }}/answers" hx-target="#subcontainer"
+    hx-swap="outerHTML">
     <div id="top-container">
       <h2>
         {{ .Question }}

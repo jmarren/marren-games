@@ -24,6 +24,7 @@ func GamesRouter(r *echo.Group) {
 	r.GET("", getGamesPage)
 	r.GET("/ui/create-game", getCreateGameUI)
 	r.POST("/game/questions", createQuestion)
+	r.POST("/game/:game-id/question/:question-id/answers", createAnswer)
 	// r.GET("/ui/invite-friends", getInviteFriendUI)
 	r.POST("/game/players", acceptGameInvite)
 	r.GET("/all", getAllGames)
@@ -409,11 +410,11 @@ func getPlayPage(c echo.Context) error {
 	fmt.Println(gameIdArg)
 
 	query := `
-    SELECT games.name, question_text, option_1, option_2, option_3, option_4
+    SELECT games.name, question_text, questions.id AS question_id, option_1, option_2, option_3, option_4
     FROM questions
     INNER JOIN games
       ON questions.game_id = games.id
-    WHERE questions.game_id = :game_id
+    WHERE questions.game_id = :game_id AND DATE(questions.date_created) = DATE('now');
   `
 
 	result := db.Sqlite.QueryRow(query, gameIdArg)
@@ -425,6 +426,7 @@ func getPlayPage(c echo.Context) error {
 
 	var (
 		questionRaw    sql.NullString
+		questionIdRaw  sql.NullInt64
 		gameNameRaw    sql.NullString
 		optionOneRaw   sql.NullString
 		optionTwoRaw   sql.NullString
@@ -432,7 +434,7 @@ func getPlayPage(c echo.Context) error {
 		optionFourRaw  sql.NullString
 	)
 
-	err = result.Scan(&gameNameRaw, &questionRaw, &optionOneRaw, &optionTwoRaw, &optionThreeRaw, &optionFourRaw)
+	err = result.Scan(&gameNameRaw, &questionRaw, &questionIdRaw, &optionOneRaw, &optionTwoRaw, &optionThreeRaw, &optionFourRaw)
 	if err != nil {
 		fmt.Println("error scanning question data into vars: ", err)
 		return err
@@ -442,6 +444,7 @@ func getPlayPage(c echo.Context) error {
 		GameId      int
 		GameName    string
 		Question    string
+		QuestionId  int64
 		OptionOne   string
 		OptionTwo   string
 		OptionThree string
@@ -455,6 +458,7 @@ func getPlayPage(c echo.Context) error {
 			GameId:      gameIdInt,
 			GameName:    gameNameRaw.String,
 			Question:    questionRaw.String,
+			QuestionId:  questionIdRaw.Int64,
 			OptionOne:   optionOneRaw.String,
 			OptionTwo:   optionTwoRaw.String,
 			OptionThree: optionThreeRaw.String,
@@ -465,4 +469,136 @@ func getPlayPage(c echo.Context) error {
 	return controllers.RenderTemplate(c, "gameplay", data)
 }
 
-//
+func createAnswer(c echo.Context) error {
+	// Get necessary data to insert new answer
+	userId := auth.GetFromClaims(auth.UserId, c)
+	gameId := c.Param("game-id")
+	questionId := c.Param("question-id")
+	answer := c.FormValue("answer")
+
+	var optionChosen int
+
+	// convert answer queryParam to an integer
+	switch answer {
+	case "option-1":
+		optionChosen = 1
+	case "option-2":
+		optionChosen = 2
+	case "option-3":
+		optionChosen = 3
+	case "option-4":
+		optionChosen = 4
+	default:
+		fmt.Println("answer from query param is not a valid option (option-1... option-4). answer provided:", answer)
+		return errors.New("invalid option chosen")
+	}
+
+	optionChosenArg := sql.Named("option_chosen", optionChosen)
+	myUserIdArg := sql.Named("my_user_id", userId)
+	gameIdArg := sql.Named("game_id", gameId)
+	questionIdArg := sql.Named("question_id", questionId)
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		cancel()
+		return c.String(http.StatusInternalServerError, "error")
+	}
+
+	defer tx.Rollback()
+
+	query := `
+  INSERT INTO answers (game_id, question_id, option_chosen, answerer_id)
+  VALUES (:game_id, :question_id, :option_chosen, :my_user_id);
+  `
+
+	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	if err != nil {
+		cancel()
+		tx.Rollback()
+		fmt.Println("error inserting answer into db: ", err)
+		return err
+	}
+
+	fmt.Println("^^^^^^^^ gameId:", gameId)
+	fmt.Println("^^^^^^^^ answer: ", answer)
+
+	// Determine the number of votes for each option
+	query = `
+    WITH vote_counts AS (
+    SELECT COUNT(*) AS votes, option_chosen, question_id
+    FROM answers
+    JOIN questions
+        ON questions.id = answers.question_id
+        AND
+        DATE(questions.date_created) = DATE('now')
+    WHERE answers.game_id = :game_id AND answers.question_id = :question_id
+    GROUP BY answers.option_chosen
+    )
+    SELECT answerer_id, votes, answers.option_chosen
+    FROM answers
+    JOIN vote_counts
+      ON vote_counts.option_chosen = answers.option_chosen 
+         AND
+         answers.question_id = vote_counts.question_id;
+  `
+	// JOIN questions ON questions.id = answers.question_id
+	// SELECT users.username, votes, option_chosen
+	// JOIN answers ON answers.answerer_id = users.id
+	//     AND game_id = :game_id
+	//     AND answers.question_id = :question_id
+	// JOIN vote_counts ON answers.option_chosen = votes.option_chosen
+	// FROM users;
+
+	rows, err := db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
+	if err != nil {
+		fmt.Println("*** error querying db for question results: ", err)
+		tx.Rollback()
+		cancel()
+		return err
+	}
+
+	var answerVotes []struct {
+		answererId int64
+		option     int64
+		votes      int64
+	}
+
+	for rows.Next() {
+		var (
+			answererIdRaw sql.NullInt64
+			optionRaw     sql.NullInt64
+			votesRaw      sql.NullInt64
+		)
+
+		err := rows.Scan(&answererIdRaw, &votesRaw, &optionRaw)
+		if err != nil {
+			fmt.Println("error scanning answer votes into vars: ", err)
+			cancel()
+			tx.Rollback()
+			return err
+		}
+
+		answerVotes = append(answerVotes, struct {
+			answererId int64
+			option     int64
+			votes      int64
+		}{
+			answererId: answererIdRaw.Int64,
+			option:     optionRaw.Int64,
+			votes:      votesRaw.Int64,
+		})
+	}
+
+	query = `
+  SELECT users.username AS answerer_username, 
+  `
+
+	// for _, av := rangeAnswerVotes
+	fmt.Println("%%%% answerVotes: ", answerVotes, " %%%%%%")
+
+	return controllers.RenderTemplate(c, "results", nil)
+}
