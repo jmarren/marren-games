@@ -526,32 +526,66 @@ func createAnswer(c echo.Context) error {
 	fmt.Println("^^^^^^^^ gameId:", gameId)
 	fmt.Println("^^^^^^^^ answer: ", answer)
 
-	// Determine the number of votes for each option
 	query = `
-    WITH vote_counts AS (
-    SELECT COUNT(*) AS votes, option_chosen, question_id
-    FROM answers
-    JOIN questions
-        ON questions.id = answers.question_id
-        AND
-        DATE(questions.date_created) = DATE('now')
-    WHERE answers.game_id = :game_id AND answers.question_id = :question_id
-    GROUP BY answers.option_chosen
-    )
-    SELECT answerer_id, votes, answers.option_chosen
-    FROM answers
-    JOIN vote_counts
-      ON vote_counts.option_chosen = answers.option_chosen 
-         AND
-         answers.question_id = vote_counts.question_id;
+	   WITH vote_counts AS (
+	   SELECT COUNT(*) AS votes, option_chosen, question_id
+	   FROM answers
+	   JOIN questions
+	       ON questions.id = answers.question_id
+	       AND
+	       DATE(questions.date_created) = DATE('now')
+	   WHERE answers.game_id = :game_id AND answers.question_id = :question_id
+	   GROUP BY answers.option_chosen
+	   )
+	   SELECT  votes, vote_counts.option_chosen,
+	     CASE 
+	         WHEN answers.option_chosen = 1
+	         THEN questions.option_1
+	         WHEN answers.option_chosen = 2
+	         THEN questions.option_2
+	         WHEN answers.option_chosen = 3
+	         THEN questions.option_3
+	         ELSE questions.option_4
+	     END AS answer_text
+	   FROM answers
+	   JOIN vote_counts
+	     ON vote_counts.option_chosen = answers.option_chosen
+	        AND
+	        answers.question_id = vote_counts.question_id
+	   JOIN questions ON questions.id = answers.question_id
+      GROUP BY vote_counts.option_chosen
+      ORDER BY votes;
   `
-	// JOIN questions ON questions.id = answers.question_id
-	// SELECT users.username, votes, option_chosen
-	// JOIN answers ON answers.answerer_id = users.id
-	//     AND game_id = :game_id
-	//     AND answers.question_id = :question_id
-	// JOIN vote_counts ON answers.option_chosen = votes.option_chosen
-	// FROM users;
+
+	// Determine the number of votes for each option
+	// query = `
+	//    WITH vote_counts AS (
+	//    SELECT COUNT(*) AS votes, option_chosen, question_id
+	//    FROM answers
+	//    JOIN questions
+	//        ON questions.id = answers.question_id
+	//        AND
+	//        DATE(questions.date_created) = DATE('now')
+	//    WHERE answers.game_id = :game_id AND answers.question_id = :question_id
+	//    GROUP BY answers.option_chosen
+	//    )
+	//    SELECT answerer_id, votes, answers.option_chosen,
+	//      CASE
+	//          WHEN answers.option_chosen = 1
+	//          THEN questions.option_1
+	//          WHEN answers.option_chosen = 2
+	//          THEN questions.option_2
+	//          WHEN answers.option_chosen = 3
+	//          THEN questions.option_3
+	//          ELSE questions.option_4
+	//      END AS answer_text
+	//    FROM answers
+	//    JOIN vote_counts
+	//      ON vote_counts.option_chosen = answers.option_chosen
+	//         AND
+	//         answers.question_id = vote_counts.question_id
+	//    JOIN questions ON questions.id = answers.question_id;
+	//  `
 
 	rows, err := db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
 	if err != nil {
@@ -561,20 +595,22 @@ func createAnswer(c echo.Context) error {
 		return err
 	}
 
-	var answerVotes []struct {
-		answererId int64
-		option     int64
-		votes      int64
+	type AnswerStats struct {
+		Option     int64
+		Votes      int64
+		AnswerText string
 	}
+
+	var answerStats []AnswerStats
 
 	for rows.Next() {
 		var (
-			answererIdRaw sql.NullInt64
 			optionRaw     sql.NullInt64
 			votesRaw      sql.NullInt64
+			answerTextRaw sql.NullString
 		)
 
-		err := rows.Scan(&answererIdRaw, &votesRaw, &optionRaw)
+		err := rows.Scan(&votesRaw, &optionRaw, &answerTextRaw)
 		if err != nil {
 			fmt.Println("error scanning answer votes into vars: ", err)
 			cancel()
@@ -582,23 +618,24 @@ func createAnswer(c echo.Context) error {
 			return err
 		}
 
-		answerVotes = append(answerVotes, struct {
-			answererId int64
-			option     int64
-			votes      int64
+		answerStats = append(answerStats, struct {
+			Option     int64
+			Votes      int64
+			AnswerText string
 		}{
-			answererId: answererIdRaw.Int64,
-			option:     optionRaw.Int64,
-			votes:      votesRaw.Int64,
+			Option:     optionRaw.Int64,
+			Votes:      votesRaw.Int64,
+			AnswerText: answerTextRaw.String,
 		})
 	}
 
-	query = `
-  SELECT users.username AS answerer_username, 
-  `
+	data := struct {
+		Data []AnswerStats
+	}{
+		Data: answerStats,
+	}
 
-	// for _, av := rangeAnswerVotes
-	fmt.Println("%%%% answerVotes: ", answerVotes, " %%%%%%")
+	fmt.Println("%%%% answerStats: ", answerStats, " %%%%%%")
 
-	return controllers.RenderTemplate(c, "results", nil)
+	return controllers.RenderTemplate(c, "results", data)
 }
