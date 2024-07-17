@@ -299,7 +299,7 @@ func deleteGameInvite(c echo.Context) error {
 
 	query := `
       DELETE FROM user_game_invites
-  WHERE user_id = :player_id AND game_id = :game_id;
+      WHERE user_id = :player_id AND game_id = :game_id;
   `
 	_, err := db.Sqlite.Exec(query, playerIdArg, gameIdArg)
 	if err != nil {
@@ -338,6 +338,7 @@ func acceptGameInvite(c echo.Context) error {
 
 	defer tx.Rollback()
 
+	// delete invite
 	query := `
       DELETE FROM user_game_invites
       WHERE user_id = :new_player_id AND game_id = :game_id;
@@ -348,7 +349,7 @@ func acceptGameInvite(c echo.Context) error {
 		return err
 	}
 
-	// delete invite
+	// insert into game
 	query = `
     INSERT INTO user_game_membership (user_id, game_id)
     VALUES (:new_player_id, :game_id);
@@ -356,6 +357,17 @@ func acceptGameInvite(c echo.Context) error {
 	_, err = db.Sqlite.ExecContext(ctx, query, newPlayerIdArg, gameIdArg)
 	if err != nil {
 		fmt.Println(" %%% Error while inserting into user_game_membership: ", err)
+		return err
+	}
+
+	// set score to 0
+	query = `
+  INSERT INTO scores (user_id, game_id) VALUES(:new_player_id, :game_id);
+  `
+
+	_, err = db.Sqlite.ExecContext(ctx, query, newPlayerIdArg, gameIdArg)
+	if err != nil {
+		fmt.Println(" %%% Error while inserting into scores: ", err)
 		return err
 	}
 
@@ -629,10 +641,95 @@ func createAnswer(c echo.Context) error {
 		})
 	}
 
+	query = `
+    WITH users_to_increment AS (
+      SELECT answerer_id 
+        FROM answers
+        WHERE answers.option_chosen = :option_chosen
+              AND answers.game_id = :game_id
+              AND answers.question_id = :question_id
+              AND answers.answerer_id != :my_user_id
+    )
+    UPDATE scores
+    SET score = (score + 1)
+    WHERE scores.user_id IN users_to_increment;
+  `
+	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	if err != nil {
+		cancel()
+		tx.Rollback()
+		fmt.Println("error inserting answer into db: ", err)
+		return err
+	}
+
+	// update score for answerer
+	query = `
+    UPDATE scores
+    SET score = score + (
+          SELECT COUNT(*)
+          FROM answers
+          WHERE answers.option_chosen
+            AND answers.game_id = :game_id
+            AND answers.question_id = :question_id
+    )
+    WHERE scores.user_id = :my_user_id;
+  `
+	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	if err != nil {
+		cancel()
+		tx.Rollback()
+		fmt.Println("error inserting answer into db: ", err)
+		return err
+	}
+
+	query = `
+    SELECT score, users.username
+    FROM scores
+    JOIN users ON users.id = scores.user_id
+    WHERE game_id = :game_id
+    ORDER BY score;
+    `
+
+	rows, err = db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
+	if err != nil {
+		fmt.Println("*** error querying db for question results: ", err)
+		tx.Rollback()
+		cancel()
+		return err
+	}
+
+	type UserScore struct {
+		Username string
+		Score    int64
+	}
+
+	var scoreboardData []UserScore
+
+	for rows.Next() {
+		var (
+			scoreRaw    sql.NullInt64
+			usernameRaw sql.NullString
+		)
+		err := rows.Scan(&scoreRaw, &usernameRaw)
+		if err != nil {
+			fmt.Println("error scanning answer scoreboard data into vars: ", err)
+			cancel()
+			tx.Rollback()
+			return err
+		}
+		scoreboardData = append(scoreboardData, UserScore{
+			Username: usernameRaw.String,
+			Score:    scoreRaw.Int64,
+		})
+
+	}
+
 	data := struct {
-		Data []AnswerStats
+		AnswersData    []AnswerStats
+		ScoreboardData []UserScore
 	}{
-		Data: answerStats,
+		AnswersData:    answerStats,
+		ScoreboardData: scoreboardData,
 	}
 
 	fmt.Println("%%%% answerStats: ", answerStats, " %%%%%%")

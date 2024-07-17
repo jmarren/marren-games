@@ -86,7 +86,7 @@
 <div id="subcontainer">
   <div id="vote-counts">
 
-    {{ range .Data }}
+    {{ range .AnswersData }}
     <div class="item">
       <div class="answer">
         {{ .AnswerText }}
@@ -98,35 +98,6 @@
     {{ end }}
 
 
-    <!-- <div class="item"> -->
-    <!--   <div class="answer"> -->
-    <!--     Green -->
-    <!--   </div> -->
-    <!--   <div class="votes"> -->
-    <!--     84 -->
-    <!--   </div> -->
-    <!-- </div> -->
-    <!---->
-    <!---->
-    <!---->
-    <!-- <div class="item"> -->
-    <!--   <div class="answer"> -->
-    <!--     Purple -->
-    <!--   </div> -->
-    <!--   <div class="votes"> -->
-    <!--     37 -->
-    <!--   </div> -->
-    <!-- </div> -->
-    <!---->
-    <!---->
-    <!-- <div class="item"> -->
-    <!--   <div class="answer"> -->
-    <!--     Yellow -->
-    <!--   </div> -->
-    <!--   <div class="votes"> -->
-    <!--     15 -->
-    <!--   </div> -->
-    <!-- </div> -->
 
   </div>
 
@@ -137,32 +108,34 @@
     </span>
     <div id="rankings">
 
+      {{ range .ScoreboardData}}
       <div class="ranking">
         <span class="ranking-player">
-          1. John
+          {{ .Username }}
         </span>
         <span class="ranking-total">
-          743
+          {{ .Score }}
         </span>
       </div>
+      {{ end }}
 
-      <div class="ranking">
-        <span class="ranking-player">
-          2. Megan
-        </span>
-        <span class="ranking-total">
-          347
-        </span>
-      </div>
-
-      <div class="ranking">
-        <span class="ranking-player">
-          3. Kevin
-        </span>
-        <span class="ranking-total">
-          204
-        </span>
-      </div>
+      <!-- <div class="ranking"> -->
+      <!--   <span class="ranking-player"> -->
+      <!--     2. Megan -->
+      <!--   </span> -->
+      <!--   <span class="ranking-total"> -->
+      <!--     347 -->
+      <!--   </span> -->
+      <!-- </div> -->
+      <!---->
+      <!-- <div class="ranking"> -->
+      <!--   <span class="ranking-player"> -->
+      <!--     3. Kevin -->
+      <!--   </span> -->
+      <!--   <span class="ranking-total"> -->
+      <!--     204 -->
+      <!--   </span> -->
+      <!-- </div> -->
 
     </div>
 

@@ -74,6 +74,23 @@ CREATE TABLE IF NOT EXISTS answers (
   PRIMARY KEY (game_id, question_id, answerer_id)
 );
 
+CREATE TABLE IF NOT EXISTS scores (
+  user_id INTEGER NOT NULL,
+  game_id INTEGER NOT NULL,
+  score   INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (game_id) REFERENCES games(id),
+  PRIMARY KEY (user_id, game_id)
+);
+
+--CREATE TRIGGER update_user_scores (
+ -- AFTER INSERT ON answers
+ -- BEGIN
+ --   UPDATE scores
+ --   WHERE scores.user_id = NEW.user_id
+ --     AND scores.game_id = NEW.game_id
+ -- END;
+ --)
 
 CREATE VIEW IF NOT EXISTS todays_question_id AS
     SELECT questions.id
