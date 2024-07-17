@@ -54,7 +54,6 @@ func main() {
 
 	// Initialize Echo
 	e := initEcho()
-
 	e.Use(middleware.Logger())
 
 	queryTest := e.Group("/query")

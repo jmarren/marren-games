@@ -569,36 +569,6 @@ func createAnswer(c echo.Context) error {
       ORDER BY votes;
   `
 
-	// Determine the number of votes for each option
-	// query = `
-	//    WITH vote_counts AS (
-	//    SELECT COUNT(*) AS votes, option_chosen, question_id
-	//    FROM answers
-	//    JOIN questions
-	//        ON questions.id = answers.question_id
-	//        AND
-	//        DATE(questions.date_created) = DATE('now')
-	//    WHERE answers.game_id = :game_id AND answers.question_id = :question_id
-	//    GROUP BY answers.option_chosen
-	//    )
-	//    SELECT answerer_id, votes, answers.option_chosen,
-	//      CASE
-	//          WHEN answers.option_chosen = 1
-	//          THEN questions.option_1
-	//          WHEN answers.option_chosen = 2
-	//          THEN questions.option_2
-	//          WHEN answers.option_chosen = 3
-	//          THEN questions.option_3
-	//          ELSE questions.option_4
-	//      END AS answer_text
-	//    FROM answers
-	//    JOIN vote_counts
-	//      ON vote_counts.option_chosen = answers.option_chosen
-	//         AND
-	//         answers.question_id = vote_counts.question_id
-	//    JOIN questions ON questions.id = answers.question_id;
-	//  `
-
 	rows, err := db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
 	if err != nil {
 		fmt.Println("*** error querying db for question results: ", err)
