@@ -24,7 +24,7 @@ func CreateQuestion(c echo.Context, gameId int, askerId int, questionText string
 	return nil
 }
 
-func getCurrentQuestionId(tx *sql.Tx, gameId int) (int64, error) {
+func GetCurrentQuestionId(tx *sql.Tx, gameId int) (int64, error) {
 	fail := func(err error) (int64, error) {
 		return 0, fmt.Errorf("getCurrentQuestionId: %v", err)
 	}

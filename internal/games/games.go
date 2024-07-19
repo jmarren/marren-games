@@ -1,9 +1,11 @@
 package games
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/db"
 )
@@ -78,7 +80,6 @@ func CreateGame(tx *sql.Tx, userId int, gameName string) (int64, error) {
 		fmt.Println(err)
 		return 0, err
 	}
-	fmt.Println("result: ", result)
 	gameId, err := result.LastInsertId()
 	if err != nil {
 		fmt.Println(err)
@@ -91,4 +92,73 @@ func CreateGame(tx *sql.Tx, userId int, gameName string) (int64, error) {
 }
 
 func GetGame() {
+}
+
+func GetPlayPageContext(tx *sql.Tx, userId int, gameId int) (bool, bool, error) {
+	// helper function for errors
+	fail := func(err error) (bool, bool, error) {
+		return false, false, fmt.Errorf("GetPlayPageContext %v", err)
+	}
+
+	// convert vars to sql.NamedArg for query
+	userIdArg := sql.Named("user_id", userId)
+	gameIdArg := sql.Named("game_id", gameId)
+
+	// Query
+	query := `
+    SELECT (
+      CASE WHEN
+    (
+    SELECT user_id
+    FROM current_askers
+    WHERE current_askers.game_id = :game_id) = :user_id THEN 1
+    ELSE 0
+    END
+    ) AS is_asker,
+    (
+      CASE WHEN (
+        SELECT COUNT(*)
+        FROM questions
+        WHERE game_id = :game_id
+          AND DATE(date_created) = DATE('now')
+        ) > 0 THEN 1
+      ELSE 0
+      END)
+    AS todays_question_created
+    FROM current_askers;
+  `
+
+	// Variables for scanning results
+	var isAsker sql.NullInt64
+	var todaysQuestionCreated sql.NullInt64
+
+	// create context
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+	// perform query
+	row := tx.QueryRowContext(ctx, query, gameIdArg, userIdArg)
+
+	// scan into vars
+	err := row.Scan(&isAsker, &todaysQuestionCreated)
+	if err != nil {
+		fail(err)
+	}
+
+	// convert isAsker and todaysQuestionCreated to booleans
+	var isAskerBool bool
+	var todaysQuestionCreatedBool bool
+
+	if isAsker.Int64 == 0 {
+		isAskerBool = false
+	} else {
+		isAskerBool = true
+	}
+	if todaysQuestionCreated.Int64 == 0 {
+		todaysQuestionCreatedBool = false
+	} else {
+		todaysQuestionCreatedBool = true
+	}
+
+	return isAskerBool, todaysQuestionCreatedBool, nil
 }

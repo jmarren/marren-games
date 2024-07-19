@@ -1,4 +1,4 @@
-package games
+package routers
 
 import (
 	"github.com/jmarren/marren-games/internal/controllers"

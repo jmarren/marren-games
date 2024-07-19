@@ -1,4 +1,4 @@
-package games
+package routers
 
 import (
 	"net/http"

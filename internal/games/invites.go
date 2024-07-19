@@ -12,13 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GameInvite struct {
-	GameName    string
-	CreatorId   int64
-	GameId      int64
-	CreatorName string
-}
-
 func InvitePlayer(c echo.Context, newPlayerId int, gameId int) error {
 	// newPlayerId := c.QueryParam("user-id")
 	// gameId := c.QueryParam("game-id")

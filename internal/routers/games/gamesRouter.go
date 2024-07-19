@@ -3,6 +3,7 @@ package routers
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
@@ -62,4 +63,69 @@ func createGameHandler(c echo.Context) error {
 	}
 
 	return controllers.RenderTemplate(c, "invite-friends", data)
+}
+
+func getPlayPage(c echo.Context) error {
+	// helper to return errors
+	fail := func(err error) error {
+		return fmt.Errorf("getPlayPage: %v", err)
+	}
+
+	// get necessary context values
+	gameId, err := strconv.Atoi(c.Param("game-id"))
+	if err != nil {
+		fail(err)
+	}
+	userId := auth.GetFromClaims(auth.UserId, c).(int)
+
+	// create context
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+	defer cancel()
+
+	// begin transaction
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		fail(err)
+	}
+	defer tx.Rollback()
+
+	// Get context for play page
+	isAsker, isTodaysQuestionCreated, err := games.GetPlayPageContext(tx, userId, gameId)
+
+	if isAsker && !isTodaysQuestionCreated {
+		data := struct {
+			GameId int
+		}{
+			GameId: gameId,
+		}
+		tx.Commit()
+		return controllers.RenderTemplate(c, "create-question", data)
+	}
+
+	if isAsker && isTodaysQuestionCreated {
+		questionId, err := games.GetCurrentQuestionId(tx, gameId)
+		if err != nil {
+			return fmt.Errorf("error getting current question Id: %v ", err)
+		}
+		answerStats, err := games.GetAnswerStats(&ctx, tx, questionId, gameId)
+		if err != nil {
+			return fail(err)
+		}
+		scoreboardData, err := games.GetUserScores(&ctx, tx, gameId)
+		if err != nil {
+			return fail(err)
+		}
+		data := struct {
+			ShowResults int
+			GameData    GameResults
+		}{
+			ShowResults: 1,
+			GameData: GameResults{
+				AnswersData:    answerStats,
+				ScoreboardData: scoreboardData,
+			},
+		}
+		fmt.Println("data: ", data)
+		tx.Commit()
+	}
 }

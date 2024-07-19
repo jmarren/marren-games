@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func getAnswerStats(ctx *context.Context, tx *sql.Tx, questionIdArg sql.NamedArg, gameIdArg sql.NamedArg) ([]AnswerStats, error) {
+func GetAnswerStats(ctx *context.Context, tx *sql.Tx, questionIdArg sql.NamedArg, gameIdArg sql.NamedArg) ([]AnswerStats, error) {
 	query := `
 	   WITH vote_counts AS (
 	   SELECT COUNT(*) AS votes, option_chosen, question_id

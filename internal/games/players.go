@@ -7,7 +7,7 @@ import (
 	"github.com/jmarren/marren-games/internal/db"
 )
 
-func AddPlayer(tx *sql.Tx, gameId int, userId int) error {
+func AddPlayer(tx *sql.Tx, gameId int64, userId int) error {
 	gameIdArg := sql.Named("game_id", gameId)
 	userIdArg := sql.Named("user_id", userId)
 

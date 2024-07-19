@@ -1,5 +1,21 @@
 package games
 
+type AnswerStats struct {
+	Option     int64
+	Votes      int64
+	AnswerText string
+}
+
+type UserScore struct {
+	Username string
+	Score    int64
+}
+
+type GameResults struct {
+	AnswersData    []AnswerStats
+	ScoreboardData []UserScore
+}
+
 type Game struct {
 	GameId           int64
 	GameName         string
@@ -18,10 +34,13 @@ type GamesPageData struct {
 }
 
 type ResultsData struct {
-	AnswersData
+	AnswersData    []AnswerStats
 	ScoreboardData []UserScore
 }
 
-type GamePlayData struct{}
+type GamePlayData struct {
+	ShowResults int
+	Data        interface{}
+}
 
 type QuestionData struct{}

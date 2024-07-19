@@ -1,4 +1,4 @@
-package games
+package routers
 
 import (
 	"database/sql"

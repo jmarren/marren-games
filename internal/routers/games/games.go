@@ -15,22 +15,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type AnswerStats struct {
-	Option     int64
-	Votes      int64
-	AnswerText string
-}
-
-type UserScore struct {
-	Username string
-	Score    int64
-}
-
-type GameResults struct {
-	AnswersData    []AnswerStats
-	ScoreboardData []UserScore
-}
-
 // type GamePlayData struct {
 //   GameName:
 // }
@@ -447,7 +431,7 @@ func getCreateQuestionUI(c echo.Context) error {
 
 func getPlayPage(c echo.Context) error {
 	fail := func(err error) error {
-		return fmt.Errorf("getPlayPage error: %v ", err)
+		return fmt.Errorf("\033[31m getPlayPage error: %v \033[0m", err)
 	}
 
 	gameId := c.Param("game-id")
