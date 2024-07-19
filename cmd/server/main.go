@@ -9,6 +9,7 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
+	"github.com/jmarren/marren-games/internal/routers/queryTests"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -58,7 +59,7 @@ func main() {
 
 	queryTest := e.Group("/query")
 
-	routers.QueryTests(queryTest)
+	queryTests.QueryTests(queryTest)
 	// ---- Middlewares
 	// e.Use(fmt.Println(e.Logger()))
 	// e.Use(e.Logger)

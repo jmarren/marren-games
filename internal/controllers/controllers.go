@@ -96,6 +96,7 @@ func InitTemplates() {
 		"request-sent-button.html",
 		"search-bar.html",
 		"invite-friends.html",
+		"delete-invite-button.html",
 	}
 
 	// Create a base layout template

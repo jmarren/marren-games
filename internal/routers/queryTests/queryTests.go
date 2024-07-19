@@ -1,4 +1,4 @@
-package routers
+package queryTests
 
 import (
 	"database/sql"

@@ -1,4 +1,4 @@
-package routers
+package games
 
 import (
 	"context"
@@ -15,14 +15,38 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type AnswerStats struct {
+	Option     int64
+	Votes      int64
+	AnswerText string
+}
+
+type UserScore struct {
+	Username string
+	Score    int64
+}
+
+type GameResults struct {
+	AnswersData    []AnswerStats
+	ScoreboardData []UserScore
+}
+
+// type GamePlayData struct {
+//   GameName:
+// }
+
 func GamesRouter(r *echo.Group) {
-	r.POST("/game", createGame)
-	r.POST("/game/invites", invitePlayerToGame)
-	r.DELETE("/game/invites", deleteGameInvite)
+	gameGroup := r.Group("/game")
+	GameRouter(gameGroup)
+	uiGroup := r.Group("/ui")
+
+	// r.POST("/game", createGame)
+	// r.POST("/game/invites", invitePlayerToGame)
+	// r.DELETE("/game/invites", deleteGameInvite)
 	r.GET("/game/play/:game-id", getPlayPage)
 
 	r.GET("", getGamesPage)
-	r.GET("/ui/create-game", getCreateGameUI)
+	// r.GET("/ui/create-game", getCreateGameUI)
 	r.POST("/game/questions", createQuestion)
 	r.POST("/game/:game-id/question/:question-id/answers", createAnswer)
 	// r.GET("/ui/invite-friends", getInviteFriendUI)
@@ -197,126 +221,126 @@ func getAllGames(c echo.Context) error {
 	return c.HTML(http.StatusOK, "done")
 }
 
-func createGame(c echo.Context) error {
-	userId := auth.GetFromClaims("UserId", c)
-	gameName := c.FormValue("game-name")
-
-	myUserIdArg := sql.Named("my_user_id", userId)
-	gameNameArg := sql.Named("my_game_name", gameName)
-
-	fmt.Println("userId: ", userId)
-	fmt.Println("gameName: ", gameName)
-
-	if gameName == "" {
-		fmt.Println(" NAME NOT PROVIDED")
-		return c.HTML(http.StatusBadRequest, "please provide a name")
-	}
-	result, err := db.Sqlite.Exec(`
-    INSERT INTO games (creator_id, name) VALUES (:my_user_id, :my_game_name);
-    `, myUserIdArg, gameNameArg)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	fmt.Println("result: ", result)
-	gameId, err := result.LastInsertId()
-	if err != nil {
-		fmt.Println(err)
-		return errors.New("an error occurred")
-	}
-
-	query := `
-    INSERT INTO user_game_membership (user_id, game_id)
-    VALUES (:my_user_id, :game_id);
-  `
-	gameIdArg := sql.Named("game_id", gameId)
-
-	_, err = db.Sqlite.Exec(query, myUserIdArg, gameIdArg)
-	if err != nil {
-		fmt.Println("error adding creator to user_game_membership")
-		return errors.New("internal server error")
-	}
-
-	data := struct {
-		GameId int64
-	}{
-		GameId: gameId,
-	}
-
-	return controllers.RenderTemplate(c, "invite-friends", data)
-}
+// func createGame(c echo.Context) error {
+// 	userId := auth.GetFromClaims("UserId", c)
+// 	gameName := c.FormValue("game-name")
+//
+// 	myUserIdArg := sql.Named("my_user_id", userId)
+// 	gameNameArg := sql.Named("my_game_name", gameName)
+//
+// 	fmt.Println("userId: ", userId)
+// 	fmt.Println("gameName: ", gameName)
+//
+// 	if gameName == "" {
+// 		fmt.Println(" NAME NOT PROVIDED")
+// 		return c.HTML(http.StatusBadRequest, "please provide a name")
+// 	}
+// 	result, err := db.Sqlite.Exec(`
+//     INSERT INTO games (creator_id, name) VALUES (:my_user_id, :my_game_name);
+//     `, myUserIdArg, gameNameArg)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return err
+// 	}
+// 	fmt.Println("result: ", result)
+// 	gameId, err := result.LastInsertId()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return errors.New("an error occurred")
+// 	}
+//
+// 	query := `
+//     INSERT INTO user_game_membership (user_id, game_id)
+//     VALUES (:my_user_id, :game_id);
+//   `
+// 	gameIdArg := sql.Named("game_id", gameId)
+//
+// 	_, err = db.Sqlite.Exec(query, myUserIdArg, gameIdArg)
+// 	if err != nil {
+// 		fmt.Println("error adding creator to user_game_membership")
+// 		return errors.New("internal server error")
+// 	}
+//
+// 	data := struct {
+// 		GameId int64
+// 	}{
+// 		GameId: gameId,
+// 	}
+//
+// 	return controllers.RenderTemplate(c, "invite-friends", data)
+// }
 
 func getCreateGameUI(c echo.Context) error {
 	return controllers.RenderTemplate(c, "create-game", nil)
 }
 
-func invitePlayerToGame(c echo.Context) error {
-	newPlayerId := c.QueryParam("user-id")
-	gameId := c.QueryParam("game-id")
+// func invitePlayerToGame(c echo.Context) error {
+// 	newPlayerId := c.QueryParam("user-id")
+// 	gameId := c.QueryParam("game-id")
+//
+// 	newPlayerArg := sql.Named("new_player_id", newPlayerId)
+// 	gameIdArg := sql.Named("game_id", gameId)
+//
+// 	query := `
+//       INSERT INTO user_game_invites (user_id, game_id)
+//   VALUES(:new_player_id, :game_id);
+//   `
+// 	_, err := db.Sqlite.Exec(query, newPlayerArg, gameIdArg)
+// 	if err != nil {
+// 		fmt.Println("error adding user to user_game_invites")
+// 		return err
+// 	}
+//
+// 	return c.HTML(http.StatusOK, `<button hx-delete="/auth/games/game/invites?user-id=`+newPlayerId+`&game-id=`+gameId+`" hx-swap="outerHTML">
+//        Remove
+//       </button>`)
+// }
 
-	newPlayerArg := sql.Named("new_player_id", newPlayerId)
-	gameIdArg := sql.Named("game_id", gameId)
-
-	query := `
-      INSERT INTO user_game_invites (user_id, game_id)
-  VALUES(:new_player_id, :game_id);
-  `
-	_, err := db.Sqlite.Exec(query, newPlayerArg, gameIdArg)
-	if err != nil {
-		fmt.Println("error adding user to user_game_invites")
-		return err
-	}
-
-	return c.HTML(http.StatusOK, `<button hx-delete="/auth/games/game/invites?user-id=`+newPlayerId+`&game-id=`+gameId+`" hx-swap="outerHTML">
-       Remove
-      </button>`)
-}
-
-func deleteGameInvite(c echo.Context) error {
-	fromUrl := c.Request().Header.Get("Hx-Current-Url")
-	fmt.Println("----------- fromUrl: ", fromUrl)
-	shortenedUrl := fromUrl[len(fromUrl)-11:]
-
-	fmt.Println("----------- shortenedUrl: ", fromUrl)
-
-	var playerId int
-
-	if shortenedUrl == "/auth/games" {
-		playerId = auth.GetFromClaims(auth.UserId, c).(int)
-	} else {
-		var err error
-		playerId, err = strconv.Atoi(c.QueryParam("user-id"))
-		if err != nil {
-			fmt.Println("playerId not convertible to int")
-			return err
-		}
-	}
-
-	gameId := c.QueryParam("game-id")
-
-	playerIdArg := sql.Named("player_id", playerId)
-	gameIdArg := sql.Named("game_id", gameId)
-
-	query := `
-      DELETE FROM user_game_invites
-      WHERE user_id = :player_id AND game_id = :game_id;
-  `
-	_, err := db.Sqlite.Exec(query, playerIdArg, gameIdArg)
-	if err != nil {
-		fmt.Println("error removing user from user_game_invites")
-		return err
-	}
-
-	if shortenedUrl == "/auth/games" {
-		return c.HTML(http.StatusOK, `declined`)
-	}
-
-	playerIdStr := strconv.Itoa(playerId)
-
-	return c.HTML(http.StatusOK, `<button hx-post="/auth/games/game/invites?user-id=`+playerIdStr+`&game-id=`+gameId+`" hx-swap="outerHTML">
-       + Invite
-      </button>`)
-}
+// func deleteGameInvite(c echo.Context) error {
+// 	fromUrl := c.Request().Header.Get("Hx-Current-Url")
+// 	fmt.Println("----------- fromUrl: ", fromUrl)
+// 	shortenedUrl := fromUrl[len(fromUrl)-11:]
+//
+// 	fmt.Println("----------- shortenedUrl: ", fromUrl)
+//
+// 	var playerId int
+//
+// 	if shortenedUrl == "/auth/games" {
+// 		playerId = auth.GetFromClaims(auth.UserId, c).(int)
+// 	} else {
+// 		var err error
+// 		playerId, err = strconv.Atoi(c.QueryParam("user-id"))
+// 		if err != nil {
+// 			fmt.Println("playerId not convertible to int")
+// 			return err
+// 		}
+// 	}
+//
+// 	gameId := c.QueryParam("game-id")
+//
+// 	playerIdArg := sql.Named("player_id", playerId)
+// 	gameIdArg := sql.Named("game_id", gameId)
+//
+// 	query := `
+//       DELETE FROM user_game_invites
+//       WHERE user_id = :player_id AND game_id = :game_id;
+//   `
+// 	_, err := db.Sqlite.Exec(query, playerIdArg, gameIdArg)
+// 	if err != nil {
+// 		fmt.Println("error removing user from user_game_invites")
+// 		return err
+// 	}
+//
+// 	if shortenedUrl == "/auth/games" {
+// 		return c.HTML(http.StatusOK, `declined`)
+// 	}
+//
+// 	playerIdStr := strconv.Itoa(playerId)
+//
+// 	return c.HTML(http.StatusOK, `<button hx-post="/auth/games/game/invites?user-id=`+playerIdStr+`&game-id=`+gameId+`" hx-swap="outerHTML">
+//        + Invite
+//       </button>`)
+// }
 
 func acceptGameInvite(c echo.Context) error {
 	newPlayerId := auth.GetFromClaims(auth.UserId, c)
@@ -393,7 +417,17 @@ func createQuestion(c echo.Context) error {
 		return c.HTML(http.StatusBadRequest, err.Error())
 	}
 
-	return c.HTML(http.StatusOK, `<div id="results"> Hooray</div> <style>#results {font-size: 50px;} </style>`)
+	// var answerStats []AnswerStats
+
+	data := struct {
+		AnswersData    []AnswerStats
+		ScoreboardData []UserScore
+	}{
+		AnswersData:    []AnswerStats{},
+		ScoreboardData: []UserScore{},
+	}
+	return controllers.RenderTemplate(c, "results", data)
+	// return c.HTML(http.StatusOK, `<div id="results"> Hooray</div> <style>#results {font-size: 50px;} </style>`)
 }
 
 func getCreateQuestionUI(c echo.Context) error {
@@ -412,6 +446,10 @@ func getCreateQuestionUI(c echo.Context) error {
 }
 
 func getPlayPage(c echo.Context) error {
+	fail := func(err error) error {
+		return fmt.Errorf("getPlayPage error: %v ", err)
+	}
+
 	gameId := c.Param("game-id")
 	gameIdInt, err := strconv.Atoi(gameId)
 	if err != nil {
@@ -419,9 +457,97 @@ func getPlayPage(c echo.Context) error {
 		return err
 	}
 	gameIdArg := sql.Named("game_id", gameIdInt)
-	fmt.Println(gameIdArg)
+	myUserId := auth.GetFromClaims(auth.UserId, c)
+	myUserIdArg := sql.Named("my_user_id", myUserId)
 
 	query := `
+    SELECT (
+      CASE WHEN
+    (
+    SELECT user_id
+    FROM current_askers
+    WHERE current_askers.game_id = :game_id) = :my_user_id THEN 1
+    ELSE 0
+    END
+    ) AS is_asker,
+    (
+      CASE WHEN (
+        SELECT COUNT(*)
+        FROM questions
+        WHERE game_id = :game_id
+          AND DATE(date_created) = DATE('now')
+        ) > 0 THEN 1
+      ELSE 0
+      END)
+    AS todays_question_created
+    FROM current_askers;
+  `
+	var isAsker sql.NullInt64
+	var todaysQuestionCreated sql.NullInt64
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.Begin()
+	if err != nil {
+		return fail(err)
+	}
+	row := tx.QueryRowContext(ctx, query, gameIdArg, myUserIdArg)
+
+	err = row.Scan(&isAsker, &todaysQuestionCreated)
+	if err != nil {
+		fmt.Println("error while scanning into isAsker variable")
+		return err
+	}
+
+	fmt.Println("^^^^^^^^^^^ isAsker: ", isAsker.Int64)
+
+	if isAsker.Int64 == 1 && todaysQuestionCreated.Int64 == 0 {
+		data := struct {
+			GameId int
+		}{
+			GameId: gameIdInt,
+		}
+		tx.Commit()
+		return controllers.RenderTemplate(c, "create-question", data)
+	}
+	if isAsker.Int64 == 1 && todaysQuestionCreated.Int64 == 1 {
+		questionId, err := getCurrentQuestionId(tx, gameIdArg)
+		if err != nil {
+			return fmt.Errorf("error getting current question Id: %v ", err)
+		}
+		questionIdArg := sql.Named("question_id", questionId)
+		answerStats, err := getAnswerStats(&ctx, tx, questionIdArg, gameIdArg)
+		if err != nil {
+			return fail(err)
+		}
+		scoreboardData, err := getUserScores(&ctx, tx, gameIdInt)
+		if err != nil {
+			return fail(err)
+		}
+		data := struct {
+			ShowResults int
+			GameData    GameResults
+		}{
+			ShowResults: 1,
+			GameData: GameResults{
+				AnswersData:    answerStats,
+				ScoreboardData: scoreboardData,
+			},
+		}
+		fmt.Println("data: ", data)
+		tx.Commit()
+
+		fmt.Println("%%%% answerStats: ", answerStats, " %%%%%%")
+
+		return controllers.RenderTemplate(c, "gameplay", data)
+
+	}
+
+	fmt.Println(gameIdArg)
+
+	query = `
     SELECT games.name, question_text, questions.id AS question_id, option_1, option_2, option_3, option_4
     FROM questions
     INNER JOIN games
@@ -464,8 +590,10 @@ func getPlayPage(c echo.Context) error {
 	}
 
 	data := struct {
-		GameData GameData
+		ShowResults int
+		GameData    GameData
 	}{
+		ShowResults: 0,
 		GameData: GameData{
 			GameId:      gameIdInt,
 			GameName:    gameNameRaw.String,
@@ -478,15 +606,30 @@ func getPlayPage(c echo.Context) error {
 		},
 	}
 
+	tx.Commit()
 	return controllers.RenderTemplate(c, "gameplay", data)
 }
 
 func createAnswer(c echo.Context) error {
+	fail := func(err error) error {
+		return fmt.Errorf("createAnswer: %v ", err)
+	}
 	// Get necessary data to insert new answer
 	userId := auth.GetFromClaims(auth.UserId, c)
 	gameId := c.Param("game-id")
 	questionId := c.Param("question-id")
+	gameIdInt, err := strconv.Atoi(gameId)
 	answer := c.FormValue("answer")
+	if err != nil {
+		// fmt.Println("game-id param not convertible to int")
+		// return err
+		return fail(err)
+	}
+	questionIdInt, err := strconv.Atoi(questionId)
+	if err != nil {
+		fmt.Println("game-id param not convertible to int")
+		return err
+	}
 
 	var optionChosen int
 
@@ -507,8 +650,8 @@ func createAnswer(c echo.Context) error {
 
 	optionChosenArg := sql.Named("option_chosen", optionChosen)
 	myUserIdArg := sql.Named("my_user_id", userId)
-	gameIdArg := sql.Named("game_id", gameId)
-	questionIdArg := sql.Named("question_id", questionId)
+	gameIdArg := sql.Named("game_id", gameIdInt)
+	questionIdArg := sql.Named("question_id", questionIdInt)
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
 
@@ -527,9 +670,8 @@ func createAnswer(c echo.Context) error {
   VALUES (:game_id, :question_id, :option_chosen, :my_user_id);
   `
 
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
 	if err != nil {
-		cancel()
 		tx.Rollback()
 		fmt.Println("error inserting answer into db: ", err)
 		return err
@@ -539,6 +681,115 @@ func createAnswer(c echo.Context) error {
 	fmt.Println("^^^^^^^^ answer: ", answer)
 
 	query = `
+    WITH users_to_increment AS (
+      SELECT answerer_id 
+        FROM answers
+        WHERE answers.option_chosen = :option_chosen
+              AND answers.game_id = :game_id
+              AND answers.question_id = :question_id
+              AND answers.answerer_id != :my_user_id
+    )
+    UPDATE scores
+    SET score = (score + 1)
+    WHERE scores.user_id IN users_to_increment;
+  `
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("error inserting answer into db: ", err)
+		return err
+	}
+
+	// update score for answerer
+	query = `
+    UPDATE scores
+    SET score = score + (
+          SELECT COUNT(*)
+          FROM answers
+          WHERE answers.option_chosen
+            AND answers.game_id = :game_id
+            AND answers.question_id = :question_id
+    )
+    WHERE scores.user_id = :my_user_id;
+  `
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("error inserting answer into db: ", err)
+		return err
+	}
+
+	scoreboardData, err := getUserScores(&ctx, tx, gameIdInt)
+	if err != nil {
+		fmt.Println("error getting user scores")
+		return err
+	}
+
+	answerStats, err := getAnswerStats(&ctx, tx, questionIdArg, gameIdArg)
+	if err != nil {
+		return fail(err)
+	}
+
+	data := struct {
+		AnswersData    []AnswerStats
+		ScoreboardData []UserScore
+	}{
+		AnswersData:    answerStats,
+		ScoreboardData: scoreboardData,
+	}
+
+	tx.Commit()
+	fmt.Println("%%%% answerStats: ", answerStats, " %%%%%%")
+
+	return controllers.RenderTemplate(c, "results", data)
+}
+
+// ///  Function to get each users current total score for a given game
+func getUserScores(ctx *context.Context, tx *sql.Tx, gameId int) ([]UserScore, error) {
+	gameIdArg := sql.Named("game_id", gameId)
+
+	query := `
+    SELECT score, users.username
+    FROM scores
+    JOIN users ON users.id = scores.user_id
+    WHERE game_id = :game_id
+    ORDER BY score;
+    `
+
+	rows, err := tx.QueryContext(*ctx, query, gameIdArg)
+	if err != nil {
+		fmt.Println("*** error querying db for question results: ", err)
+		tx.Rollback()
+		return nil, err
+	}
+
+	var scoreboardData []UserScore
+
+	for rows.Next() {
+		var (
+			scoreRaw    sql.NullInt64
+			usernameRaw sql.NullString
+		)
+		err := rows.Scan(&scoreRaw, &usernameRaw)
+		if err != nil {
+			fmt.Println("error scanning answer scoreboard data into vars: ", err)
+			tx.Rollback()
+			return nil, err
+		}
+		scoreboardData = append(scoreboardData, UserScore{
+			Username: usernameRaw.String,
+			Score:    scoreRaw.Int64,
+		})
+
+	}
+
+	return scoreboardData, nil
+}
+
+// function to return the number of votes for each of the answers for a given question
+// and game
+func getAnswerStats(ctx *context.Context, tx *sql.Tx, questionIdArg sql.NamedArg, gameIdArg sql.NamedArg) ([]AnswerStats, error) {
+	query := `
 	   WITH vote_counts AS (
 	   SELECT COUNT(*) AS votes, option_chosen, question_id
 	   FROM answers
@@ -569,18 +820,11 @@ func createAnswer(c echo.Context) error {
       ORDER BY votes;
   `
 
-	rows, err := db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
+	rows, err := tx.QueryContext(*ctx, query, gameIdArg, questionIdArg)
 	if err != nil {
 		fmt.Println("*** error querying db for question results: ", err)
 		tx.Rollback()
-		cancel()
-		return err
-	}
-
-	type AnswerStats struct {
-		Option     int64
-		Votes      int64
-		AnswerText string
+		return nil, err
 	}
 
 	var answerStats []AnswerStats
@@ -595,9 +839,8 @@ func createAnswer(c echo.Context) error {
 		err := rows.Scan(&votesRaw, &optionRaw, &answerTextRaw)
 		if err != nil {
 			fmt.Println("error scanning answer votes into vars: ", err)
-			cancel()
 			tx.Rollback()
-			return err
+			return nil, err
 		}
 
 		answerStats = append(answerStats, struct {
@@ -611,98 +854,34 @@ func createAnswer(c echo.Context) error {
 		})
 	}
 
-	query = `
-    WITH users_to_increment AS (
-      SELECT answerer_id 
-        FROM answers
-        WHERE answers.option_chosen = :option_chosen
-              AND answers.game_id = :game_id
-              AND answers.question_id = :question_id
-              AND answers.answerer_id != :my_user_id
-    )
-    UPDATE scores
-    SET score = (score + 1)
-    WHERE scores.user_id IN users_to_increment;
+	return answerStats, nil
+}
+
+func getCurrentQuestionId(tx *sql.Tx, gameIdArg sql.NamedArg) (int64, error) {
+	fail := func(err error) (int64, error) {
+		return 0, fmt.Errorf("getCurrentQuestionId: %v", err)
+	}
+
+	query := `
+      SELECT id
+      FROM questions
+      WHERE game_id = :game_id
+        AND DATE(date_created) = DATE('now');
   `
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	row := tx.QueryRowContext(ctx, query, gameIdArg)
+
+	var questionIdRaw sql.NullInt64
+
+	err := row.Scan(&questionIdRaw)
 	if err != nil {
-		cancel()
 		tx.Rollback()
-		fmt.Println("error inserting answer into db: ", err)
-		return err
+		return fail(err)
 	}
 
-	// update score for answerer
-	query = `
-    UPDATE scores
-    SET score = score + (
-          SELECT COUNT(*)
-          FROM answers
-          WHERE answers.option_chosen
-            AND answers.game_id = :game_id
-            AND answers.question_id = :question_id
-    )
-    WHERE scores.user_id = :my_user_id;
-  `
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
-	if err != nil {
-		cancel()
-		tx.Rollback()
-		fmt.Println("error inserting answer into db: ", err)
-		return err
-	}
-
-	query = `
-    SELECT score, users.username
-    FROM scores
-    JOIN users ON users.id = scores.user_id
-    WHERE game_id = :game_id
-    ORDER BY score;
-    `
-
-	rows, err = db.Sqlite.QueryContext(ctx, query, gameIdArg, questionIdArg)
-	if err != nil {
-		fmt.Println("*** error querying db for question results: ", err)
-		tx.Rollback()
-		cancel()
-		return err
-	}
-
-	type UserScore struct {
-		Username string
-		Score    int64
-	}
-
-	var scoreboardData []UserScore
-
-	for rows.Next() {
-		var (
-			scoreRaw    sql.NullInt64
-			usernameRaw sql.NullString
-		)
-		err := rows.Scan(&scoreRaw, &usernameRaw)
-		if err != nil {
-			fmt.Println("error scanning answer scoreboard data into vars: ", err)
-			cancel()
-			tx.Rollback()
-			return err
-		}
-		scoreboardData = append(scoreboardData, UserScore{
-			Username: usernameRaw.String,
-			Score:    scoreRaw.Int64,
-		})
-
-	}
-
-	data := struct {
-		AnswersData    []AnswerStats
-		ScoreboardData []UserScore
-	}{
-		AnswersData:    answerStats,
-		ScoreboardData: scoreboardData,
-	}
-
-	fmt.Println("%%%% answerStats: ", answerStats, " %%%%%%")
-
-	return controllers.RenderTemplate(c, "results", data)
+	return questionIdRaw.Int64, nil
 }

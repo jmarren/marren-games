@@ -28,8 +28,11 @@
       July 2, 2024
     </span>
   </h1>
-
+  {{ if eq .ShowResults 1 }}
   {{ template "question" .GameData }}
+  {{ else }}
+  {{ template "results" . }}
+  {{ end }}
 </div>
 
 {{ end }}
