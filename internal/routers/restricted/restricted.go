@@ -1,12 +1,13 @@
-package routers
+package restricted
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
+	"github.com/jmarren/marren-games/internal/routers/friends"
+	"github.com/jmarren/marren-games/internal/routers/profile"
+	"github.com/jmarren/marren-games/internal/routers/restricted/games"
+	"github.com/jmarren/marren-games/internal/routers/restricted/transitions"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
@@ -34,36 +35,13 @@ func RestrictedRoutes(r *echo.Group) {
 	r.Use(echojwt.WithConfig(jwtConfig))
 
 	transitionGroup := r.Group("/transition")
-	TransitionRouter(transitionGroup)
+	transitions.TransitionRouter(transitionGroup)
 	gamesGroup := r.Group("/games")
-	GamesRouter(gamesGroup)
+	games.GamesRouter(gamesGroup)
 	profileGroup := r.Group("/profile")
-	ProfileRouter(profileGroup)
+	profile.ProfileRouter(profileGroup)
 	friendsGroup := r.Group("/friends")
-	FriendsRouter(friendsGroup)
+	friends.FriendsRouter(friendsGroup)
 
 	r.GET("/create-question", controllers.CreateQuestionHandler)
-
-	RestrictedRouteConfigs := GetRestrictedRouteConfigs()
-
-	for _, routeConfig := range RestrictedRouteConfigs {
-		switch routeConfig.method {
-		case GET:
-			r.GET(routeConfig.path,
-
-				func(c echo.Context) error {
-					// convert params to the type specified in config
-					data, err := GetRequestWithDbQuery(routeConfig, c)
-					if err != nil {
-						fmt.Println("error performing dynamic query: ", err)
-						return c.String(http.StatusInternalServerError, "error")
-					}
-					// Create a TemplateData struct to pass to the template
-					templateData := TemplateData{
-						Data: data,
-					}
-					return controllers.RenderTemplate(c, routeConfig.partialTemplate, templateData)
-				})
-		}
-	}
 }

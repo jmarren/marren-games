@@ -9,7 +9,7 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
-	"github.com/jmarren/marren-games/internal/routers/queryTests"
+	"github.com/jmarren/marren-games/internal/routers/restricted"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,9 +57,9 @@ func main() {
 	e := initEcho()
 	e.Use(middleware.Logger())
 
-	queryTest := e.Group("/query")
+	// queryTest := e.Group("/query")
 
-	queryTests.QueryTests(queryTest)
+	// queryTests.QueryTests(queryTest)
 	// ---- Middlewares
 	// e.Use(fmt.Println(e.Logger()))
 	// e.Use(e.Logger)
@@ -78,7 +78,7 @@ func main() {
 
 	// Restricted Routes
 	restrictedRoutes := e.Group("/auth")
-	routers.RestrictedRoutes(restrictedRoutes)
+	restricted.RestrictedRoutes(restrictedRoutes)
 
 	// Register pprof routes
 	// Start the main server on port 8080

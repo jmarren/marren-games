@@ -1,4 +1,4 @@
-package routers
+package games
 
 import (
 	"net/http"
@@ -11,6 +11,7 @@ import (
 
 func QuestionsRouter(r *echo.Group) {
 	r.POST("", createQuestion)
+	r.GET("", getTodaysQuestion)
 }
 
 func createQuestion(c echo.Context) error {
@@ -43,4 +44,8 @@ func createQuestion(c echo.Context) error {
 	}
 	return controllers.RenderTemplate(c, "results", data)
 	// return c.HTML(http.StatusOK, `<div id="results"> Hooray</div> <style>#results {font-size: 50px;} </style>`)
+}
+
+func getTodaysQuestion(c echo.Context) error {
+	return nil
 }

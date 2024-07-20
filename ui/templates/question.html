@@ -145,8 +145,7 @@
     }
   </style>
 
-  <form hx-post="/auth/games/game/{{ .GameId }}/question/{{ .QuestionId }}/answers" hx-target="#subcontainer"
-    hx-swap="outerHTML">
+  <form hx-post="/auth/games/{{ .GameId }}/results" hx-target="#subcontainer" hx-swap="outerHTML">
     <div id="top-container">
       <h2>
         {{ .Question }}

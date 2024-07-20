@@ -1,4 +1,4 @@
-package routers
+package transitions
 
 import (
 	"fmt"
@@ -6,6 +6,10 @@ import (
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/labstack/echo/v4"
 )
+
+type TemplateData struct {
+	Data interface{}
+}
 
 func TransitionRouter(r *echo.Group) {
 	r.GET("/:target-page", func(c echo.Context) error {
