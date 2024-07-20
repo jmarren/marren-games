@@ -20,7 +20,7 @@
       </div>
       {{ if eq $gameId -1 }}
       {{ else }}
-      <button hx-post="/auth/games/game/invites?user-id={{ .UserId }}&game-id={{ $gameId }}" hx-swap="outerHTML">
+      <button hx-post="/auth/games/{{ $gameId }}/invites/{{ .UserId }}" hx-swap="outerHTML">
         + Invite
       </button>
       {{ end}}

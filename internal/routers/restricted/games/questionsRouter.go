@@ -1,6 +1,7 @@
 package games
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/jmarren/marren-games/internal/auth"
@@ -33,8 +34,6 @@ func createQuestion(c echo.Context) error {
 		return c.HTML(http.StatusBadRequest, err.Error())
 	}
 
-	// var answerStats []AnswerStats
-
 	data := struct {
 		AnswersData    []AnswerStats
 		ScoreboardData []UserScore
@@ -42,8 +41,9 @@ func createQuestion(c echo.Context) error {
 		AnswersData:    []AnswerStats{},
 		ScoreboardData: []UserScore{},
 	}
+
+	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/games/%v/results", gameId))
 	return controllers.RenderTemplate(c, "results", data)
-	// return c.HTML(http.StatusOK, `<div id="results"> Hooray</div> <style>#results {font-size: 50px;} </style>`)
 }
 
 func getTodaysQuestion(c echo.Context) error {

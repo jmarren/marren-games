@@ -117,6 +117,8 @@
     {{ template "friends" .Data}}
     {{ else if eq .PartialTemplate "upload-profile-photo"}}
     {{ template "upload-profile-photo" .Data}}
+    {{ else if eq .PartialTemplate "invite-friends"}}
+    {{ template "invite-friends" .Data}}
     {{ else }}
     {{ template "index"}}
     {{ end }}

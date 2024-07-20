@@ -26,7 +26,6 @@ func createAnswer(c echo.Context) error {
 	// Get necessary data to insert new answer
 	userId := auth.GetFromClaims(auth.UserId, c)
 	gameId := c.Param("game-id")
-	questionId := c.Param("question-id")
 	answer := c.FormValue("answer")
 
 	var optionChosen int
@@ -50,7 +49,6 @@ func createAnswer(c echo.Context) error {
 	optionChosenArg := sql.Named("option_chosen", optionChosen)
 	myUserIdArg := sql.Named("my_user_id", userId)
 	gameIdArg := sql.Named("game_id", gameId)
-	questionIdArg := sql.Named("question_id", questionId)
 
 	// create context for query
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
@@ -66,25 +64,32 @@ func createAnswer(c echo.Context) error {
 
 	defer tx.Rollback()
 
-	// query := `
-	//   SELECT id
-	//   FROM questions
-	//   WHERE game_id = :game_id
-	//   AND DATE(date_created) = DATE('now');
-	// `
-	//
-
-	// query to insert answer
+	// Get todays question id
 	query := `
-  WITH question_id AS (
     SELECT id
     FROM questions
     WHERE game_id = :game_id
     AND DATE(date_created) = DATE('now')
-  )
+  `
+
+	var questionIdRaw sql.NullInt64
+
+	row := tx.QueryRowContext(ctx, query, gameIdArg)
+
+	err = row.Scan(&questionIdRaw)
+	if err != nil {
+		return fmt.Errorf("error scanning questionId into var")
+	}
+
+	// convert todays question id to sql.NamedArg
+	questionId := questionIdRaw.Int64
+
+	questionIdArg := sql.Named("question_id", questionId)
+
+	// query to insert answer
+	query = `
   INSERT INTO answers (game_id, question_id, option_chosen, answerer_id)
-  SELECT :game_id, id, :option_chosen, :my_user_id
-  FROM question_id;
+  SELECT :game_id, :question_id, :option_chosen, :my_user_id
   `
 
 	// perform query to insert answer

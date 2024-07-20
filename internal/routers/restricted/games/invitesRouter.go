@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/jmarren/marren-games/internal/auth"
+	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
@@ -14,8 +15,8 @@ import (
 func InvitesRouter(r *echo.Group) {
 	// TODO
 	// r.GET("", getGameInvitesByUserId)
-	r.POST(":user-id", invitePlayerToGame)
-	r.DELETE(":user-id", deleteGameInvite)
+	r.POST("/:user-id", invitePlayerToGame)
+	r.DELETE("/:user-id", deleteGameInvite)
 }
 
 // TODO
@@ -23,25 +24,38 @@ func InvitesRouter(r *echo.Group) {
 // }
 
 func invitePlayerToGame(c echo.Context) error {
-	newPlayerId := c.QueryParam("user-id")
-	gameId := c.QueryParam("game-id")
+	newPlayerId := c.Param("user-id")
+	gameId := c.Param("game-id")
+	newPlayerIdInt, err := strconv.Atoi(newPlayerId)
+	if err != nil {
+		return fmt.Errorf("user id query param not convertible to int: %v ", err)
+	}
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		return fmt.Errorf("game-id param not convertible to int: %v ", err)
+	}
 
 	newPlayerArg := sql.Named("new_player_id", newPlayerId)
-	gameIdArg := sql.Named("game_id", gameId)
+	gameIdArg := sql.Named("game_id", gameIdInt)
 
 	query := `
       INSERT INTO user_game_invites (user_id, game_id)
   VALUES(:new_player_id, :game_id);
   `
-	_, err := db.Sqlite.Exec(query, newPlayerArg, gameIdArg)
+	_, err = db.Sqlite.Exec(query, newPlayerArg, gameIdArg)
 	if err != nil {
 		fmt.Println("error adding user to user_game_invites")
 		return err
 	}
 
-	return c.HTML(http.StatusOK, `<button hx-delete="/auth/games/game/invites?user-id=`+newPlayerId+`&game-id=`+gameId+`" hx-swap="outerHTML">
-       Remove
-      </button>`)
+	data := struct {
+		GameId int
+		UserId int
+	}{
+		GameId: gameIdInt,
+		UserId: newPlayerIdInt,
+	}
+	return controllers.RenderTemplate(c, "delete-invite-button", data)
 }
 
 func deleteGameInvite(c echo.Context) error {
@@ -57,15 +71,23 @@ func deleteGameInvite(c echo.Context) error {
 		playerId = auth.GetFromClaims(auth.UserId, c).(int)
 	} else {
 		var err error
-		playerId, err = strconv.Atoi(c.QueryParam("user-id"))
+		playerId, err = strconv.Atoi(c.Param("user-id"))
 		if err != nil {
 			fmt.Println("playerId not convertible to int")
 			return err
 		}
 	}
 
-	gameId := c.QueryParam("game-id")
+	gameId := c.Param("game-id")
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		return fmt.Errorf("game-id param not convertible to int %v", err)
+	}
 
+	// playerIdInt, err := strconv.Atoi(playerId)
+	// if err != nil {
+	// 	fmt.Errorf("game-id param not convertible to int")
+	// }
 	playerIdArg := sql.Named("player_id", playerId)
 	gameIdArg := sql.Named("game_id", gameId)
 
@@ -73,7 +95,7 @@ func deleteGameInvite(c echo.Context) error {
       DELETE FROM user_game_invites
       WHERE user_id = :player_id AND game_id = :game_id;
   `
-	_, err := db.Sqlite.Exec(query, playerIdArg, gameIdArg)
+	_, err = db.Sqlite.Exec(query, playerIdArg, gameIdArg)
 	if err != nil {
 		fmt.Println("error removing user from user_game_invites")
 		return err
@@ -83,9 +105,14 @@ func deleteGameInvite(c echo.Context) error {
 		return c.HTML(http.StatusOK, `declined`)
 	}
 
-	playerIdStr := strconv.Itoa(playerId)
+	// playerIdStr := strconv.Itoa(playerId)
 
-	return c.HTML(http.StatusOK, `<button hx-post="/auth/games/game/invites?user-id=`+playerIdStr+`&game-id=`+gameId+`" hx-swap="outerHTML">
-       + Invite
-      </button>`)
+	data := struct {
+		GameId int
+		UserId int
+	}{
+		GameId: gameIdInt,
+		UserId: playerId,
+	}
+	return controllers.RenderTemplate(c, "invite-friend-button", data)
 }

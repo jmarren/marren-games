@@ -81,12 +81,16 @@
     text-align: center;
     border: 2px solid white;
   }
+
+  #check-back {
+    font-family: Cheto;
+  }
 </style>
 
 <div id="subcontainer">
 
   {{ if not .AnswersData }}
-  <div>Check back later for responses!</div>
+  <div id="check-back">Check back later for responses!</div>
   {{ else }}
   <div id="vote-counts">
 

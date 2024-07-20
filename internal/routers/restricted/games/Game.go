@@ -16,6 +16,8 @@ import (
 
 func GameRouter(r *echo.Group) {
 	r.GET("", getGameById)
+	r.GET("/create-question", getCreateQuestionUI)
+	r.GET("/invite-friends", getInviteFriendsUI)
 	// TODO
 	// r.PUT("", updateGame)
 	// r.DELETE("", deleteGame)
@@ -67,22 +69,11 @@ func getGameById(c echo.Context) error {
         ) > 0 THEN 1
       ELSE 0
       END)
-    AS todays_question_created,
-    (
-      CASE WHEN (
-        SELECT COUNT(*)
-        FROM answers
-        WHERE user_id = :my_user_id
-          AND game_id = :game_id
-      ) > 0 THEN 1
-      ELSE 0
-      END) 
-    AS answered_todays_question
+    AS todays_question_created
     FROM current_askers;
   `
 	var isAskerInt sql.NullInt64
 	var todaysQuestionCreatedInt sql.NullInt64
-	var answeredTodaysQuestionInt sql.NullInt64
 
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
 
@@ -94,33 +85,27 @@ func getGameById(c echo.Context) error {
 	}
 	row := tx.QueryRowContext(ctx, query, gameIdArg, myUserIdArg)
 
-	err = row.Scan(&isAskerInt, &todaysQuestionCreatedInt, &answeredTodaysQuestionInt)
+	err = row.Scan(&isAskerInt, &todaysQuestionCreatedInt)
 	if err != nil {
 		fmt.Println("error while scanning into vars")
 		return err
 	}
 
+	// convert variables to booleans
 	var isAsker bool
-	var answeredTodaysQuestion bool
 	var todaysQuestionCreated bool
 
-	// convert variables to booleans
 	if isAskerInt.Int64 == 1 {
 		isAsker = true
 	} else {
 		isAsker = false
 	}
-	if answeredTodaysQuestionInt.Int64 == 1 {
-		answeredTodaysQuestion = true
-	} else {
-		answeredTodaysQuestion = false
-	}
+
 	if todaysQuestionCreatedInt.Int64 == 1 {
 		todaysQuestionCreated = true
 	} else {
 		todaysQuestionCreated = false
 	}
-
 	// if the user is todays asker
 	if isAsker {
 		tx.Commit()
@@ -140,6 +125,46 @@ func getGameById(c echo.Context) error {
 	// if todays question hasn't been created yet
 	if !todaysQuestionCreated {
 		return c.HTML(http.StatusOK, "<div>Still waiting for todays question! Check back later. </div>")
+	}
+	// Get todays question id
+	questionId, err := GetTodaysQuestionId(gameIdInt)
+	if err != nil {
+		return err
+	}
+	questionIdArg := sql.Named("question_id", questionId)
+
+	// determine if user has answered todays question
+
+	query = `
+    SELECT (
+      CASE
+      WHEN (
+        SELECT COUNT(*)
+        FROM answers
+        WHERE answerer_id = :my_user_id
+            AND game_id = :game_id
+            AND question_id = :question_id
+      ) > 0 THEN 1
+      ELSE 0
+      END)
+    FROM answers;
+    `
+	row = tx.QueryRowContext(ctx, query, myUserIdArg, gameIdArg, questionIdArg)
+
+	var answeredTodaysQuestionInt sql.NullInt64
+
+	err = row.Scan(&answeredTodaysQuestionInt)
+	if err != nil {
+		fmt.Println("error while querying to determine if user has answered todays question")
+		return err
+	}
+
+	var answeredTodaysQuestion bool
+
+	if answeredTodaysQuestionInt.Int64 == 1 {
+		answeredTodaysQuestion = true
+	} else {
+		answeredTodaysQuestion = false
 	}
 
 	// if they already answered todays question
@@ -209,4 +234,32 @@ func getGameById(c echo.Context) error {
 
 	tx.Commit()
 	return controllers.RenderTemplate(c, "gameplay", data)
+}
+
+func getCreateQuestionUI(c echo.Context) error {
+	gameId, err := strconv.Atoi(c.Param("game-id"))
+	if err != nil {
+		return fmt.Errorf("game-id param not convertible to int %v", err)
+	}
+
+	data := struct {
+		GameId int
+	}{
+		GameId: gameId,
+	}
+	return controllers.RenderTemplate(c, "create-question", data)
+}
+
+func getInviteFriendsUI(c echo.Context) error {
+	gameId, err := strconv.Atoi(c.Param("game-id"))
+	if err != nil {
+		return fmt.Errorf("game-id param not convertible to int %v", err)
+	}
+
+	data := struct {
+		GameId int
+	}{
+		GameId: gameId,
+	}
+	return controllers.RenderTemplate(c, "invite-friends", data)
 }

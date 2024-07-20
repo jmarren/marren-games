@@ -18,7 +18,6 @@ func GamesRouter(r *echo.Group) {
 	r.GET("/create", getCreateGameUI)
 
 	gameGroup := r.Group("/:game-id")
-
 	GameRouter(gameGroup)
 }
 
@@ -180,6 +179,8 @@ func createGame(c echo.Context) error {
 		fmt.Println("error adding creator to user_game_membership")
 		return errors.New("internal server error")
 	}
+
+	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/games/%v/invite-friends", gameId))
 
 	data := struct {
 		GameId int64

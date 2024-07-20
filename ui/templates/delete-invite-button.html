@@ -1,3 +1,5 @@
-<button hx-delete="/auth/games/game/invites?user-id={{  .NewPlayerId }}&game-id={{ .GameId }}" hx-swap="outerHTML">
+{{ define "delete-invite-button"}}
+<button hx-delete="/auth/games/{{ .GameId }}/invites/{{  .UserId }}" hx-swap="outerHTML">
   Remove
 </button>
+{{ end }}

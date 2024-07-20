@@ -1,0 +1,5 @@
+{{ define "invite-friend-button"}}
+<button hx-post="/auth/games/{{ .GameId }}/invites/{{ .UserId}}" hx-swap="outerHTML">
+  + Invite
+</button>
+{{ end }}

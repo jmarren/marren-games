@@ -111,12 +111,12 @@ func getFriendsPage(c echo.Context) error {
 
 func searchUsers(c echo.Context) error {
 	searchParam := c.FormValue("search")
-	fmt.Println("()()()() \nquery received for: ", searchParam)
-	fmt.Println("()()()() from url: ", c.Request().Header.Get("Hx-Current-Url"))
-	fmt.Println("()()()() game-id: ", c.QueryParam("game-id"))
+	// fmt.Println("()()()() \nquery received for: ", searchParam)
+	// fmt.Println("()()()() from url: ", c.Request().Header.Get("Hx-Current-Url"))
+	// fmt.Println("()()()() game-id: ", c.QueryParam("game-id"))
 
 	fromUrl := c.Request().Header.Get("Hx-Current-Url")
-	shortenedUrl := fromUrl[len(fromUrl)-10:]
+	shortenedUrl := fromUrl[len(fromUrl)-14:]
 
 	fmt.Println("()()()() shortededUrl: ", shortenedUrl)
 
@@ -169,7 +169,7 @@ func searchUsers(c echo.Context) error {
 		fmt.Println(user.Email)
 	}
 
-	if shortenedUrl != "games/game" {
+	if shortenedUrl != "invite-friends" {
 		type DataStruct struct {
 			Data []struct {
 				Username string

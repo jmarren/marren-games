@@ -77,8 +77,7 @@
     </h2>
     <form>
       <input type="text" name="game-name" placeholder="Marren family game" />
-      <button hx-post="/auth/games/game" hx-target="#page-content" hx-target-error="#create-game-error"
-        hx-push-url="true">
+      <button hx-post="/auth/games" hx-target="#page-content" hx-target-error="#create-game-error">
         Next
       </button>
     </form>
