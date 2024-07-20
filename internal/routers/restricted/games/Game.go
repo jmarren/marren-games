@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -126,7 +125,7 @@ func getGameById(c echo.Context) error {
 
 	// if todays question hasn't been created yet
 	if !todaysQuestionCreated {
-		return c.HTML(http.StatusOK, "<div>Still waiting for todays question! Check back later. </div>")
+		return controllers.RenderTemplate(c, "no-question-yet", nil)
 	}
 	// Get todays question id
 	questionId, err := GetTodaysQuestionId(gameIdInt)

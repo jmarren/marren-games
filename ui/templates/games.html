@@ -24,9 +24,7 @@
     }
 
     #page-content {
-      padding-top: 25px;
-      padding-left: 25px;
-      padding-right: 25px;
+      padding: 25px;
       display: block;
     }
 
@@ -195,12 +193,12 @@
         From: {{ .CreatorName }}
       </div>
       <div class="buttons-container">
-        <button class="accept-button" hx-post="/auth/games/game/players?game-id={{ .GameId }}"
+        <button class="accept-button" hx-post="/auth/games/{{ .GameId }}/players"
           hx-target="closest .buttons-container">
           Join
         </button>
 
-        <button class="decline-button" hx-delete="/auth/games/game/invites?game-id={{ .GameId }}"
+        <button class="decline-button" hx-delete="/auth/games/{{ .GameId }}/invites"
           hx-target="closest .buttons-container">
           Decline
         </button>

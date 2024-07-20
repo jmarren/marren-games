@@ -1,10 +1,12 @@
 package games
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -147,40 +149,39 @@ func createGame(c echo.Context) error {
 	myUserIdArg := sql.Named("my_user_id", userId)
 	gameNameArg := sql.Named("my_game_name", gameName)
 
-	fmt.Println("userId: ", userId)
-	fmt.Println("gameName: ", gameName)
-
 	if gameName == "" {
 		fmt.Println(" NAME NOT PROVIDED")
 		return c.HTML(http.StatusBadRequest, "please provide a name")
 	}
-	result, err := db.Sqlite.Exec(`
+
+	// create context for query
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	// begin the Tx
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		cancel()
+		return c.String(http.StatusInternalServerError, "error")
+	}
+
+	defer tx.Rollback()
+
+	// Insert new game into games table
+	result, err := tx.ExecContext(ctx, `
     INSERT INTO games (creator_id, name) VALUES (:my_user_id, :my_game_name);
     `, myUserIdArg, gameNameArg)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		tx.Rollback()
+		return fmt.Errorf("error: Games.go: inserting into games, %v", err)
 	}
-	fmt.Println("result: ", result)
 	gameId, err := result.LastInsertId()
 	if err != nil {
 		fmt.Println(err)
+		tx.Rollback()
 		return errors.New("an error occurred")
 	}
-
-	query := `
-    INSERT INTO user_game_membership (user_id, game_id)
-    VALUES (:my_user_id, :game_id);
-  `
-	gameIdArg := sql.Named("game_id", gameId)
-
-	_, err = db.Sqlite.Exec(query, myUserIdArg, gameIdArg)
-	if err != nil {
-		fmt.Println("error adding creator to user_game_membership")
-		return errors.New("internal server error")
-	}
-
-	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/games/%v/invite-friends", gameId))
 
 	data := struct {
 		GameId int64
@@ -188,5 +189,7 @@ func createGame(c echo.Context) error {
 		GameId: gameId,
 	}
 
+	tx.Commit()
+	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/games/%v/invite-friends", gameId))
 	return controllers.RenderTemplate(c, "invite-friends", data)
 }

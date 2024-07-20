@@ -103,6 +103,7 @@ func InitTemplates() {
 		"index-after-logout.html",
 		"spin-and-shrink.html",
 		"fade-out.html",
+		"no-question-yet.html",
 	}
 
 	// Create a base layout template

@@ -51,7 +51,7 @@ func createAnswer(c echo.Context) error {
 	gameIdArg := sql.Named("game_id", gameId)
 
 	// create context for query
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
 
 	defer cancel()
 
@@ -69,7 +69,7 @@ func createAnswer(c echo.Context) error {
     SELECT id
     FROM questions
     WHERE game_id = :game_id
-    AND DATE(date_created) = DATE('now')
+    AND DATE(date_created) = DATE('now');
   `
 
 	var questionIdRaw sql.NullInt64
@@ -93,11 +93,10 @@ func createAnswer(c echo.Context) error {
   `
 
 	// perform query to insert answer
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
 	if err != nil {
-		cancel()
 		tx.Rollback()
-		fmt.Println("error inserting answer into db: ", err)
+		fmt.Println("error: resultsRouter, createAnswer(), error inserting answer into db: ", err)
 		return err
 	}
 
@@ -115,7 +114,7 @@ func createAnswer(c echo.Context) error {
     SET score = (score + 1)
     WHERE scores.user_id IN users_to_increment;
   `
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
 	if err != nil {
 		cancel()
 		tx.Rollback()
@@ -135,13 +134,15 @@ func createAnswer(c echo.Context) error {
     )
     WHERE scores.user_id = :my_user_id;
   `
-	_, err = db.Sqlite.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
 	if err != nil {
 		cancel()
 		tx.Rollback()
-		fmt.Println("error inserting answer into db: ", err)
+		fmt.Println("error: resultsRouter, createAnswer: error inserting answer into db: ", err)
 		return err
 	}
+
+	tx.Commit()
 
 	return GetGameResults(c)
 }
@@ -280,7 +281,6 @@ func GetGameResults(c echo.Context) error {
 		err := rows.Scan(&scoreRaw, &usernameRaw)
 		if err != nil {
 			fmt.Println("error scanning answer scoreboard data into vars: ", err)
-			cancel()
 			tx.Rollback()
 			return err
 		}

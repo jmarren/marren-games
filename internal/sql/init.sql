@@ -91,6 +91,30 @@ CREATE TABLE IF NOT EXISTS scores (
   PRIMARY KEY (user_id, game_id)
 );
 
+CREATE TRIGGER IF NOT EXISTS new_game_insert
+AFTER INSERT ON games
+BEGIN
+  -- add creator as a member of the game
+  INSERT INTO user_game_membership (user_id, game_id)
+  VALUES (NEW.creator_id, NEW.id);
+
+  INSERT INTO current_askers (user_id, game_id)
+  VALUES (NEW.creator_id, NEW.id);
+END;
+
+
+CREATE TRIGGER IF NOT EXISTS  insert_new_member_into_scores
+AFTER INSERT ON user_game_membership
+BEGIN
+  -- add user to scores with a score of 0 (default)
+  INSERT INTO scores (user_id, game_id)
+  VALUES (NEW.user_id, NEW.game_id);
+END;
+
+
+
+
+
 --CREATE TRIGGER update_user_scores (
  -- AFTER INSERT ON answers
  -- BEGIN

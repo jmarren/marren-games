@@ -113,6 +113,8 @@
       {{ template "invite-friends" .Data}}
       {{ else if eq .PartialTemplate "results"}}
       {{ template "results" .Data }}
+      {{ else if eq .PartialTemplate "no-question-yet"}}
+      {{ template "no-question-yet" .Data }}
       {{ else }}
       {{ template "index"}}
       {{ end }}

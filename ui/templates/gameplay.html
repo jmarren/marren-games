@@ -1,38 +1,56 @@
 {{ define "gameplay" }}
 <script src="/static/js/button-component.js"> </script>
+<div id="page-content">
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
 
-<style>
-  * {
-    box-sizing: border-box;
-  }
+      100% {
+        translate: 0 0;
+      }
+    }
 
-  #container {
-    display: block;
-    padding: 25px;
-    font-family: Cheto;
-  }
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
 
-  h1 {
-    display: flex;
-    justify-content: space-between;
-    font-size: 35px;
-  }
-</style>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<div id="container">
-  <h1>
-    <span>
-      {{ .GameData.GameName}}
-    </span>
-    <span>
-      July 2, 2024
-    </span>
-  </h1>
-  {{ if eq .ShowResults 0 }}
-  {{ template "question" .GameData }}
-  {{ else }}
-  {{ template "results" . }}
-  {{ end }}
+    #container {
+      display: block;
+      padding: 25px;
+      font-family: Cheto;
+    }
+
+    h1 {
+      display: flex;
+      justify-content: space-between;
+      font-size: 35px;
+    }
+  </style>
+
+  <div id="container">
+    <h1>
+      <span>
+        {{ .GameData.GameName}}
+      </span>
+      <span>
+        July 2, 2024
+      </span>
+    </h1>
+    {{ if eq .ShowResults 0 }}
+    {{ template "question" .GameData }}
+    {{ else }}
+    {{ template "results" . }}
+    {{ end }}
+  </div>
 </div>
-
 {{ end }}

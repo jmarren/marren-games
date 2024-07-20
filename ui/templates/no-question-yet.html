@@ -1,4 +1,4 @@
-{{ define "invite-friends" }}
+{{ define "no-question-yet" }}
 
 <div id="page-content">
   <style id="transition-styles">
@@ -18,42 +18,27 @@
       animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
     }
   </style>
-  <style>
+  <style id="static-styles">
     #page-content {
+      width: 100%;
       display: flex;
-      padding: 40px;
+      justify-content: center;
       flex-direction: column;
-      justify-content: start;
-      gap: 15px;
+      align-items: center;
+      padding-top: 20px;
     }
 
-    h1 {
+    #no-question {
       font-family: Cheto;
-    }
-
-    #next-button {
-      align-self: end;
-    }
-
-    #next-button:hover {
-      background-color: seagreen;
-    }
-
-    #next-button:active {
-      transform: scale(0.95);
+      font-size: 30px;
     }
   </style>
-
-
-  <h1>
-    Invite Your Friends
+  <h1 id="no-question">
+    Today's Asker hasn't posted a question yet...
   </h1>
 
-  {{ template "search-bar" . }}
 
-  <button id="next-button" hx-get="/auth/games/{{ .GameId }}/create-question" hx-target="#page-content"
-    hx-push-url="true">
-    Next
-  </button>
 </div>
+
+
 {{ end }}
