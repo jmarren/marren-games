@@ -22,7 +22,7 @@ func ProfileRouter(r *echo.Group) {
 			Expires:  time.Now().Add(-1 * time.Hour),
 		}
 		c.SetCookie(cookie)
-		return controllers.RenderTemplate(c, "index", nil)
+		return controllers.RenderTemplate(c, "index-after-logout", nil)
 	})
 
 	r.POST("/profile-photo", uploadProfilePhoto)

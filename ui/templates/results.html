@@ -1,158 +1,179 @@
 {{ define "results" }}
 <script src="/static/js/button-component.js"> </script>
 
-<style>
-  @keyframes slide-in-from-left {
-    0% {
-      translate: -100vw 0;
+<div id="page-content">
+
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
     }
 
-    100% {
-      translate: 0 0;
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
     }
-  }
+  </style>
 
-  #subcontainer {
-    padding-bottom: 15px;
-    padding-right: 20px;
-    display: flex;
-    justify-content: space-around;
-    box-shadow: 5px 5px black;
-    border: 2.5px solid black;
-    justify-content: center;
-    padding-top: 20px;
-    padding-left: 20px;
-    background-color: orangered;
-    border-radius: 10px;
-    animation-name: slide-in-from-left;
-    animation-duration: 1s;
-    animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
-    gap: 20px;
-  }
+  <style>
+    #page-content {
+      padding-top: 25px;
+      padding-left: 25px;
+      padding-right: 25px;
+      display: block;
+    }
 
-  #vote-counts {
-    color: seagreen;
-    font-size: 25px;
-    font-family: Aruma;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 50%;
-  }
 
-  .item {
-    display: flex;
-    justify-content: space-between;
-    background-color: orange;
-    border-radius: 10px;
-    padding: 15px;
-    border: 2.5px solid black;
-  }
 
-  #results-right {
-    flex-grow: 1;
-    flex-direction: column;
-    display: flex;
-    border: 2px solid black;
-    padding: 10px;
-    background-color: antiquewhite;
-    border-radius: 10px;
-  }
+    #subcontainer {
+      padding-bottom: 15px;
+      padding-right: 20px;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 5px 5px black;
+      border: 2.5px solid black;
+      justify-content: center;
+      padding-top: 20px;
+      padding-left: 20px;
+      background-color: orangered;
+      border-radius: 10px;
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+      gap: 20px;
+    }
 
-  #point-change {
-    display: block;
-    text-align: center;
-    font-size: 50px;
-  }
+    #vote-counts {
+      color: seagreen;
+      font-size: 25px;
+      font-family: Aruma;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 50%;
+    }
 
-  #rankings {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    font-size: 20px;
-  }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      background-color: orange;
+      border-radius: 10px;
+      padding: 15px;
+      border: 2.5px solid black;
+    }
 
-  .ranking {
-    padding: 10px;
-    background-color: aqua;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    text-align: center;
-    border: 2px solid white;
-  }
+    #results-right {
+      flex-grow: 1;
+      flex-direction: column;
+      display: flex;
+      border: 2px solid black;
+      padding: 10px;
+      background-color: antiquewhite;
+      border-radius: 10px;
+      font-family: Aruma;
+    }
 
-  #check-back {
-    font-family: Cheto;
-  }
-</style>
+    #point-change {
 
-<div id="subcontainer">
+      display: block;
+      text-align: center;
+      font-size: 50px;
+    }
 
-  {{ if not .AnswersData }}
-  <div id="check-back">Check back later for responses!</div>
-  {{ else }}
-  <div id="vote-counts">
+    #rankings {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 20px;
+    }
 
-    {{ range .AnswersData }}
-    <div class="item">
-      <div class="answer">
-        {{ .AnswerText }}
+    .ranking {
+      padding: 10px;
+      background-color: aqua;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      text-align: center;
+      border: 2px solid white;
+    }
+
+    #check-back {
+      font-family: Cheto;
+    }
+  </style>
+
+  <div id="subcontainer">
+
+    {{ if not .AnswersData }}
+    <div id="check-back">Check back later for responses!</div>
+    {{ else }}
+    <div id="vote-counts">
+
+      {{ range .AnswersData }}
+      <div class="item">
+        <div class="answer">
+          {{ .AnswerText }}
+        </div>
+        <div class="votes">
+          {{ .Votes }}
+        </div>
       </div>
-      <div class="votes">
-        {{ .Votes }}
-      </div>
+      {{ end }}
+
+
+
     </div>
     {{ end }}
 
 
+    <div id="results-right">
+      <span id="point-change">
+        +84
+      </span>
+      <div id="rankings">
 
-  </div>
-  {{ end }}
+        {{ range .ScoreboardData}}
+        <div class="ranking">
+          <span class="ranking-player">
+            {{ .Username }}
+          </span>
+          <span class="ranking-total">
+            {{ .Score }}
+          </span>
+        </div>
+        {{ end }}
 
+        <!-- <div class="ranking"> -->
+        <!--   <span class="ranking-player"> -->
+        <!--     2. Megan -->
+        <!--   </span> -->
+        <!--   <span class="ranking-total"> -->
+        <!--     347 -->
+        <!--   </span> -->
+        <!-- </div> -->
+        <!---->
+        <!-- <div class="ranking"> -->
+        <!--   <span class="ranking-player"> -->
+        <!--     3. Kevin -->
+        <!--   </span> -->
+        <!--   <span class="ranking-total"> -->
+        <!--     204 -->
+        <!--   </span> -->
+        <!-- </div> -->
 
-  <div id="results-right">
-    <span id="point-change">
-      +84
-    </span>
-    <div id="rankings">
-
-      {{ range .ScoreboardData}}
-      <div class="ranking">
-        <span class="ranking-player">
-          {{ .Username }}
-        </span>
-        <span class="ranking-total">
-          {{ .Score }}
-        </span>
       </div>
-      {{ end }}
-
-      <!-- <div class="ranking"> -->
-      <!--   <span class="ranking-player"> -->
-      <!--     2. Megan -->
-      <!--   </span> -->
-      <!--   <span class="ranking-total"> -->
-      <!--     347 -->
-      <!--   </span> -->
-      <!-- </div> -->
-      <!---->
-      <!-- <div class="ranking"> -->
-      <!--   <span class="ranking-player"> -->
-      <!--     3. Kevin -->
-      <!--   </span> -->
-      <!--   <span class="ranking-total"> -->
-      <!--     204 -->
-      <!--   </span> -->
-      <!-- </div> -->
 
     </div>
 
+
   </div>
-
-
 </div>
-
 </div>
 
 {{ end }}

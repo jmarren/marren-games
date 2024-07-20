@@ -2,6 +2,7 @@ package transitions
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/labstack/echo/v4"
@@ -24,6 +25,21 @@ func TransitionRouter(r *echo.Group) {
 		data := TemplateData{
 			Data: dataStruct,
 		}
-		return controllers.RenderTemplate(c, "slide-out-to-right", data)
+
+		num := rangeIn(1, 4)
+
+		fmt.Println("Random num:", num)
+
+		if num == 1 {
+			return controllers.RenderTemplate(c, "slide-out-to-right", data)
+		}
+		if num == 2 {
+			return controllers.RenderTemplate(c, "fade-out", data)
+		}
+		return controllers.RenderTemplate(c, "spin-and-shrink", data)
 	})
+}
+
+func rangeIn(low, hi int) int {
+	return low + rand.Intn(hi-low)
 }

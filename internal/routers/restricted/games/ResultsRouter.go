@@ -169,6 +169,8 @@ func GetGameResults(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "error")
 	}
 
+	fmt.Printf("\n \033[31m gameId: %v  \033[0m \n", gameId)
+
 	defer tx.Rollback()
 
 	query := `

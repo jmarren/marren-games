@@ -5,9 +5,10 @@
 
 </style>
 
-<tr hx-get="/auth/friends/profiles/{{ .UserId }}" hx-target="#page-content" hx-trigger="click">
+<tr>
   <th>
-    <div class="user-container">
+    <div class="user-container" hx-get="/auth/friends/profiles/{{ .UserId }}" hx-target="#page-content"
+      hx-trigger="click">
 
       <div class="photo-container">
         <img class="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">

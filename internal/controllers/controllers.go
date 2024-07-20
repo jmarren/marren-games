@@ -28,6 +28,7 @@ var TmplRegistry *TemplateRegistry
 
 type PageData struct {
 	Title           string
+	Username        string
 	PartialTemplate string
 	Data            interface{}
 }
@@ -98,6 +99,10 @@ func InitTemplates() {
 		"invite-friends.html",
 		"delete-invite-button.html",
 		"invite-friend-button.html",
+		"profile-after-login.html",
+		"index-after-logout.html",
+		"spin-and-shrink.html",
+		"fade-out.html",
 	}
 
 	// Create a base layout template
@@ -136,7 +141,15 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 	}
 	// Full Page Reload: Render the base layout with the partial content
 	fmt.Println("data: ", data)
+
+	// get usename
+	username, ok := auth.GetFromClaims(auth.Username, c).(string)
+	if !ok {
+		username = ""
+	}
+
 	pageData := PageData{
+		Username:        username,
 		Title:           "Marren Games",
 		PartialTemplate: partialTemplate,
 		Data:            data,
@@ -217,7 +230,8 @@ func LoginHandler(c echo.Context) error {
 		Username: username,
 	}
 	c.SetCookie(cookie)
-	return RenderTemplate(c, "profile", data)
+	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
+	return RenderTemplate(c, "profile-after-login", data)
 }
 
 func LogoutHandler(c echo.Context) error {

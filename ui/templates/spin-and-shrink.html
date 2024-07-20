@@ -1,0 +1,26 @@
+{{ define "spin-and-shrink"}}
+
+<div id="temp-{{ .Data.TargetPage}}" hx-trigger="htmx:afterSettle delay:1s" hx-get="/auth/{{ .Data.TargetPage }}"
+  hx-target="#page-container" hx-swap="innerHTML">
+</div>
+<style>
+  @keyframes spin-and-shrink {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+
+    100% {
+      transform: scale(0) rotate(720deg);
+    }
+  }
+
+  #page-content {
+    animation-name: spin-and-shrink;
+    animation-fill-mode: forwards;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+  }
+</style>
+
+
+{{ end }}

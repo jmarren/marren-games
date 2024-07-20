@@ -14,7 +14,6 @@
       }
     }
 
-
     #page-content {
       animation-name: slide-in-from-left;
       animation-duration: 1s;
@@ -49,14 +48,14 @@
   </h1>
   <div id="buttons-container">
     <button-component>
-      <button slot="button" id="button-element" hx-get="/create-account" hx-push-url="true" hx-swap="innerhtml"
-        hx-target="main">
+      <button slot="button" id="button-element" hx-get="/create-account" hx-target="#page-content" hx-push-url="true"
+        hx-swap="outerhtml" hx-target="main">
         Create An Account
       </button>
     </button-component>
     <button-component>
-      <button slot="button" id="button-element" hx-get="/sign-in" hx-push-url="true" hx-swap="innerhtml"
-        hx-target="main">
+      <button slot="button" id="button-element" hx-get="/sign-in" hx-target="#page-content" hx-push-url="true"
+        hx-swap="outerhtml" hx-target="main">
         Sign In
       </button>
     </button-component>

@@ -210,6 +210,9 @@ func searchUsers(c echo.Context) error {
 }
 
 func getUserProfile(c echo.Context) error {
+	fmt.Println("hit")
+	fmt.Println("hit")
+	fmt.Println("hit")
 	otherUserId := sql.Named("other_user_id", c.Param("userId"))
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 

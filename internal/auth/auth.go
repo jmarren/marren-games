@@ -159,9 +159,14 @@ const (
 )
 
 func GetFromClaims(item ClaimsType, c echo.Context) interface{} {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtCustomClaims)
-
+	user, ok := c.Get("user").(*jwt.Token)
+	if !ok {
+		return nil
+	}
+	claims, ok := user.Claims.(*JwtCustomClaims)
+	if !ok {
+		return nil
+	}
 	switch item {
 	case Username:
 		return claims.Username

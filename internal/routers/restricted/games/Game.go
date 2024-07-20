@@ -106,6 +106,8 @@ func getGameById(c echo.Context) error {
 	} else {
 		todaysQuestionCreated = false
 	}
+	fmt.Printf("\n \033[31m isAsker: %v\ntodaysQuestionCreated: %v  \033[0m \n", isAsker, todaysQuestionCreated)
+
 	// if the user is todays asker
 	if isAsker {
 		tx.Commit()
@@ -134,7 +136,6 @@ func getGameById(c echo.Context) error {
 	questionIdArg := sql.Named("question_id", questionId)
 
 	// determine if user has answered todays question
-
 	query = `
     SELECT (
       CASE
@@ -151,8 +152,8 @@ func getGameById(c echo.Context) error {
     `
 	row = tx.QueryRowContext(ctx, query, myUserIdArg, gameIdArg, questionIdArg)
 
+	// scan into var
 	var answeredTodaysQuestionInt sql.NullInt64
-
 	err = row.Scan(&answeredTodaysQuestionInt)
 	if err != nil {
 		fmt.Println("error while querying to determine if user has answered todays question")
@@ -169,6 +170,9 @@ func getGameById(c echo.Context) error {
 
 	// if they already answered todays question
 	if answeredTodaysQuestion {
+
+		fmt.Printf("\n \033[31m answeredTodaysQuestion: %v  \033[0m \n", answeredTodaysQuestion)
+
 		tx.Commit()
 		return GetGameResults(c)
 	}

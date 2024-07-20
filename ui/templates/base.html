@@ -67,7 +67,9 @@
 
 <script src="/static/js/top-bar.js"></script>
 <script src="/static/js/side-bar.js"></script>
-<top-bar></top-bar>
+<top-bar>
+  <div slot="username" id="username-top-right">{{ .Username }}</div>
+</top-bar>
 
 <side-bar id="side-bar">
   <div slot="profile" hx-trigger="click" hx-get="/auth/transition/profile" hx-target="#transition-styles"
@@ -85,45 +87,37 @@
 </side-bar>
 
 
-<!-- <side-bar> -->
-<!--   <div slot="profile" hx-trigger="click" hx-get="/auth/transition/profile" hx-target="#transition-styles" -->
-<!--     hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item">Profile -->
-<!--   </div> -->
-<!--   <div slot="games" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles" -->
-<!--     hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item">Games -->
-<!--   </div> -->
-<!--   <div slot="friends" hx-trigger="click" hx-get="/auth/transition/friends" hx-target="#transition-styles" -->
-<!--     hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item"> -->
-<!--     Friends -->
-<!--   </div> -->
-<!-- </side-bar> -->
+
 <main>
   <div id="page-container">
-    {{ if eq .PartialTemplate "sign-in" }}
-    {{ template "sign-in" .Data}}
-    {{ else if eq .PartialTemplate "create-account" }}
-    {{ template "create-account" .Data }}
-    {{ else if eq .PartialTemplate "create-question"}}
-    {{ template "create-question" .Data}}
-    {{ else if eq .PartialTemplate "profile"}}
-    {{ template "profile" .Data}}
-    {{ else if eq .PartialTemplate "games"}}
-    {{ template "games" .Data}}
-    {{ else if eq .PartialTemplate "gameplay" }}
-    {{ template "gameplay" .Data}}
-    {{ else if eq .PartialTemplate "create-game" }}
-    {{ template "create-game" .Data}}
-    {{ else if eq .PartialTemplate "friends" }}
-    {{ template "friends" .Data}}
-    {{ else if eq .PartialTemplate "upload-profile-photo"}}
-    {{ template "upload-profile-photo" .Data}}
-    {{ else if eq .PartialTemplate "invite-friends"}}
-    {{ template "invite-friends" .Data}}
-    {{ else }}
-    {{ template "index"}}
-    {{ end }}
+    <div id="page-content">
+      {{ if eq .PartialTemplate "sign-in" }}
+      {{ template "sign-in" .Data}}
+      {{ else if eq .PartialTemplate "create-account" }}
+      {{ template "create-account" .Data }}
+      {{ else if eq .PartialTemplate "create-question"}}
+      {{ template "create-question" .Data}}
+      {{ else if eq .PartialTemplate "profile"}}
+      {{ template "profile" .Data}}
+      {{ else if eq .PartialTemplate "games" }}
+      {{ template "games" .Data}}
+      {{ else if eq .PartialTemplate "gameplay" }}
+      {{ template "gameplay" .Data}}
+      {{ else if eq .PartialTemplate "create-game" }}
+      {{ template "create-game" .Data}}
+      {{ else if eq .PartialTemplate "friends" }}
+      {{ template "friends" .Data}}
+      {{ else if eq .PartialTemplate "upload-profile-photo"}}
+      {{ template "upload-profile-photo" .Data}}
+      {{ else if eq .PartialTemplate "invite-friends"}}
+      {{ template "invite-friends" .Data}}
+      {{ else if eq .PartialTemplate "results"}}
+      {{ template "results" .Data }}
+      {{ else }}
+      {{ template "index"}}
+      {{ end }}
+    </div>
   </div>
-
 </main>
 <footer-component>
 </footer-component>

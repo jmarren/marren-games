@@ -15,7 +15,10 @@ class TopBar extends HTMLElement {
             <div id="logo-text">Ask Away</div>    
         </div>
         <div id="top-blue-bar"></div>
-        <div id="top-profile-name">John</div>
+        <div id="top-profile-name">
+        <slot name="username" >
+        </slot>
+</div>
     </div>
 `
 
@@ -80,8 +83,10 @@ class TopBar extends HTMLElement {
 
     template.style = style
 
+    htmx.process(template)
     shadow.appendChild(style)
     shadow.appendChild(template.content.cloneNode(true))
+
 
   }
   connectedCallback() {
