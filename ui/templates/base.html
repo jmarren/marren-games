@@ -115,6 +115,8 @@
       {{ template "results" .Data }}
       {{ else if eq .PartialTemplate "no-question-yet"}}
       {{ template "no-question-yet" .Data }}
+      {{ else if eq .PartialTemplate "other-user-profile" }}
+      {{ template "other-user-profile" .Data }}
       {{ else }}
       {{ template "index"}}
       {{ end }}

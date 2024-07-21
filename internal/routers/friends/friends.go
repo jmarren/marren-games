@@ -18,7 +18,7 @@ func FriendsRouter(r *echo.Group) {
 	r.GET("", getFriendsPage)
 
 	r.POST("/search", searchUsers)
-	r.GET("/profiles/:userId", getUserProfile)
+	r.GET("/profiles/:user-id", getUserProfile)
 	r.POST("/friend-requests/:user-id", createFriendRequest)
 	r.POST("/friendships/:user-id", createFriendship)
 	r.DELETE("/friend-requests/:user-id", deleteRequest)
@@ -31,7 +31,7 @@ func getFriendsPage(c echo.Context) error {
       SELECT fr.from_user_id, u.username
       FROM friend_requests fr
       JOIN users u ON fr.from_user_id = u.id
-  WHERE to_user_id = :my_user_id;
+      WHERE to_user_id = :my_user_id;
   `
 	rows, err := db.Sqlite.Query(query, myUserId)
 	if err != nil {
@@ -111,9 +111,6 @@ func getFriendsPage(c echo.Context) error {
 
 func searchUsers(c echo.Context) error {
 	searchParam := c.FormValue("search")
-	// fmt.Println("()()()() \nquery received for: ", searchParam)
-	// fmt.Println("()()()() from url: ", c.Request().Header.Get("Hx-Current-Url"))
-	// fmt.Println("()()()() game-id: ", c.QueryParam("game-id"))
 
 	fromUrl := c.Request().Header.Get("Hx-Current-Url")
 	shortenedUrl := fromUrl[len(fromUrl)-14:]
@@ -210,11 +207,16 @@ func searchUsers(c echo.Context) error {
 }
 
 func getUserProfile(c echo.Context) error {
-	fmt.Println("hit")
-	fmt.Println("hit")
-	fmt.Println("hit")
-	otherUserId := sql.Named("other_user_id", c.Param("userId"))
-	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
+	otherUserId, err := strconv.Atoi(c.Param("user-id"))
+	if err != nil {
+		return fmt.Errorf("friends, getUserProfile(): %v", err)
+	}
+	myUserId, ok := auth.GetFromClaims(auth.UserId, c).(int)
+	if !ok {
+		return fmt.Errorf("myUserId from claims failed assertion to int:  %v", nil)
+	}
+	otherUserIdArg := sql.Named("other_user_id", c.Param("user-id"))
+	myUserIdArg := sql.Named("my_user_id", myUserId)
 
 	query := `
     SELECT username, email,
@@ -232,58 +234,64 @@ func getUserProfile(c echo.Context) error {
       THEN 1
       ELSE 0
     END)
-    FROM friendships) AS is_friend
+    FROM friendships) AS is_friend,
+    ( 
+      SELECT COUNT(*)
+      FROM friendships
+      WHERE user_1_id = :other_user_id
+          OR user_2_id = :other_user_id
+    ) AS num_friends,
+    (
+      SELECT COUNT(*) 
+      FROM user_game_membership
+      WHERE user_id = :other_user_id
+    ) AS num_games,
+    (
+      SELECT SUM(score)
+      FROM scores
+      WHERE user_id = :other_user_id
+    ) as total_points
     FROM users
   WHERE id = :other_user_id;
   `
-	row := db.Sqlite.QueryRow(query, myUserId, otherUserId)
+	row := db.Sqlite.QueryRow(query, myUserIdArg, otherUserIdArg)
 
 	var (
-		username  string
-		email     string
-		requested sql.NullInt64
-		isFriend  sql.NullInt64
+		usernameRaw    sql.NullString
+		emailRaw       sql.NullString
+		requestedRaw   sql.NullInt64
+		isFriendRaw    sql.NullInt64
+		numFriendsRaw  sql.NullInt64
+		numGamesRaw    sql.NullInt64
+		totalPointsRaw sql.NullInt64
 	)
-	err := row.Scan(&username, &email, &requested, &isFriend)
+	err = row.Scan(&usernameRaw, &emailRaw, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw, &totalPointsRaw)
 	if err != nil {
 		fmt.Println("error querying db:", err)
 		panic(err)
 	}
 
-	otherUserIdInt, err := strconv.Atoi(otherUserId.Value.(string))
-	if err != nil {
-		fmt.Println("userId is not convertible to int", err)
-		panic(err)
-	}
-
-	var requestedVal int
-	var isFriendVal int
-	if requested.Int64 == 0 || !requested.Valid {
-		requestedVal = 0
-	} else {
-		requestedVal = 1
-	}
-
-	if isFriend.Int64 == 0 || !isFriend.Valid {
-		isFriendVal = 0
-	} else {
-		isFriendVal = 1
-	}
-
 	data := struct {
-		Username  string
-		UserId    int
-		Email     string
-		Requested int
-		IsFriend  int
+		Username    string
+		UserId      int
+		Email       string
+		Requested   int64
+		IsFriend    int64
+		NumFriends  int64
+		NumGames    int64
+		TotalPoints int64
 	}{
-		Username:  username,
-		UserId:    otherUserIdInt,
-		Email:     email,
-		Requested: requestedVal,
-		IsFriend:  isFriendVal,
+		Username:    usernameRaw.String,
+		UserId:      otherUserId,
+		Email:       emailRaw.String,
+		Requested:   requestedRaw.Int64,
+		IsFriend:    isFriendRaw.Int64,
+		NumFriends:  numFriendsRaw.Int64,
+		NumGames:    numGamesRaw.Int64,
+		TotalPoints: totalPointsRaw.Int64,
 	}
 
+	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/friends/profiles/%v", otherUserId))
 	return controllers.RenderTemplate(c, "other-user-profile", data)
 }
 

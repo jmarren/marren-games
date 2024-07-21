@@ -123,26 +123,18 @@
     <div id="user-info">
       <div class="info-item">
         <span>
-          Member since:
-        </span>
-        <span>
-          June 1st, 2024
-        </span>
-      </div>
-      <div class="info-item">
-        <span>
           Total Points:
         </span>
         <span>
-          56489
+          {{ .TotalPoints }}
         </span>
       </div>
       <div class="info-item">
         <span>
-          Streak:
+          Friends:
         </span>
         <span>
-          15 days
+          {{ .NumFriends }}
         </span>
       </div>
       <div class="info-item">
@@ -150,12 +142,8 @@
           Current Games:
         </span>
         <span>
-          4
+          {{ .NumGames }}
         </span>
-      </div>
-      <div class="info-item">
-        <span>Email:</span>
-        <span>jmarren99@gmail.com</span>
       </div>
 
 

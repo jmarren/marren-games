@@ -97,7 +97,8 @@ BEGIN
   -- add creator as a member of the game
   INSERT INTO user_game_membership (user_id, game_id)
   VALUES (NEW.creator_id, NEW.id);
-
+  
+  -- make the creator the current asker
   INSERT INTO current_askers (user_id, game_id)
   VALUES (NEW.creator_id, NEW.id);
 END;
@@ -111,18 +112,6 @@ BEGIN
   VALUES (NEW.user_id, NEW.game_id);
 END;
 
-
-
-
-
---CREATE TRIGGER update_user_scores (
- -- AFTER INSERT ON answers
- -- BEGIN
- --   UPDATE scores
- --   WHERE scores.user_id = NEW.user_id
- --     AND scores.game_id = NEW.game_id
- -- END;
- --)
 
 CREATE VIEW IF NOT EXISTS todays_question_id AS
     SELECT questions.id
