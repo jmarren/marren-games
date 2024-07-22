@@ -190,8 +190,6 @@ func CreateAccountSubmitHandler(c echo.Context) error {
 		}
 
 		fmt.Println(data)
-
-		// err := c.HTML(http.StatusConflict, `<div id="create-account-error" >`+registrationErr.Error()+`</div>`)
 		err := c.HTML(http.StatusConflict, registrationErr.Error())
 		if err != nil {
 			fmt.Println("error rendering err message: ", err)
@@ -225,14 +223,15 @@ func LoginHandler(c echo.Context) error {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 
-	data := struct {
-		Username string
-	}{
-		Username: username,
-	}
+	// data := struct {
+	// 	Username string
+	// }{
+	// 	Username: username,
+	// }
 	c.SetCookie(cookie)
-	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
-	return RenderTemplate(c, "profile-after-login", data)
+	// c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
+	// return RenderTemplate(c, "profile-after-login", data)
+	return c.Redirect(http.StatusFound, "/auth/profile")
 }
 
 func LogoutHandler(c echo.Context) error {

@@ -15,7 +15,7 @@ import (
 )
 
 func ProfileRouter(r *echo.Group) {
-	r.GET("", getMyProfilePage)
+	r.GET("", GetMyProfilePage)
 	r.POST("/logout", func(c echo.Context) error {
 		cookie := &http.Cookie{
 			Name:     "auth",
@@ -58,7 +58,7 @@ func uploadProfilePhoto(c echo.Context) error {
 
 	fmt.Println(data)
 
-	return controllers.RenderTemplate(c, "profile", data)
+	return GetMyProfilePage(c)
 }
 
 func getProfilePhotoViewer(c echo.Context) error {
@@ -72,7 +72,7 @@ func getProfilePhotoViewer(c echo.Context) error {
 	return controllers.RenderTemplate(c, "profile-photo-viewer", data)
 }
 
-func getMyProfilePage(c echo.Context) error {
+func GetMyProfilePage(c echo.Context) error {
 	fail := func(err error) error {
 		return fmt.Errorf("error @ ProfileRouter, getProfilePage(): %v ", err)
 	}
@@ -142,6 +142,11 @@ func getMyProfilePage(c echo.Context) error {
 		NumFriends:  numFriendsRaw.Int64,
 		NumGames:    numGamesRaw.Int64,
 		TotalPoints: totalPointsRaw.Int64,
+	}
+
+	currentUrl := c.Request().Header.Get("Hx-Current-Url")
+	if currentUrl[len(currentUrl)-7:] == "sign-in" {
+		return controllers.RenderTemplate(c, "profile-after-login", data)
 	}
 	return controllers.RenderTemplate(c, "profile", data)
 }
