@@ -1,3 +1,4 @@
+
 PRAGMA foreign_keys = ON;
 
 
@@ -127,7 +128,6 @@ CREATE VIEW IF NOT EXISTS todays_question AS
       ON users.id = questions.asker_id
     WHERE DATE(questions.date_created) = DATE('now')
     LIMIT  1;
-
 
 
 

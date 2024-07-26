@@ -148,19 +148,17 @@
 
 
 
-      <!-- <button> -->
       <div id="friendship-button-container">
         {{ if eq .Requested 0 }}
         {{ if eq .IsFriend 1}}
         {{ template "remove-friend-button" . }} {{ else }} {{ template "add-friend-button" . }} {{ end }} {{ else }}
         {{ template "request-sent-button" . }} {{ end }}
       </div>
-      <!-- </button> -->
 
     </div>
 
     <div id="photo-container">
-      <img id="profile-photo-image" src="https://ask-away.s3.us-west-1.amazonaws.com/{{ .Username}}">
+      <img id="profile-photo-image" src="https://ask-away-s3-bucket.s3.us-west-1.amazonaws.com/public/{{ .Username}}">
       <div id="crop-filter">
       </div>
 

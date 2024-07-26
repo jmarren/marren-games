@@ -34,10 +34,6 @@ func AddUser(username, hashedPassword, email string) (sql.Result, error) {
 	return results, nil
 }
 
-// func GetCurrentAnswer(username) error {
-// 	err := db.Exec(`SELECT answer_text FROM answers WHERE user = `)
-// }
-
 func GetUserPasswordHash(username string) (string, error) {
 	var hashedPassword string
 	err := Sqlite.QueryRow("SELECT password_hash FROM users WHERE username = ?", username).Scan(&hashedPassword)

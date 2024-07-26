@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
-	"github.com/jmarren/marren-games/internal/db"
 	"github.com/labstack/echo/v4"
 )
 
@@ -223,14 +222,7 @@ func LoginHandler(c echo.Context) error {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 
-	// data := struct {
-	// 	Username string
-	// }{
-	// 	Username: username,
-	// }
 	c.SetCookie(cookie)
-	// c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
-	// return RenderTemplate(c, "profile-after-login", data)
 	return c.Redirect(http.StatusFound, "/auth/profile")
 }
 
@@ -250,16 +242,5 @@ func ProfileHandler(c echo.Context) error {
 		Username:      username.(string),
 		GameCompleted: true,
 	}
-
-	id, err := db.GetUserIdFromUsername(username.(string))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("\n----------- UserId: ", id, "-------------")
-
-	fmt.Println("\n----------- Username: ", username, "---------------")
-	fmt.Println("")
-
 	return RenderTemplate(c, "profile", data)
 }

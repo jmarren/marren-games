@@ -13,10 +13,7 @@ import (
 	// "github.com/mattn/go-sqlite3"
 )
 
-var (
-	Sqlite      *sql.DB
-	WithQueries *WithQueriesMap
-)
+var Sqlite *sql.DB
 
 func InitDB() error {
 	var err error
@@ -26,7 +23,7 @@ func InitDB() error {
 	currentWorkingDir, _ := os.Getwd()
 
 	// Read the init script
-	initScript, err := os.ReadFile(currentWorkingDir + "/internal/sql/init.sql")
+	initScript, err := os.ReadFile(currentWorkingDir + "/sql/init.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read init script: %v", err)
 	}
@@ -77,13 +74,5 @@ func InitDB() error {
 	}
 
 	fmt.Println("Database initialized successfully")
-
-	// Get the WithQueriesMap
-	fmt.Println("Getting WithQueriesMap")
-
-	WithQueries = CreateWithQueriesMap()
-
-	fmt.Println("WithQueriesMap created successfully")
-
 	return nil
 }

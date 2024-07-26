@@ -29,7 +29,8 @@ var (
 func InitAWS() {
 	// AWS SDK
 	// Load the Shared AWS Configuration (~/.aws/config)
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-1"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,19 +40,6 @@ func InitAWS() {
 
 	uploader = manager.NewUploader(client)
 	downloader = manager.NewDownloader(client)
-
-	// Get the first page of results for ListObjectsV2 for a bucket
-	output, err := client.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-		Bucket: aws.String("ask-away"),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("first page results:")
-	for _, object := range output.Contents {
-		log.Printf("key=%s size=%d", aws.ToString(object.Key), object.Size)
-	}
 }
 
 func UploadToS3(fileHeader *multipart.FileHeader, key string) error {
@@ -62,7 +50,7 @@ func UploadToS3(fileHeader *multipart.FileHeader, key string) error {
 	}
 	defer file.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 
 	defer cancel()
 
@@ -73,8 +61,8 @@ func UploadToS3(fileHeader *multipart.FileHeader, key string) error {
 	}
 	// Read the contents of the file into a buffer
 	_, uploadErr := uploader.Upload(ctx, &s3.PutObjectInput{
-		Bucket: aws.String("ask-away"),
-		Key:    aws.String(key),
+		Bucket: aws.String("ask-away-s3-bucket"),
+		Key:    aws.String("public/" + key),
 		Body:   bytes.NewReader(buf.Bytes()),
 	})
 	if uploadErr != nil {

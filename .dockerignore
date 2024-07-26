@@ -2,8 +2,6 @@
 
 memory:
 
-/cmd/server/memory:
-
 backup.db
 
 .air.toml
@@ -15,3 +13,7 @@ tmp/
 .cache
 
 */tmp
+
+deployment/
+
+

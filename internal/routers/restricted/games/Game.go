@@ -22,13 +22,13 @@ func GameRouter(r *echo.Group) {
 	// r.DELETE("", deleteGame)
 
 	resultsGroup := r.Group("/results")
-	playGroup := r.Group("/play")
+	// playGroup := r.Group("/play")
 	questionsGroup := r.Group("/questions")
 	playersGroup := r.Group("/players")
 	invitesGroup := r.Group("/invites")
 
 	ResultsRouter(resultsGroup)
-	PlayRouter(playGroup)
+	// PlayRouter(playGroup)
 	QuestionsRouter(questionsGroup)
 	PlayersRouter(playersGroup)
 	InvitesRouter(invitesGroup)
