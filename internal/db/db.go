@@ -2,11 +2,14 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/labstack/echo/v4"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -74,5 +77,58 @@ func InitDB() error {
 	}
 
 	fmt.Println("Database initialized successfully")
+	return nil
+}
+
+func UpdateAskers(c echo.Context) error {
+	query := `
+UPDATE current_askers
+SET user_id = (
+  SELECT (
+    CASE
+        WHEN (
+          SELECT COUNT(*)
+          FROM user_game_membership
+          WHERE game_id = current_askers.game_id
+            AND user_game_membership.user_id > current_askers.user_id
+        ) > 0 THEN (
+          SELECT user_id
+          FROM user_game_membership
+          WHERE current_askers.game_id = user_game_membership.game_id
+            AND user_game_membership.user_id > current_askers.user_id
+          ORDER BY user_game_membership.user_id
+          LIMIT 1
+          )
+        ELSE (
+          SELECT user_id
+          FROM user_game_membership
+          WHERE user_game_membership.game_id = current_askers.game_id
+          ORDER BY user_game_membership.user_id
+          LIMIT 1
+        )
+    END
+  )
+  FROM user_game_membership
+);
+`
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	// begin the Tx
+	tx, err := Sqlite.BeginTx(ctx, nil)
+	defer tx.Rollback()
+	if err != nil {
+		cancel()
+		return fmt.Errorf("error tx for updating askers: %v", err)
+	}
+
+	_, err = tx.ExecContext(ctx, query)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error updating askers: %v", err)
+	}
+
+	tx.Commit()
 	return nil
 }

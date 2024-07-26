@@ -60,11 +60,21 @@ func main() {
 	restrictedRoutes := e.Group("/auth")
 	restricted.RestrictedRoutes(restrictedRoutes)
 
+	e2 := echo.New()
+
+	e2.POST("/update-askers", db.UpdateAskers)
+
 	// Register pprof routes
 	// Start the main server on port 8080
 	go func() {
 		if err := e.Start(":8081"); err != nil {
 			e.Logger.Info("shutting down the server")
+		}
+	}()
+
+	go func() {
+		if err := e2.Start(":8082"); err != nil {
+			e.Logger.Info("shutting down secure server")
 		}
 	}()
 

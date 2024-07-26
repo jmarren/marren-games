@@ -37,6 +37,7 @@ echo "------------ Make build executable ---------------"
 sudo chmod +x /var/www/ask_away/app/build
 echo "------------ Create app.log file -------------"
 touch app.log
+echo "------------ Create Chron Job to Update Askers Every Night at Midnight ------------"
+0 0 * * * curl -X POST http://localhost:8082/update-askers
 echo "------------ Running Executable with env vars and pipe output to app.log ------------"
 sudo USE_DEV_SQLITE=true ./build >app.log 2>&1 &
-# EOF
