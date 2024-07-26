@@ -120,11 +120,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>All Members</td>
-        <td>1500</td>
-        <td>What is the best day of the week?</td>
-      </tr>
+      <!-- <tr> -->
+      <!--   <td>All Members</td> -->
+      <!--   <td>1500</td> -->
+      <!--   <td>What is the best day of the week?</td> -->
+      <!-- </tr> -->
       {{ range .CurrentGames }}
       <tr hx-get="/auth/games/{{ .GameId }}" hx-target="#page-content" hx-push-url="true">
         <td>{{ .GameName}}</td>
@@ -132,11 +132,6 @@
         <td></td>
       </tr>
       {{ end }}
-      <tr>
-        <td>USF</td>
-        <td>30</td>
-        <td>Best dorm?</td>
-      </tr>
     </tbody>
   </table>
 

@@ -31,6 +31,26 @@ func getGames(c echo.Context) error {
 	// create named arg
 	myUserIdArg := sql.Named("my_user_id", myUserId)
 
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	// begin the Tx
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		cancel()
+		return c.String(http.StatusInternalServerError, "error")
+	}
+
+	defer tx.Rollback()
+	type Game struct {
+		GameId           int64
+		GameName         string
+		GameTotalMembers int64
+	}
+
+	var games []Game
+
 	query := `
   WITH game_ids AS (
     SELECT game_id
@@ -49,19 +69,12 @@ func getGames(c echo.Context) error {
    WHERE game_id = (SELECT game_id FROM game_names_and_ids)
    GROUP BY game_id;
   `
-	rows, err := db.Sqlite.Query(query, myUserIdArg)
+	rows, err := tx.QueryContext(ctx, query, myUserIdArg)
 	if err != nil {
+		tx.Rollback()
 		fmt.Println("error querying db for user's game ids:", err)
 		return err
 	}
-
-	type Game struct {
-		GameId           int64
-		GameName         string
-		GameTotalMembers int64
-	}
-
-	var games []Game
 
 	for rows.Next() {
 		var gameIdRaw sql.NullInt64
@@ -99,8 +112,9 @@ func getGames(c echo.Context) error {
 
 	var gameInvites []GameInvite
 
-	rows, err = db.Sqlite.Query(query, myUserIdArg)
+	rows, err = tx.Query(query, myUserIdArg)
 	if err != nil {
+		tx.Rollback()
 		fmt.Println("error querying for game invites: ", err)
 		return err
 	}

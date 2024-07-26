@@ -29,10 +29,12 @@ CREATE TABLE IF NOT EXISTS friend_requests (
 CREATE TABLE IF NOT EXISTS games (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL UNIQUE,
   creator_id INTEGER NOT NULL,
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
+
+INSERT OR IGNORE INTO games (name, creator_id) VALUES("All Users", 1);
 
 CREATE TABLE IF NOT EXISTS current_askers (
   user_id INTEGER NOT NULL,
@@ -49,6 +51,14 @@ CREATE TABLE IF NOT EXISTS user_game_membership (
   FOREIGN KEY (game_id) REFERENCES games(id),
   PRIMARY KEY (user_id, game_id)
 );
+
+INSERT OR IGNORE INTO user_game_membership (user_id, game_id)
+SELECT id, (
+  SELECT id
+  FROM games
+  WHERE name = "All Users"
+)
+FROM users;
 
 CREATE TABLE IF NOT EXISTS user_game_invites (
   user_id INTEGER NOT NULL,
@@ -91,6 +101,15 @@ CREATE TABLE IF NOT EXISTS scores (
   FOREIGN KEY (game_id) REFERENCES games(id),
   PRIMARY KEY (user_id, game_id)
 );
+
+CREATE TRIGGER IF NOT EXISTS add_new_user_to_all_users_game
+AFTER INSERT ON users
+BEGIN
+  INSERT INTO user_game_membership (user_id, game_id)
+  SELECT NEW.id, id
+  FROM games
+  WHERE name = "All Users";
+END;
 
 CREATE TRIGGER IF NOT EXISTS new_game_insert
 AFTER INSERT ON games
