@@ -2,13 +2,13 @@
 PRAGMA foreign_keys = ON;
 
 
-
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS friendships (
   user_1_id INTEGER NOT NULL,
@@ -33,8 +33,6 @@ CREATE TABLE IF NOT EXISTS games (
   creator_id INTEGER NOT NULL,
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
-
-INSERT OR IGNORE INTO games (name, creator_id) VALUES("All Users", 1);
 
 CREATE TABLE IF NOT EXISTS current_askers (
   user_id INTEGER NOT NULL,

@@ -118,6 +118,8 @@ func getGames(c echo.Context) error {
 		fmt.Println("error querying for game invites: ", err)
 		return err
 	}
+	tx.Commit()
+
 	for rows.Next() {
 		var (
 			gameNameRaw    sql.NullString
@@ -148,7 +150,6 @@ func getGames(c echo.Context) error {
 		CurrentGames: games,
 		GameInvites:  gameInvites,
 	}
-
 	return controllers.RenderTemplate(c, "games", data)
 }
 

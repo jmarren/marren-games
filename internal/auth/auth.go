@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net/mail"
+	"os"
 	"slices"
 	"time"
 
@@ -68,9 +69,10 @@ func AuthenticateUser(username, password string) (string, error) {
 		},
 	}
 
+	secret := os.Getenv("JWTSECRET")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
+	t, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
