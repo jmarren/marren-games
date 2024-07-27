@@ -78,10 +78,11 @@ func getGameById(c echo.Context) error {
 
 	defer cancel()
 
-	tx, err := db.Sqlite.Begin()
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
 	if err != nil {
 		return fail(err)
 	}
+	defer tx.Rollback()
 	row := tx.QueryRowContext(ctx, query, gameIdArg, myUserIdArg)
 
 	err = row.Scan(&isAskerInt, &todaysQuestionCreatedInt)
@@ -146,8 +147,8 @@ func getGameById(c echo.Context) error {
             AND question_id = :question_id
       ) > 0 THEN 1
       ELSE 0
-      END)
-    FROM answers;
+      END
+    ) AS result;
     `
 	row = tx.QueryRowContext(ctx, query, myUserIdArg, gameIdArg, questionIdArg)
 
@@ -155,8 +156,8 @@ func getGameById(c echo.Context) error {
 	var answeredTodaysQuestionInt sql.NullInt64
 	err = row.Scan(&answeredTodaysQuestionInt)
 	if err != nil {
-		fmt.Println("error while querying to determine if user has answered todays question")
-		return err
+		tx.Rollback()
+		return fmt.Errorf("error while querying to determine if user has answered todays question: %v", err)
 	}
 
 	var answeredTodaysQuestion bool

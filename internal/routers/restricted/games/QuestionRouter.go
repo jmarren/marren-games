@@ -1,8 +1,10 @@
 package games
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -24,13 +26,23 @@ func createQuestion(c echo.Context) error {
 	gameId := c.QueryParam("game-id")
 	askerId := auth.GetFromClaims(auth.UserId, c)
 
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(5*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error creating tx QuestionsRouter, createQuestion(): %v", err)
+	}
+	defer tx.Rollback()
 	query := `
-  INSERT INTO questions (game_id,asker_id, question_text, option_1, option_2, option_3, option_4)
+  INSERT OR IGNORE INTO questions (game_id,asker_id, question_text, option_1, option_2, option_3, option_4)
   VALUES (?, ?, ?, ?, ?, ?, ?);
   `
 
-	_, err := db.Sqlite.Exec(query, gameId, askerId, question, optionOne, optionTwo, optionThree, optionFour)
+	_, err = tx.ExecContext(ctx, query, gameId, askerId, question, optionOne, optionTwo, optionThree, optionFour)
 	if err != nil {
+		tx.Rollback()
 		return c.HTML(http.StatusBadRequest, err.Error())
 	}
 
@@ -42,6 +54,9 @@ func createQuestion(c echo.Context) error {
 		ScoreboardData: []UserScore{},
 	}
 
+	if err := tx.Commit(); err != nil {
+		return c.HTML(http.StatusInternalServerError, err.Error())
+	}
 	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/games/%v/results", gameId))
 	return controllers.RenderTemplate(c, "results", data)
 }
