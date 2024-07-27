@@ -204,7 +204,15 @@ func CreateAccountSubmitHandler(c echo.Context) error {
 	}
 
 	c.SetCookie(cookie)
-	return RenderTemplate(c, "upload-profile-photo", nil)
+	username := c.FormValue("username")
+
+	data := struct {
+		Username string
+	}{
+		Username: username,
+	}
+
+	return RenderTemplate(c, "upload-profile-photo", data)
 }
 
 func LoginHandler(c echo.Context) error {
@@ -223,7 +231,7 @@ func LoginHandler(c echo.Context) error {
 	}
 
 	c.SetCookie(cookie)
-	return c.Redirect(http.StatusFound, "/auth/profile")
+	return c.Redirect(http.StatusFound, "/auth/profile?add-top-right=true")
 }
 
 func LogoutHandler(c echo.Context) error {

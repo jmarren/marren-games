@@ -58,6 +58,7 @@ func uploadProfilePhoto(c echo.Context) error {
 
 	fmt.Println(data)
 
+	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
 	return GetMyProfilePage(c)
 }
 
@@ -73,6 +74,12 @@ func getProfilePhotoViewer(c echo.Context) error {
 }
 
 func GetMyProfilePage(c echo.Context) error {
+	addTopRight := false
+	addTopRightParam := c.QueryParam("add-top-right")
+	if addTopRightParam == "true" {
+		addTopRight = true
+	}
+
 	fail := func(err error) error {
 		return fmt.Errorf("error @ ProfileRouter, getProfilePage(): %v ", err)
 	}
@@ -144,8 +151,9 @@ func GetMyProfilePage(c echo.Context) error {
 		TotalPoints: totalPointsRaw.Int64,
 	}
 
-	currentUrl := c.Request().Header.Get("Hx-Current-Url")
-	if currentUrl[len(currentUrl)-7:] == "sign-in" {
+	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
+
+	if addTopRight {
 		return controllers.RenderTemplate(c, "profile-after-login", data)
 	}
 	return controllers.RenderTemplate(c, "profile", data)

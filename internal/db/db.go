@@ -31,6 +31,8 @@ func InitDB() error {
 		return fmt.Errorf("failed to read init script: %v", err)
 	}
 
+	fmt.Println(os.Getenv("USE_DEV_SQLITE"))
+
 	// Determine whether to use in-memory SQLite or the production database
 	useDevSQLite := os.Getenv("USE_DEV_SQLITE")
 
@@ -42,9 +44,6 @@ func InitDB() error {
 			return fmt.Errorf("failed to open in-memory db %s: %s", url, err)
 		}
 
-		if _, err := Sqlite.Exec(string(initScript)); err != nil {
-			log.Fatalf("failed to execute init script: %v", err)
-		}
 		// Specify the backup file path
 		backupFilePath := "backup.db"
 
@@ -60,7 +59,6 @@ func InitDB() error {
 		}
 		log.Println("Database backed up successfully")
 	} else {
-
 		databaseURL := os.Getenv("TURSO_DATABASE_URL")
 		authToken := os.Getenv("TURSO_AUTH_TOKEN")
 		url := fmt.Sprintf("%s?authToken=%s", databaseURL, authToken)
@@ -70,10 +68,10 @@ func InitDB() error {
 		if err != nil {
 			return fmt.Errorf("failed to open db %s: %s", url, err)
 		}
+	}
 
-		if _, err := Sqlite.Exec(string(initScript)); err != nil {
-			log.Fatalf("failed to execute init script: %v", err)
-		}
+	if _, err := Sqlite.Exec(string(initScript)); err != nil {
+		log.Fatalf("failed to execute init script: %v", err)
 	}
 
 	fmt.Println("Database initialized successfully")

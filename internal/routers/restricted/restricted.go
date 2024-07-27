@@ -1,6 +1,8 @@
 package restricted
 
 import (
+	"os"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/controllers"
@@ -29,7 +31,7 @@ func RestrictedRoutes(r *echo.Group) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(auth.JwtCustomClaims)
 		},
-		SigningKey:  []byte("secret"), // TODO
+		SigningKey:  []byte(os.Getenv("JWTSECRET")), // TODO
 		TokenLookup: "cookie:auth",
 	}
 	r.Use(echojwt.WithConfig(jwtConfig))

@@ -50,13 +50,7 @@ CREATE TABLE IF NOT EXISTS user_game_membership (
   PRIMARY KEY (user_id, game_id)
 );
 
-INSERT OR IGNORE INTO user_game_membership (user_id, game_id)
-SELECT id, (
-  SELECT id
-  FROM games
-  WHERE name = "All Users"
-)
-FROM users;
+
 
 CREATE TABLE IF NOT EXISTS user_game_invites (
   user_id INTEGER NOT NULL,
@@ -103,7 +97,7 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE TRIGGER IF NOT EXISTS add_new_user_to_all_users_game
 AFTER INSERT ON users
 BEGIN
-  INSERT INTO user_game_membership (user_id, game_id)
+  INSERT OR IGNORE INTO user_game_membership (user_id, game_id)
   SELECT NEW.id, id
   FROM games
   WHERE name = "All Users";

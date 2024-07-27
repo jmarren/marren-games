@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/jmarren/marren-games/internal/auth"
 	"github.com/jmarren/marren-games/internal/awssdk"
 	"github.com/jmarren/marren-games/internal/controllers"
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
 	"github.com/jmarren/marren-games/internal/routers/restricted"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	// echoprometheus  "github.com/labstack/echo-contrib"
@@ -35,6 +43,11 @@ func initEcho() *echo.Echo {
 }
 
 func main() {
+	envError := godotenv.Load()
+	if envError != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// AWS
 	awssdk.InitAWS()
 
@@ -46,6 +59,7 @@ func main() {
 		log.Print("DB connected successfully")
 	}
 
+	defer db.Sqlite.Close()
 	// Initialize Echo
 	e := initEcho()
 	e.Use(middleware.Logger())
@@ -59,10 +73,23 @@ func main() {
 	// Restricted Routes
 	restrictedRoutes := e.Group("/auth")
 	restricted.RestrictedRoutes(restrictedRoutes)
-
+	//
 	e2 := echo.New()
 
 	e2.POST("/update-askers", db.UpdateAskers)
+	//
+	err := auth.CreateUserAndGameAtStartup()
+	if err != nil {
+		fmt.Println("error creating user at startup: ", err)
+		panic(err)
+	}
+
+	// Channel to listen for termination signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Channel to wait for both servers to shut down
+	done := make(chan struct{})
 
 	// Register pprof routes
 	// Start the main server on port 8080
@@ -78,14 +105,26 @@ func main() {
 		}
 	}()
 
-	// Set up a separate HTTP server for pprof on port 1323
-	// go func() {
-	// 	log.Println("Starting pprof server on :1323")
-	// 	if err := http.ListenAndServe(":1323", nil); err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }()
+	// Wait for termination signal
+	<-quit
+	fmt.Println("Shutting down servers...")
 
-	// Wait for the application to terminate
-	select {}
+	// Create a context with timeout to ensure graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Shut down both servers
+	go func() {
+		if err := e.Shutdown(ctx); err != nil {
+			e.Logger.Fatal(err)
+		}
+		if err := e2.Shutdown(ctx); err != nil {
+			e2.Logger.Fatal(err)
+		}
+		close(done)
+	}()
+
+	// Wait for both servers to shut down
+	<-done
+	fmt.Println("Servers shut down gracefully")
 }

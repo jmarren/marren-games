@@ -2,6 +2,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -43,7 +44,7 @@ func AuthenticateUser(username, password string) (string, error) {
 	// Get the hashed password from the database
 	hashedPassword, err := db.GetUserPasswordHash(username)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting hased password from db: %v", err)
 	}
 
 	// Compare the hashed password with the plain text password
@@ -80,6 +81,55 @@ func AuthenticateUser(username, password string) (string, error) {
 
 	// The hashes match
 	return t, nil
+}
+
+func CreateUserAndGameAtStartup() error {
+	myUsername := os.Getenv("MY_USERNAME")
+	myPassword := os.Getenv("MY_PASSWORD")
+	myEmail := os.Getenv("MY_EMAIL")
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+	// begin the Tx
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	defer tx.Rollback()
+
+	if err != nil {
+		cancel()
+		return fmt.Errorf("error tx for adding user at startup: %v", err)
+	}
+
+	hashedPassword, err := HashPassword(myPassword)
+	if err != nil {
+		return fmt.Errorf("error hashing password CreateUserOnStartup(): %v", err)
+	}
+
+	query := `
+    INSERT OR IGNORE INTO users (id, username, email, password_hash)
+    VALUES (1, ?, ?, ?);
+  `
+
+	// Insert user into database
+	_, err = tx.ExecContext(ctx, query, myUsername, myEmail, hashedPassword)
+	if err != nil {
+		fmt.Println("error adding user: ", err)
+		return err
+	}
+	query = `
+	  INSERT OR IGNORE INTO games (name, creator_id)
+	  SELECT "All Users", id
+	  FROM users
+	  WHERE username = "John";
+	  `
+
+	_, err = tx.ExecContext(ctx, query)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error while creating all users game: %v", err)
+	}
+
+	return tx.Commit()
 }
 
 // RegisterUser creates a new user in the database.
@@ -144,7 +194,7 @@ func RegisterUser(username, password, email string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte("secret"))
+	t, err := token.SignedString([]byte(os.Getenv("JWTSECRET")))
 	if err != nil {
 		return "", err
 	}
