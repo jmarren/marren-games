@@ -27,16 +27,27 @@ func FriendsRouter(r *echo.Group) {
 
 func getFriendsPage(c echo.Context) error {
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error begging tx, getFriendsPage(): %v", err)
+	}
+	defer tx.Rollback()
+
 	query := `
       SELECT fr.from_user_id, u.username
       FROM friend_requests fr
       JOIN users u ON fr.from_user_id = u.id
       WHERE to_user_id = :my_user_id;
   `
-	rows, err := db.Sqlite.Query(query, myUserId)
+	rows, err := tx.QueryContext(ctx, query, myUserId)
 	if err != nil {
-		fmt.Println("error while querying for all friend requests: ", err)
-		panic(err)
+		tx.Rollback()
+		return fmt.Errorf("friends, getFriendsPage(), error querying for friend requests: %v", err)
 	}
 
 	type FriendRequest struct {
@@ -51,6 +62,7 @@ func getFriendsPage(c echo.Context) error {
 		var friendRequestUsername string
 		err := rows.Scan(&friendRequestId, &friendRequestUsername)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 		friendRequests = append(friendRequests,
@@ -58,10 +70,6 @@ func getFriendsPage(c echo.Context) error {
 				FromId:       friendRequestId,
 				FromUsername: friendRequestUsername,
 			})
-	}
-
-	for _, friendRequest := range friendRequests {
-		fmt.Println("friend request from: ", friendRequest.FromUsername)
 	}
 
 	query = `
@@ -77,8 +85,9 @@ func getFriendsPage(c echo.Context) error {
         JOIN users ON users.id = friend_id;
   `
 
-	rows, err = db.Sqlite.Query(query, myUserId)
+	rows, err = tx.QueryContext(ctx, query, myUserId)
 	if err != nil {
+		tx.Rollback()
 		fmt.Println("error while querying for all friend requests: ", err)
 		panic(err)
 	}
@@ -92,8 +101,7 @@ func getFriendsPage(c echo.Context) error {
 		var friend Friend
 		err := rows.Scan(&friend.UserId, &friend.Username)
 		if err != nil {
-			fmt.Println("error querying db for friends: ", err)
-			return err
+			return fmt.Errorf("friends, getFriendsPage() error querying for friends: %v ", err)
 		}
 		friends = append(friends, friend)
 	}
@@ -105,6 +113,8 @@ func getFriendsPage(c echo.Context) error {
 		FriendRequests: friendRequests,
 		Friends:        friends,
 	}
+
+	tx.Commit()
 
 	return controllers.RenderTemplate(c, "friends", data)
 }
@@ -120,16 +130,28 @@ func searchUsers(c echo.Context) error {
 	if searchParam == "" {
 		return c.HTML(http.StatusOK, "")
 	}
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("friends, searchUsers(), error beginning tx:  %v", err)
+	}
+	defer tx.Rollback()
+
 	query := `
     SELECT username, email, id
     FROM users
-    WHERE username LIKE ?;
+    WHERE username LIKE ?
+    LIMIT 10;
   `
 
-	rows, err := db.Sqlite.Query(query, searchParam+"%")
+	rows, err := tx.QueryContext(ctx, query, searchParam+"%")
 	if err != nil {
-		fmt.Println("error querying db:", err)
-		return err
+		tx.Rollback()
+		return fmt.Errorf("friends, searchUsers(), error querying for users: %v", err)
 	}
 
 	var users []struct {
@@ -145,8 +167,8 @@ func searchUsers(c echo.Context) error {
 			userId   sql.NullInt64
 		)
 		if err := rows.Scan(&username, &email, &userId); err != nil {
-			fmt.Println("error scanning rows:", err)
-			return err
+			tx.Rollback()
+			return fmt.Errorf("friends, searchUsers(), error scanning into users struct: %v", err)
 		}
 
 		fmt.Println(" \n\n username: ", username.String)
@@ -180,6 +202,10 @@ func searchUsers(c echo.Context) error {
 			Data:   users,
 			GameId: -1,
 		}
+		// Commit the transaction.
+		if err = tx.Commit(); err != nil {
+			return fmt.Errorf("friends, searchUsers(), error commiting tx: %v", err)
+		}
 		return controllers.RenderTemplate(c, "search-results", dataStruct)
 	}
 
@@ -207,6 +233,7 @@ func searchUsers(c echo.Context) error {
 }
 
 func getUserProfile(c echo.Context) error {
+	// Get necessary data
 	otherUserId, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		return fmt.Errorf("friends, getUserProfile(): %v", err)
@@ -217,6 +244,17 @@ func getUserProfile(c echo.Context) error {
 	}
 	otherUserIdArg := sql.Named("other_user_id", c.Param("user-id"))
 	myUserIdArg := sql.Named("my_user_id", myUserId)
+
+	// begin db transaction
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("friends, getUserProfile(), error beginning tx:  %v", err)
+	}
+	defer tx.Rollback()
 
 	query := `
     SELECT username, email,
@@ -254,7 +292,7 @@ func getUserProfile(c echo.Context) error {
     FROM users
   WHERE id = :other_user_id;
   `
-	row := db.Sqlite.QueryRow(query, myUserIdArg, otherUserIdArg)
+	row := tx.QueryRowContext(ctx, query, myUserIdArg, otherUserIdArg)
 
 	var (
 		usernameRaw    sql.NullString
@@ -267,8 +305,13 @@ func getUserProfile(c echo.Context) error {
 	)
 	err = row.Scan(&usernameRaw, &emailRaw, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw, &totalPointsRaw)
 	if err != nil {
-		fmt.Println("error querying db:", err)
-		panic(err)
+		tx.Rollback()
+		return fmt.Errorf("friends, getUserProfile(), error scanning into vars: %v", err)
+	}
+
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("friends, getUserProfile(), error commiting tx: %v", err)
 	}
 
 	data := struct {
@@ -290,12 +333,12 @@ func getUserProfile(c echo.Context) error {
 		NumGames:    numGamesRaw.Int64,
 		TotalPoints: totalPointsRaw.Int64,
 	}
-
 	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/friends/profiles/%v", otherUserId))
 	return controllers.RenderTemplate(c, "other-user-profile", data)
 }
 
 func createFriendRequest(c echo.Context) error {
+	// Get necessary data
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 	otherUserId := sql.Named("other_user_id", c.Param("user-id"))
 	otherUserIdInt, err := strconv.Atoi(c.Param("user-id"))
@@ -304,27 +347,35 @@ func createFriendRequest(c echo.Context) error {
 		return err
 	}
 
+	// begin db transaction
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("friends, createFriendRequest(), error beginning tx:  %v", err)
+	}
+	defer tx.Rollback()
+
 	query := `
       INSERT INTO friend_requests (from_user_id, to_user_id)
   VALUES(:my_user_id, :other_user_id);
   `
 
-	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
+	_, err = tx.ExecContext(ctx, query, myUserId, otherUserId)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		return fmt.Errorf("friends, createFriendRequest(), error inserting into friends requests: %v", err)
 	}
 
-	if err != nil {
-		fmt.Println("error: otherUserId is not convertible to int: ", err)
-		return err
-	}
+	tx.Commit()
 
 	data := struct {
 		UserId int
 	}{
 		UserId: otherUserIdInt,
 	}
+
 	return controllers.RenderTemplate(c, "request-sent-button", data)
 }
 
@@ -345,11 +396,11 @@ func createFriendship(c echo.Context) error {
 
 	tx, err := db.Sqlite.BeginTx(ctx, nil)
 	if err != nil {
-		cancel()
-		return c.String(http.StatusInternalServerError, "error")
+		return fmt.Errorf("friends, createFriendship(), error beginning tx: %v", err)
 	}
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
+
 	deleteRequestQuery := `
         DELETE FROM friend_requests
         WHERE from_user_id = :new_friend_id
@@ -357,8 +408,7 @@ func createFriendship(c echo.Context) error {
           `
 	_, err = db.Sqlite.ExecContext(ctx, deleteRequestQuery, myUserId, newFriendId)
 	if err != nil {
-		fmt.Println("error deleting friend request")
-		return err
+		return fmt.Errorf("friends, createFriendship(), error deleting friend request: %v", err)
 	}
 
 	insertFriendshipQuery := `
@@ -367,18 +417,18 @@ func createFriendship(c echo.Context) error {
 
 	_, err = db.Sqlite.ExecContext(ctx, insertFriendshipQuery, myUserId, newFriendId)
 	if err != nil {
-		return err
+		return fmt.Errorf("friends, createFriendship(), error whil inserting into freindships: %v", err)
 	}
 
 	// Commit the transaction.
 	if err = tx.Commit(); err != nil {
-		return err
+		return fmt.Errorf("friends, createFriendship(), error commiting tx: %v", err)
 	}
-
 	return c.HTML(http.StatusOK, "Accepted!")
 }
 
 func deleteRequest(c echo.Context) error {
+	// get necessary data
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 	otherId, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
@@ -386,6 +436,19 @@ func deleteRequest(c echo.Context) error {
 		return err
 	}
 	otherUserId := sql.Named("other_user_id", otherId)
+
+	// begin db trasnaction
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("friends, deleteRequest(), error beginning tx: %v", err)
+	}
+	// Defer a rollback in case anything fails.
+	defer tx.Rollback()
+
 	query := `
           SELECT MAX(
             CASE 
@@ -395,37 +458,30 @@ func deleteRequest(c echo.Context) error {
           FROM friend_requests;
   `
 
-	result := db.Sqlite.QueryRow(query, myUserId, otherUserId)
+	result := tx.QueryRowContext(ctx, query, myUserId, otherUserId)
 
 	var isRequester sql.NullInt64
 	err = result.Scan(&isRequester)
 	if err != nil {
-		fmt.Println("error while querying to determine who requested:", err)
-		return err
+		return fmt.Errorf("friends, deleteRequest(), error querying for isRequester: %v", err)
 	}
 
-	fmt.Println()
-	fmt.Println("@@@@ isRequester: ", isRequester)
-	fmt.Println()
 	var isRequesterVal int
 	if !isRequester.Valid || isRequester.Int64 == 0 {
 		isRequesterVal = 0
 	} else {
 		isRequesterVal = 1
 	}
-	fmt.Println()
-	fmt.Println("@@@@ isRequesterVal: ", isRequesterVal)
-	fmt.Println()
+
 	query = `
         DELETE FROM friend_requests
         WHERE (from_user_id = :other_user_id AND to_user_id = :my_user_id)
         OR
         (from_user_id = :my_user_id AND to_user_id = :other_user_id);
       `
-	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
+	_, err = tx.ExecContext(ctx, query, myUserId, otherUserId)
 	if err != nil {
-		fmt.Println("error deleting friend request: ", err)
-		return err
+		return fmt.Errorf("friends, deleteRequest(), error deleting requst: %v", err)
 	}
 
 	if isRequesterVal == 1 {
@@ -435,6 +491,11 @@ func deleteRequest(c echo.Context) error {
 			UserId: otherId,
 		}
 		return controllers.RenderTemplate(c, "add-friend-button", data)
+	}
+
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("friends, deleteRequest(), error commiting tx: %v", err)
 	}
 	return c.HTML(http.StatusOK, "Request Declined")
 }
@@ -448,16 +509,27 @@ func deleteFriendship(c echo.Context) error {
 	}
 	otherUserId := sql.Named("other_user_id", otherId)
 
+	// begin db trasnaction
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("friends, deleteFriendship(), error beginning tx: %v", err)
+	}
+	// Defer a rollback in case anything fails.
+	defer tx.Rollback()
+
 	query := `
   DELETE FROM friendships
   WHERE (friendships.user_1_id = :my_user_id AND friendships.user_2_id = :other_user_id) 
       OR
         (friendships.user_1_id = :other_user_id AND friendships.user_2_id = :my_user_id);
 `
-	_, err = db.Sqlite.Exec(query, myUserId, otherUserId)
+	_, err = tx.ExecContext(ctx, query, myUserId, otherUserId)
 	if err != nil {
-		fmt.Println("error deleting friendship: ", err)
-		return err
+		return fmt.Errorf("friends, deleteFriendship(), error deleting friendship: %v", err)
 	}
 
 	data := struct {
@@ -465,6 +537,9 @@ func deleteFriendship(c echo.Context) error {
 	}{
 		UserId: otherId,
 	}
-
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("friends, deleteFriendship(), error commiting tx: %v", err)
+	}
 	return controllers.RenderTemplate(c, "add-friend-button", data)
 }

@@ -52,26 +52,24 @@ func getGames(c echo.Context) error {
 	var games []Game
 
 	query := `
-  WITH game_ids AS (
-    SELECT game_id
-    FROM user_game_membership
-    WHERE user_id = :my_user_id
-  ),
-  game_names_and_ids AS (
-    SELECT name, game_id
-    FROM games
-    WHERE id = (SELECT game_id FROM game_ids)
-  )
-   SELECT COUNT(user_id) AS members, game_id, name
-   FROM user_game_membership
-   LEFT JOIN games
-    ON games.id = game_id
-   WHERE game_id = (SELECT game_id FROM game_names_and_ids)
-   GROUP BY game_id;
+SELECT user_game_membership.game_id, games.name, (
+	SELECT COUNT(game_id)
+FROM user_game_membership
+GROUP BY game_id
+HAVING (
+	SELECT COUNT(*)
+	FROM user_game_membership
+  WHERE user_id = :my_user_id
+	) > 0
+) AS total_members
+FROM user_game_membership
+JOIN games
+ 	ON games.id = user_game_membership.game_id
+ WHERE user_game_membership.user_id = 2;
   `
+
 	rows, err := tx.QueryContext(ctx, query, myUserIdArg)
 	if err != nil {
-		tx.Rollback()
 		fmt.Println("error querying db for user's game ids:", err)
 		return err
 	}
@@ -81,7 +79,7 @@ func getGames(c echo.Context) error {
 		var gameNameRaw sql.NullString
 		var totalMembers sql.NullInt64
 
-		err := rows.Scan(&totalMembers, &gameIdRaw, &gameNameRaw)
+		err := rows.Scan(&gameIdRaw, &gameNameRaw, &totalMembers)
 		if err != nil {
 			fmt.Println("error scanning game_id into gameId variable: ", err)
 			return err
@@ -112,13 +110,12 @@ func getGames(c echo.Context) error {
 
 	var gameInvites []GameInvite
 
-	rows, err = tx.Query(query, myUserIdArg)
+	rows, err = tx.QueryContext(ctx, query, myUserIdArg)
 	if err != nil {
 		tx.Rollback()
 		fmt.Println("error querying for game invites: ", err)
 		return err
 	}
-	tx.Commit()
 
 	for rows.Next() {
 		var (
@@ -143,6 +140,10 @@ func getGames(c echo.Context) error {
 	}
 	fmt.Println("%%%%%%%%%% Game Invites: ", gameInvites, "  %%%%%%%%%%%%%")
 
+	// Commit the transaction.
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("games, getGames(), error commiting tx: %v", err)
+	}
 	data := struct {
 		CurrentGames []Game
 		GameInvites  []GameInvite
