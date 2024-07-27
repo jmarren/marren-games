@@ -52,20 +52,16 @@ func getGames(c echo.Context) error {
 	var games []Game
 
 	query := `
-SELECT user_game_membership.game_id, games.name, (
-	SELECT COUNT(game_id)
-FROM user_game_membership
-GROUP BY game_id
-HAVING (
-	SELECT COUNT(*)
-	FROM user_game_membership
-  WHERE user_id = :my_user_id
-	) > 0
-) AS total_members
-FROM user_game_membership
+SELECT user_game_membership.game_id, games.name, member_counts.total_members 
+  FROM user_game_membership
 JOIN games
  	ON games.id = user_game_membership.game_id
- WHERE user_game_membership.user_id = 2;
+JOIN (
+      SELECT game_id , COUNT(user_id) AS total_members
+  FROM user_game_membership
+  GROUP BY game_id) AS member_counts
+    ON member_counts.game_id = user_game_membership.game_id
+  WHERE user_game_membership.user_id = :my_user_id;
   `
 
 	rows, err := tx.QueryContext(ctx, query, myUserIdArg)
