@@ -66,8 +66,28 @@
       align-items: center;
       gap: 5px;
     }
+
+    #page-back-btn {
+      display: block;
+      align-self: start;
+      font-family: Aruma;
+      font-size: 25px;
+      background-color: seagreen;
+      color: antiquewhite;
+      border-radius: 5px;
+      padding: 5px;
+      padding-right: 15px;
+      padding-bottom: 7.5px;
+    }
+
+    #page-back-btn:hover {
+      background-color: darkolivegreen;
+    }
   </style>
 
+  <button id="page-back-btn" hx-get="/" hx-swap="outerHTML" hx-target="#page-content">
+    &larr;Back
+  </button>
 
   <span id="sign-in-title">
     Sign In

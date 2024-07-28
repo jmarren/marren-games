@@ -1,14 +1,33 @@
 {{ define "create-account" }}
-<script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
-<script src="/static/js/button-component.js"> </script>
 
-<div id="create-account-container" hx-ext="response-targets">
+
+<div id="page-content" hx-ext="response-targets">
+  <script src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
+  <script src="/static/js/button-component.js"> </script>
+
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
   <style>
     * {
       font-family: Aruma;
     }
 
-    #create-account-container {
+    #page-content {
       color: #0e6080;
       padding: 40px;
       display: flex;
@@ -51,7 +70,28 @@
       display: flex;
       gap: 20px;
     }
+
+    #page-back-btn {
+      display: block;
+      align-self: start;
+      font-family: Aruma;
+      font-size: 25px;
+      background-color: seagreen;
+      color: antiquewhite;
+      border-radius: 5px;
+      padding: 5px;
+      padding-right: 15px;
+      padding-bottom: 7.5px;
+    }
+
+    #page-back-btn:hover {
+      background-color: darkolivegreen;
+    }
   </style>
+
+  <button id="page-back-btn" hx-get="/" hx-swap="outerHTML" hx-target="#page-content">
+    &larr;Back
+  </button>
 
   <script>
     document.addEventListener('htmx:afterRequest', e => {

@@ -94,37 +94,35 @@
 
   <main>
     <div id="page-container">
-      <div id="page-content">
-        {{ if eq .PartialTemplate "sign-in" }}
-        {{ template "sign-in" .Data}}
-        {{ else if eq .PartialTemplate "create-account" }}
-        {{ template "create-account" .Data }}
-        {{ else if eq .PartialTemplate "create-question"}}
-        {{ template "create-question" .Data}}
-        {{ else if eq .PartialTemplate "profile"}}
-        {{ template "profile" .Data}}
-        {{ else if eq .PartialTemplate "games" }}
-        {{ template "games" .Data}}
-        {{ else if eq .PartialTemplate "gameplay" }}
-        {{ template "gameplay" .Data}}
-        {{ else if eq .PartialTemplate "create-game" }}
-        {{ template "create-game" .Data}}
-        {{ else if eq .PartialTemplate "friends" }}
-        {{ template "friends" .Data}}
-        {{ else if eq .PartialTemplate "upload-profile-photo"}}
-        {{ template "upload-profile-photo" .Data}}
-        {{ else if eq .PartialTemplate "invite-friends"}}
-        {{ template "invite-friends" .Data}}
-        {{ else if eq .PartialTemplate "results"}}
-        {{ template "results" .Data }}
-        {{ else if eq .PartialTemplate "no-question-yet"}}
-        {{ template "no-question-yet" .Data }}
-        {{ else if eq .PartialTemplate "other-user-profile" }}
-        {{ template "other-user-profile" .Data }}
-        {{ else }}
-        {{ template "index"}}
-        {{ end }}
-      </div>
+      {{ if eq .PartialTemplate "sign-in" }}
+      {{ template "sign-in" .Data}}
+      {{ else if eq .PartialTemplate "create-account" }}
+      {{ template "create-account" .Data }}
+      {{ else if eq .PartialTemplate "create-question"}}
+      {{ template "create-question" .Data}}
+      {{ else if eq .PartialTemplate "profile"}}
+      {{ template "profile" .Data}}
+      {{ else if eq .PartialTemplate "games" }}
+      {{ template "games" .Data}}
+      {{ else if eq .PartialTemplate "gameplay" }}
+      {{ template "gameplay" .Data}}
+      {{ else if eq .PartialTemplate "create-game" }}
+      {{ template "create-game" .Data}}
+      {{ else if eq .PartialTemplate "friends" }}
+      {{ template "friends" .Data}}
+      {{ else if eq .PartialTemplate "upload-profile-photo"}}
+      {{ template "upload-profile-photo" .Data}}
+      {{ else if eq .PartialTemplate "invite-friends"}}
+      {{ template "invite-friends" .Data}}
+      {{ else if eq .PartialTemplate "results"}}
+      {{ template "results" .Data }}
+      {{ else if eq .PartialTemplate "no-question-yet"}}
+      {{ template "no-question-yet" .Data }}
+      {{ else if eq .PartialTemplate "other-user-profile" }}
+      {{ template "other-user-profile" .Data }}
+      {{ else }}
+      {{ template "index"}}
+      {{ end }}
     </div>
   </main>
   <footer-component>
