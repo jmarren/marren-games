@@ -47,15 +47,19 @@ func getGames(c echo.Context) error {
 		GameId           int64
 		GameName         string
 		GameTotalMembers int64
+		QuestionText     string
 	}
 
 	var games []Game
 
 	query := `
-SELECT user_game_membership.game_id, games.name, member_counts.total_members 
+SELECT user_game_membership.game_id, games.name, member_counts.total_members, question_text
   FROM user_game_membership
 JOIN games
  	ON games.id = user_game_membership.game_id
+LEFT JOIN questions ON 
+	user_game_membership.game_id = questions.game_id
+	  AND DATE(questions.date_created) = DATE('now') 
 JOIN (
       SELECT game_id , COUNT(user_id) AS total_members
   FROM user_game_membership
@@ -74,8 +78,9 @@ JOIN (
 		var gameIdRaw sql.NullInt64
 		var gameNameRaw sql.NullString
 		var totalMembers sql.NullInt64
+		var questionTextRaw sql.NullString
 
-		err := rows.Scan(&gameIdRaw, &gameNameRaw, &totalMembers)
+		err := rows.Scan(&gameIdRaw, &gameNameRaw, &totalMembers, &questionTextRaw)
 		if err != nil {
 			fmt.Println("error scanning game_id into gameId variable: ", err)
 			return err
@@ -88,6 +93,7 @@ JOIN (
 			GameId:           gameIdRaw.Int64,
 			GameName:         gameNameRaw.String,
 			GameTotalMembers: totalMembers.Int64,
+			QuestionText:     questionTextRaw.String,
 		})
 	}
 

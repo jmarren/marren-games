@@ -98,49 +98,6 @@ func createAnswer(c echo.Context) error {
 		fmt.Println("error: resultsRouter, createAnswer(), error inserting answer into db: ", err)
 		return err
 	}
-
-	// // query to update scores for other players
-	// query = `
-	//    WITH users_to_increment AS (
-	//      SELECT answerer_id
-	//        FROM answers
-	//        WHERE answers.option_chosen = :option_chosen
-	//              AND answers.game_id = :game_id
-	//              AND answers.question_id = :question_id
-	//              AND answers.answerer_id != :my_user_id
-	//    )
-	//    UPDATE scores
-	//    SET score = (score + 1)
-	//    WHERE scores.user_id IN users_to_increment;
-	//  `
-	// _, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
-	// if err != nil {
-	// 	cancel()
-	// 	tx.Rollback()
-	// 	fmt.Println("error inserting answer into db: ", err)
-	// 	return err
-	// }
-	//
-	// // update score for answerer
-	// query = `
-	//    UPDATE scores
-	//    SET score = score + (
-	//          SELECT COUNT(*)
-	//          FROM answers
-	//          WHERE answers.option_chosen
-	//            AND answers.game_id = :game_id
-	//            AND answers.question_id = :question_id
-	//    )
-	//    WHERE scores.user_id = :my_user_id;
-	//  `
-	// _, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
-	// if err != nil {
-	// 	cancel()
-	// 	tx.Rollback()
-	// 	fmt.Println("error: resultsRouter, createAnswer: error inserting answer into db: ", err)
-	// 	return err
-	// }
-
 	tx.Commit()
 
 	return GetGameResults(c)
@@ -212,7 +169,6 @@ func GetGameResults(c echo.Context) error {
 	rows, err := tx.QueryContext(ctx, query, gameIdArg)
 	if err != nil {
 		fmt.Println("*** error querying db for question results: ", err)
-		tx.Rollback()
 		return err
 	}
 
@@ -267,14 +223,6 @@ JOIN users
 GROUP BY answers.game_id, answers.answerer_id
 ORDER BY score DESC;
 `
-
-	// query = `
-	//    SELECT score, users.username
-	//    FROM scores
-	//    JOIN users ON users.id = scores.user_id
-	//    WHERE game_id = :game_id
-	//    ORDER BY score;
-	//    `
 
 	rows, err = db.Sqlite.QueryContext(ctx, query, gameIdArg)
 	if err != nil {
