@@ -78,7 +78,7 @@ func createAnswer(c echo.Context) error {
 
 	err = row.Scan(&questionIdRaw)
 	if err != nil {
-		return fmt.Errorf("error scanning questionId into var")
+		return fmt.Errorf("ResultsRouter, createAnswer(), error scanning questionId into var: %v", err)
 	}
 
 	// convert todays question id to sql.NamedArg
@@ -95,52 +95,51 @@ func createAnswer(c echo.Context) error {
 	// perform query to insert answer
 	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
 	if err != nil {
-		tx.Rollback()
 		fmt.Println("error: resultsRouter, createAnswer(), error inserting answer into db: ", err)
 		return err
 	}
 
-	// query to update scores for other players
-	query = `
-    WITH users_to_increment AS (
-      SELECT answerer_id 
-        FROM answers
-        WHERE answers.option_chosen = :option_chosen
-              AND answers.game_id = :game_id
-              AND answers.question_id = :question_id
-              AND answers.answerer_id != :my_user_id
-    )
-    UPDATE scores
-    SET score = (score + 1)
-    WHERE scores.user_id IN users_to_increment;
-  `
-	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
-	if err != nil {
-		cancel()
-		tx.Rollback()
-		fmt.Println("error inserting answer into db: ", err)
-		return err
-	}
-
-	// update score for answerer
-	query = `
-    UPDATE scores
-    SET score = score + (
-          SELECT COUNT(*)
-          FROM answers
-          WHERE answers.option_chosen
-            AND answers.game_id = :game_id
-            AND answers.question_id = :question_id
-    )
-    WHERE scores.user_id = :my_user_id;
-  `
-	_, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
-	if err != nil {
-		cancel()
-		tx.Rollback()
-		fmt.Println("error: resultsRouter, createAnswer: error inserting answer into db: ", err)
-		return err
-	}
+	// // query to update scores for other players
+	// query = `
+	//    WITH users_to_increment AS (
+	//      SELECT answerer_id
+	//        FROM answers
+	//        WHERE answers.option_chosen = :option_chosen
+	//              AND answers.game_id = :game_id
+	//              AND answers.question_id = :question_id
+	//              AND answers.answerer_id != :my_user_id
+	//    )
+	//    UPDATE scores
+	//    SET score = (score + 1)
+	//    WHERE scores.user_id IN users_to_increment;
+	//  `
+	// _, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	// if err != nil {
+	// 	cancel()
+	// 	tx.Rollback()
+	// 	fmt.Println("error inserting answer into db: ", err)
+	// 	return err
+	// }
+	//
+	// // update score for answerer
+	// query = `
+	//    UPDATE scores
+	//    SET score = score + (
+	//          SELECT COUNT(*)
+	//          FROM answers
+	//          WHERE answers.option_chosen
+	//            AND answers.game_id = :game_id
+	//            AND answers.question_id = :question_id
+	//    )
+	//    WHERE scores.user_id = :my_user_id;
+	//  `
+	// _, err = tx.ExecContext(ctx, query, myUserIdArg, optionChosenArg, gameIdArg, questionIdArg)
+	// if err != nil {
+	// 	cancel()
+	// 	tx.Rollback()
+	// 	fmt.Println("error: resultsRouter, createAnswer: error inserting answer into db: ", err)
+	// 	return err
+	// }
 
 	tx.Commit()
 
@@ -250,14 +249,32 @@ func GetGameResults(c echo.Context) error {
 			AnswerText: answerTextRaw.String,
 		})
 	}
-
 	query = `
-    SELECT score, users.username
-    FROM scores
-    JOIN users ON users.id = scores.user_id
-    WHERE game_id = :game_id
-    ORDER BY score;
-    `
+WITH vote_counts AS (
+	SELECT COUNT(*)  AS total_votes, option_chosen, game_id, question_id, answerer_id
+	FROM answers
+	GROUP BY question_id, game_id,  option_chosen
+) 
+SELECT  users.username, SUM(total_votes) AS score
+FROM answers
+JOIN vote_counts 
+		ON answers.game_id = vote_counts.game_id
+		AND answers.question_id = vote_counts.question_id
+		AND answers.option_chosen = vote_counts.option_chosen
+JOIN users 
+	ON users.id = answers.answerer_id
+  WHERE answers.game_id = :game_id
+GROUP BY answers.game_id, answers.answerer_id
+ORDER BY score DESC;
+`
+
+	// query = `
+	//    SELECT score, users.username
+	//    FROM scores
+	//    JOIN users ON users.id = scores.user_id
+	//    WHERE game_id = :game_id
+	//    ORDER BY score;
+	//    `
 
 	rows, err = db.Sqlite.QueryContext(ctx, query, gameIdArg)
 	if err != nil {
@@ -278,7 +295,7 @@ func GetGameResults(c echo.Context) error {
 			scoreRaw    sql.NullInt64
 			usernameRaw sql.NullString
 		)
-		err := rows.Scan(&scoreRaw, &usernameRaw)
+		err := rows.Scan(&usernameRaw, &scoreRaw)
 		if err != nil {
 			fmt.Println("error scanning answer scoreboard data into vars: ", err)
 			tx.Rollback()
@@ -303,7 +320,3 @@ func GetGameResults(c echo.Context) error {
 
 	return controllers.RenderTemplate(c, "results", data)
 }
-
-//
-// func updateGameResults(c echo.Context) error {
-// }
