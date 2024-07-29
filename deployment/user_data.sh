@@ -38,6 +38,28 @@ sudo chmod +x /var/www/ask_away/app/build
 echo "------------ Create app.log file -------------"
 touch app.log
 echo "------------ Create Chron Job to Update Askers Every Night at Midnight ------------"
-0 0 * * * curl -X POST http://localhost:8082/update-askers
+# How to do with bash script? TODO
+# touch /var/www/ask_away/app/chronjob.sh
+# sudo echo "0 0 * * * curl -X POST http://localhost:8082/update-askers" > /var/www/ask_away/app/chronjob.sh
+# crontab -e "/var/www/ask_away/app/chronjob.sh"
+echo "------------ Get env_vars --------------"
+ENV_VARS=$(aws secretsmanager get-secret-value --region "us-west-1" --output json --secret-id ask_away_env_vars)
+
+echo "------------ Extract individual secrets using jq ------------"
+TURSO_DATABASE_URL=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.turso_database_url')
+TURSO_AUTH_TOKEN=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.turso_auth_token')
+JWTSECRET=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.jwt_secret')
+MY_PASSWORD=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.my_password')
+MY_EMAIL=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.my_email')
+MY_USERNAME=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.my_username')
+
+echo "---------------- Export the secrets as environment variables ------------"
+export TURSO_DATABASE_URL
+export TURSO_AUTH_TOKEN
+export JWTSECRET
+export MY_PASSWORD
+export MY_EMAIL
+export MY_USERNAME
+
 echo "------------ Running Executable with env vars and pipe output to app.log ------------"
-sudo USE_DEV_SQLITE=true ./build >app.log 2>&1 &
+sudo USE_DEV_SQLITE=true TURSO_DATABASE_URL=$TURSO_DATABASE_URL TURSO_AUTH_TOKEN=$TURSO_AUTH_TOKEN JWTSECRET=$JWTSECRET MY_PASSWORD=$MY_PASSWORD MY_EMAIL=$MY_EMAIL MY_USERNAME=$MY_USERNAME ./build >app.log 2>&1

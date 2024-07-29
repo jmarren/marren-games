@@ -123,15 +123,11 @@ func InitTemplates() {
 
 // Render full or partial templates based on the HX-Request header
 func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) error {
-	hx := c.Request().Header.Get("HX-Request") != ""
+	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
+	c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
+	hx := c.Request().Header.Get("Hx-Request") == "true"
 
 	if hx {
-		// HTMX Request: Render only the partial content
-		// pageData := PageData{
-		// 	Title:           "", // TODO
-		// 	PartialTemplate: partialTemplate,
-		// 	Data:            data,
-		// }
 		err := c.Render(http.StatusOK, partialTemplate, data)
 		if err != nil {
 			fmt.Println("Error rendering template from hx-request:", err)
@@ -163,10 +159,14 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 }
 
 func IndexHandler(c echo.Context) error {
+	// c.Response().Header().Set(echo.HeaderVary, "HX-Request")
+	// c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
 	return RenderTemplate(c, "index", nil)
 }
 
 func SignInHandler(c echo.Context) error {
+	// c.Response().Header().Set(echo.HeaderVary, "HX-Request")
+	// c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
 	return RenderTemplate(c, "sign-in", nil)
 }
 

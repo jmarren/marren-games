@@ -105,7 +105,7 @@
 
 
   <span id="create-account-title">Create Account</span>
-  <form id="create-account-form" hx-post="/create-account-submit" hx-target="#create-account-container"
+  <form id="create-account-form" hx-post="/create-account-submit" hx-target="#page-content" hx-swap="outerHTML"
     hx-target-5*="#create-account-error" hx-target-error="next #create-acount-error">
     <div class="form-item">
       <label for="username">

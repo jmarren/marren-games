@@ -158,3 +158,34 @@ resource "aws_iam_instance_profile" "ask_away_ec2_profile" {
   role = aws_iam_role.ask_away_ec2_role.name
 }
 
+
+
+
+resource "aws_iam_policy" "ask_away_secretsmanager_policy" {
+  name        = "Ask_Away_SecretsManagerAccessPolicy"
+  description = "Allows access to the Secrets Manager service"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "secretsmanager:GetSecretValue",
+        Resource = var.ask_away_secret_arns
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "ask_away_secrets_policy_attach" {
+  role       = aws_iam_role.ask_away_ec2_role.name
+  policy_arn = aws_iam_policy.ask_away_secretsmanager_policy.arn
+}
+
+
+
+variable "ask_away_secret_arns" {
+  description = "List of ARNs for required secrets"
+  type        = list(string)
+}

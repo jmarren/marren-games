@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 # build go app for linux/arm64 with musl to compile sqlite driver
 echo "****** building binary ******"
 env GOARCH=arm64 GOOS=linux CC=aarch64-linux-musl-gcc CGO_ENABLED=1 go build -x -tags "sqlite3" -o ./build ../cmd/server/main.go

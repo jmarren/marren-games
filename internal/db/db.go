@@ -123,7 +123,6 @@ SET user_id = (
 
 	_, err = tx.ExecContext(ctx, query)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("error updating askers: %v", err)
 	}
 

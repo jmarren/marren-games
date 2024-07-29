@@ -17,7 +17,6 @@ import (
 	"github.com/jmarren/marren-games/internal/db"
 	"github.com/jmarren/marren-games/internal/routers"
 	"github.com/jmarren/marren-games/internal/routers/restricted"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	// echoprometheus  "github.com/labstack/echo-contrib"
@@ -43,11 +42,11 @@ func initEcho() *echo.Echo {
 }
 
 func main() {
-	envError := godotenv.Load()
-	if envError != nil {
-		log.Fatal("Error loading .env file")
-	}
-
+	// envError := godotenv.Load()
+	// if envError != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
+	//
 	// AWS
 	awssdk.InitAWS()
 
