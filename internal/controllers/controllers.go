@@ -123,6 +123,8 @@ func InitTemplates() {
 
 // Render full or partial templates based on the HX-Request header
 func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) error {
+	c.Response().Header().Set("Expires", time.Now().Add(time.Minute*5).Format(http.TimeFormat))
+	c.Response().Header().Set(echo.HeaderCacheControl, "max-age=300, private")
 	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
 	c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
 	hx := c.Request().Header.Get("Hx-Request") == "true"
@@ -146,7 +148,7 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 
 	pageData := PageData{
 		Username:        username,
-		Title:           "Marren Games",
+		Title:           "Marren Games - " + partialTemplate,
 		PartialTemplate: partialTemplate,
 		Data:            data,
 	}

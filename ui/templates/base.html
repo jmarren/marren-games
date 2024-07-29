@@ -4,9 +4,11 @@
 <html lang="en">
 
 <head>
-  <title></title>
+  <title>{{ .Title }}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="A daily game to play with friends. Create a question and get points based on how popular your vote is among the other players!">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,16 +78,16 @@
   </top-bar>
 
   <side-bar id="side-bar">
-    <div slot="profile" hx-trigger="click" hx-get="/auth/transition/profile" hx-target="#transition-styles"
-      hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item">
+    <div slot="profile" role="button" hx-trigger="click" hx-get="/auth/transition/profile"
+      hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item">
       Profile
     </div>
-    <div slot="games" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles"
+    <div slot="games" role="button" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles"
       hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item">
       Games
     </div>
-    <div slot="friends" hx-trigger="click" hx-get="/auth/transition/friends" hx-target="#transition-styles"
-      hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item">
+    <div slot="friends" role="button" hx-trigger="click" hx-get="/auth/transition/friends"
+      hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item">
       Friends
     </div>
   </side-bar>
