@@ -12,12 +12,11 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
-  <script src="/static/js/footer-component.js"></script>
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet"> -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 </head>
 
-<body>
+<body hx-ext="preload">
   <style>
     div {
       all: unset;
@@ -71,6 +70,7 @@
     }
   </style>
 
+  <script src="/static/js/footer-component.js"></script>
   <script src="/static/js/top-bar.js"></script>
   <script src="/static/js/side-bar.js"></script>
   <top-bar>

@@ -1,6 +1,7 @@
 {{ define "index" }}
 <script src="/static/js/button-component.js"> </script>
 
+<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/preload.js"></script>
 <div id="page-content">
 
   <style id="transition-styles">
@@ -49,13 +50,13 @@
   <div id="buttons-container">
     <button-component>
       <button slot="button" id="create-account-button" hx-get="/create-account" hx-target="#page-content"
-        hx-push-url="true" hx-swap="outerHTML">
+        hx-push-url="true" hx-swap="outerHTML" preload="preload:init">
         Create An Account
       </button>
     </button-component>
     <button-component>
       <button slot="button" id="sign-in-button" hx-get="/sign-in" hx-target="#page-content" hx-push-url="true"
-        hx-swap="outerHTML">
+        hx-swap="outerHTML" preload="preload:init">
         Sign In
       </button>
     </button-component>
