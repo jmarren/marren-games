@@ -45,7 +45,7 @@ func InitDB() error {
 		}
 
 		// Specify the backup file path
-		backupFilePath := "db-storage/backup.db"
+		backupFilePath := currentWorkingDir + "/db-storage/backup.db"
 
 		// Check if the backup file exists and remove it
 		if _, err := os.Stat(backupFilePath); err == nil {
@@ -53,7 +53,7 @@ func InitDB() error {
 				log.Fatalf("Failed to remove existing backup file %s: %v", backupFilePath, err)
 			}
 		}
-		_, err := Sqlite.Exec("VACUUM INTO 'backup.db';")
+		_, err := Sqlite.Exec("VACUUM INTO 'db-storage/backup.db';")
 		if err != nil {
 			log.Fatalf("Failed to backup in-memory database: %v", err)
 		}
