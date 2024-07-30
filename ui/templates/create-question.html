@@ -1,70 +1,88 @@
 {{ define "create-question" }}
 
-<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
-<style>
-  #page-content {
-    display: flex;
-    padding: 25px;
-    justify-content: center;
-  }
-
-  #content-container {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-  }
-
-  #create-question-title {
-    font-family: Cheto;
-  }
-
-
-  form {
-    width: 400px;
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    background-color: seagreen;
-    border: 2px solid black;
-    box-shadow: 5px 5px black;
-    border-radius: 10px;
-  }
-
-  input[type=text] {
-    border-radius: 5px;
-    background-color: antiquewhite;
-    flex-grow: 1;
-    padding: 5px;
-    font-family: Aruma;
-    font-size: 20px;
-    padding: 5px;
-  }
-
-  .form-item {
-    font-size: 25px;
-    font-family: Aruma;
-    color: antiquewhite;
-    display: flex;
-    gap: 10px;
-  }
-
-  button {
-    font-family: Aruma;
-    font-size: 20px;
-    padding: 10px;
-    border-radius: 10px;
-    background-color: #fcb603;
-    color: seagreen;
-  }
-
-  button:hover {
-    background-color: darkolivegreen;
-  }
-</style>
-
-
 <div id="page-content" hx-ext="response-targets">
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/response-targets.js"></script>
+  <style id="transition-styles">
+    @keyframes slide-in-from-left {
+      0% {
+        translate: -100vw 0;
+      }
+
+      100% {
+        translate: 0 0;
+      }
+    }
+
+
+    #page-content {
+      animation-name: slide-in-from-left;
+      animation-duration: 1s;
+      animation-timing-function: cubic-bezier(0.71, -0.01, 0.41, 1);
+    }
+  </style>
+  <style>
+    #page-content {
+      display: flex;
+      padding: 25px;
+      justify-content: center;
+    }
+
+    #content-container {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #create-question-title {
+      font-family: Cheto;
+    }
+
+
+    form {
+      width: 400px;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background-color: seagreen;
+      border: 2px solid black;
+      box-shadow: 5px 5px black;
+      border-radius: 10px;
+    }
+
+    input[type=text] {
+      border-radius: 5px;
+      background-color: antiquewhite;
+      flex-grow: 1;
+      padding: 5px;
+      font-family: Aruma;
+      font-size: 20px;
+      padding: 5px;
+    }
+
+    .form-item {
+      font-size: 25px;
+      font-family: Aruma;
+      color: antiquewhite;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      font-family: Aruma;
+      font-size: 20px;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #fcb603;
+      color: seagreen;
+    }
+
+    button:hover {
+      background-color: darkolivegreen;
+    }
+  </style>
+
+
   <div id="content-container">
     <h1 id="create-question-title">
       It's your turn to write a question!
