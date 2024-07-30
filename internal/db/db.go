@@ -39,13 +39,13 @@ func InitDB() error {
 	if useDevSQLite == "true" {
 		fmt.Println("Using in-memory db")
 
-		Sqlite, err = sql.Open("libsql", "file:memory:")
+		Sqlite, err = sql.Open("libsql", "file:db-storage/memory:")
 		if err != nil {
 			return fmt.Errorf("failed to open in-memory db %s: %s", url, err)
 		}
 
 		// Specify the backup file path
-		backupFilePath := "backup.db"
+		backupFilePath := "db-storage/backup.db"
 
 		// Check if the backup file exists and remove it
 		if _, err := os.Stat(backupFilePath); err == nil {

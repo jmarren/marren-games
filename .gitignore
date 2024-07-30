@@ -5,6 +5,10 @@ deployment/.terraform.lock.hcl
 deployment/.terraform
 
 
+# In-memory database files
+db-storage/
+
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
