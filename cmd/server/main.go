@@ -19,7 +19,6 @@ import (
 	"github.com/jmarren/marren-games/internal/routers/restricted"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	// echoprometheus  "github.com/labstack/echo-contrib"
 	// "github.com/labstack/echo/v4/middleware"
 )
@@ -62,7 +61,7 @@ func main() {
 	defer db.Sqlite.Close()
 	// Initialize Echo
 	e := initEcho()
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	pprofGroup := e.Group("/debug/pprof")
 	pprofGroup.GET("/*", echo.WrapHandler(http.DefaultServeMux))

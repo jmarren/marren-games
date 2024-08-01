@@ -43,12 +43,11 @@ func invitePlayerToGame(c echo.Context) error {
 
 	query := `
       INSERT INTO user_game_invites (user_id, game_id)
-  VALUES(:new_player_id, :game_id);
+      VALUES(:new_player_id, :game_id);
   `
 	_, err = db.Sqlite.Exec(query, newPlayerArg, gameIdArg)
 	if err != nil {
-		fmt.Println("error adding user to user_game_invites")
-		return err
+		return fmt.Errorf("InvitesRouter, invitePlayerToGame(), error adding user to user_game_invites: %v", err)
 	}
 
 	data := struct {
@@ -87,10 +86,6 @@ func deleteGameInvite(c echo.Context) error {
 		return fmt.Errorf("game-id param not convertible to int %v", err)
 	}
 
-	// playerIdInt, err := strconv.Atoi(playerId)
-	// if err != nil {
-	// 	fmt.Errorf("game-id param not convertible to int")
-	// }
 	playerIdArg := sql.Named("player_id", playerId)
 	gameIdArg := sql.Named("game_id", gameId)
 

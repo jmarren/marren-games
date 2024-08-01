@@ -24,6 +24,7 @@ func GamesRouter(r *echo.Group) {
 }
 
 func getGames(c echo.Context) error {
+	fmt.Println("hit get games")
 	// Set Header to revalidate cache
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache, private")
 	// Get User Id
@@ -41,10 +42,73 @@ func getGames(c echo.Context) error {
 	tx, err := db.Sqlite.BeginTx(ctx, nil)
 	if err != nil {
 		cancel()
-		return c.String(http.StatusInternalServerError, "error")
+		return fmt.Errorf("getGames(), error beginning db tx: %v", err)
 	}
 
 	defer tx.Rollback()
+
+	// query to get most recent last_modified for all the games the user is a member of
+	query := `
+WITH games_last_modified AS (
+	SELECT 1 AS id, last_modified AS last_date
+	FROM games
+	JOIN user_game_membership
+		ON user_game_membership.game_id = games.id
+  WHERE user_game_membership.user_id = :my_user_id
+	ORDER BY games.last_modified DESC
+	LIMIT 1),
+	most_recent_invite AS (
+	SELECT 1 AS id,  date_invited   AS last_date
+	FROM user_game_invites
+  WHERE user_game_invites.user_id = :my_user_id
+	ORDER BY date_invited DESC
+	LIMIT 1)
+	SELECT MAX(IFNULL(games_last_modified.last_date, 0), IFNULL(most_recent_invite.last_date, 0)) AS most_recent_change
+	FROM games_last_modified
+	LEFT JOIN most_recent_invite
+		ON games_last_modified.id = most_recent_invite.id;
+  `
+
+	var ifModifiedSinceTime time.Time
+	ifModifiedSince := c.Request().Header.Get(echo.HeaderIfModifiedSince)
+	if ifModifiedSince != "" {
+		ifModifiedSinceTime, err = time.Parse(http.TimeFormat, ifModifiedSince)
+		fmt.Printf("\n ifModifiedSinceTime: %v", ifModifiedSinceTime)
+		if err != nil {
+			fmt.Printf("\nerror: no if-modified-since header: %v", err)
+			ifModifiedSinceTime = time.Time{}
+		}
+	}
+
+	row := tx.QueryRowContext(ctx, query, myUserIdArg)
+
+	var lastModifiedStr string
+
+	err = row.Scan(&lastModifiedStr)
+	if err != nil {
+		return fmt.Errorf("/games getGames(), scanning into lastModified: %v", err)
+	}
+
+	fmt.Printf("\n lastModifiedStr: %v", lastModifiedStr)
+	fmt.Printf("\n ifModifiedSinceTime: %v", ifModifiedSinceTime)
+
+	var lastModified time.Time
+	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
+	if err != nil {
+		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v ", err)
+		lastModified = time.Time{}
+	}
+
+	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+		tx.Commit()
+		return c.NoContent(http.StatusNotModified)
+	} else {
+		fmt.Println("if-modified-since is 0 or before last_modified")
+		fmt.Println(" setting lastModified header to: ", lastModified.Format(http.TimeFormat))
+		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
+		c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
+	}
+
 	type Game struct {
 		GameId               int64
 		GameName             string
@@ -55,16 +119,16 @@ func getGames(c echo.Context) error {
 
 	var games []Game
 
-	query := `
+	query = `
 SELECT user_game_membership.game_id, games.name, member_counts.total_members, question_text,  users.username AS current_asker_username
   FROM user_game_membership
 JOIN games
  	ON games.id = user_game_membership.game_id
 JOIN current_askers
 	ON current_askers.game_id = games.id
-JOIN users 
+JOIN users
 	ON users.id = current_askers.user_id
-LEFT JOIN questions ON 
+LEFT JOIN questions ON
 	user_game_membership.game_id = questions.game_id
 	  AND DATE(questions.date_created) = DATE('now') 
 JOIN (

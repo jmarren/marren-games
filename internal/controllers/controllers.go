@@ -141,9 +141,6 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 			c.Response().Header().Set(k, currentHeadersMap[k])
 		}
 	}
-
-	fmt.Println("-- headers after operations -- \nExpires: ", c.Response().Header().Get("Expires"))
-
 	hx := c.Request().Header.Get("Hx-Request") == "true"
 
 	if hx {

@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS user_game_membership (
 CREATE TABLE IF NOT EXISTS user_game_invites (
   user_id INTEGER NOT NULL,
   game_id INTEGER NOT NULL,
+  date_invited TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (game_id) REFERENCES games(id),
   PRIMARY KEY (user_id, game_id)
@@ -140,6 +141,14 @@ END;
 
 CREATE TRIGGER IF NOT EXISTS game_modified_by_answer_created
 AFTER INSERT ON answers
+BEGIN
+  UPDATE games
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE games.id = NEW.game_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS game_modified_by_user_added
+AFTER INSERT ON user_game_membership
 BEGIN
   UPDATE games
   SET last_modified = CURRENT_TIMESTAMP
