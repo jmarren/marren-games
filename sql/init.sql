@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL
+  password_hash TEXT NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS games (
   date_created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   name TEXT NOT NULL UNIQUE,
   creator_id INTEGER NOT NULL,
+  last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (creator_id) REFERENCES users(id)
 );
 
@@ -94,6 +96,57 @@ CREATE TABLE IF NOT EXISTS scores (
   PRIMARY KEY (user_id, game_id)
 );
 
+CREATE TRIGGER IF NOT EXISTS user_modified_by_friendships_created
+AFTER INSERT ON friendships
+BEGIN
+  UPDATE users
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE users.id = NEW.user_1_id
+      OR users.id = NEW.user_2_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS user_modified_by_friendships_deleted
+AFTER DELETE ON friendships
+BEGIN
+  UPDATE users
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE users.id = NEW.user_1_id
+      OR users.id = NEW.user_2_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS user_modified_by_games_membership_created
+AFTER INSERT ON user_game_membership
+BEGIN
+  UPDATE users
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE users.id = NEW.user_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS game_modified_by_asker_updated
+AFTER UPDATE ON current_askers
+BEGIN
+  UPDATE games
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE games.id = NEW.game_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS game_modified_by_question_created
+AFTER INSERT ON questions
+BEGIN
+  UPDATE games
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE games.id = NEW.game_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS game_modified_by_answer_created
+AFTER INSERT ON answers
+BEGIN
+  UPDATE games
+  SET last_modified = CURRENT_TIMESTAMP
+  WHERE games.id = NEW.game_id;
+END;
+
+
 CREATE TRIGGER IF NOT EXISTS add_new_user_to_all_users_game
 AFTER INSERT ON users
 BEGIN
@@ -123,22 +176,6 @@ BEGIN
   INSERT INTO scores (user_id, game_id)
   VALUES (NEW.user_id, NEW.game_id);
 END;
-
-
-CREATE VIEW IF NOT EXISTS todays_question_id AS
-    SELECT questions.id
-    FROM questions
-    WHERE DATE(questions.date_created) = DATE('now');
-
-
-
-CREATE VIEW IF NOT EXISTS todays_question AS
-    SELECT questions.question_text, users.username AS asker_username, questions.id AS question_id
-    FROM questions
-    JOIN users
-      ON users.id = questions.asker_id
-    WHERE DATE(questions.date_created) = DATE('now')
-    LIMIT  1;
 
 
 

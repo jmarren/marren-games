@@ -105,6 +105,9 @@ func createAnswer(c echo.Context) error {
 
 // TODO
 func GetGameResults(c echo.Context) error {
+	// Set Cache Control Header
+	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache, private")
+
 	// get game id from query params
 	gameId, err := strconv.Atoi(c.Param("game-id"))
 	if err != nil {

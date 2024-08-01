@@ -1,6 +1,7 @@
 package restricted
 
 import (
+	"errors"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -27,6 +28,7 @@ func (u UrlPathParamArgConfig) getValue(context echo.Context) string {
 }
 
 func RestrictedRoutes(r *echo.Group) {
+	// Use jwt with claims for authentication
 	jwtConfig := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(auth.JwtCustomClaims)
@@ -35,6 +37,22 @@ func RestrictedRoutes(r *echo.Group) {
 		TokenLookup: "cookie:auth",
 	}
 	r.Use(echojwt.WithConfig(jwtConfig))
+
+	// Middleware that adds custom username and Vary Headers
+	// that tell the browser to look for changes in X-Username and Hx-Request
+	// Headers before using cached content
+	r.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			username, ok := auth.GetFromClaims(auth.Username, c).(string)
+			if !ok {
+				return errors.New("username from claims not assertible to string")
+			}
+
+			c.Response().Header().Set("X-Username", username)
+			c.Response().Header().Set(echo.HeaderVary, "X-Username, Hx-Request")
+			return next(c)
+		}
+	})
 
 	transitionGroup := r.Group("/transition")
 	transitions.TransitionRouter(transitionGroup)

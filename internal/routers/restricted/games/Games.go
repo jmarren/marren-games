@@ -24,6 +24,8 @@ func GamesRouter(r *echo.Group) {
 }
 
 func getGames(c echo.Context) error {
+	// Set Header to revalidate cache
+	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache, private")
 	// Get User Id
 	myUserId := auth.GetFromClaims(auth.UserId, c)
 
@@ -44,19 +46,24 @@ func getGames(c echo.Context) error {
 
 	defer tx.Rollback()
 	type Game struct {
-		GameId           int64
-		GameName         string
-		GameTotalMembers int64
-		QuestionText     string
+		GameId               int64
+		GameName             string
+		GameTotalMembers     int64
+		QuestionText         string
+		CurrentAskerUsername string
 	}
 
 	var games []Game
 
 	query := `
-SELECT user_game_membership.game_id, games.name, member_counts.total_members, question_text
+SELECT user_game_membership.game_id, games.name, member_counts.total_members, question_text,  users.username AS current_asker_username
   FROM user_game_membership
 JOIN games
  	ON games.id = user_game_membership.game_id
+JOIN current_askers
+	ON current_askers.game_id = games.id
+JOIN users 
+	ON users.id = current_askers.user_id
 LEFT JOIN questions ON 
 	user_game_membership.game_id = questions.game_id
 	  AND DATE(questions.date_created) = DATE('now') 
@@ -79,8 +86,9 @@ JOIN (
 		var gameNameRaw sql.NullString
 		var totalMembers sql.NullInt64
 		var questionTextRaw sql.NullString
+		var currentAskerUsernameRaw sql.NullString
 
-		err := rows.Scan(&gameIdRaw, &gameNameRaw, &totalMembers, &questionTextRaw)
+		err := rows.Scan(&gameIdRaw, &gameNameRaw, &totalMembers, &questionTextRaw, &currentAskerUsernameRaw)
 		if err != nil {
 			fmt.Println("error scanning game_id into gameId variable: ", err)
 			return err
@@ -90,10 +98,11 @@ JOIN (
 		}
 
 		games = append(games, Game{
-			GameId:           gameIdRaw.Int64,
-			GameName:         gameNameRaw.String,
-			GameTotalMembers: totalMembers.Int64,
-			QuestionText:     questionTextRaw.String,
+			GameId:               gameIdRaw.Int64,
+			GameName:             gameNameRaw.String,
+			GameTotalMembers:     totalMembers.Int64,
+			QuestionText:         questionTextRaw.String,
+			CurrentAskerUsername: currentAskerUsernameRaw.String,
 		})
 	}
 
@@ -157,6 +166,8 @@ JOIN (
 }
 
 func getCreateGameUI(c echo.Context) error {
+	// Content is static --> Set long cache policy
+	c.Response().Header().Set(echo.HeaderCacheControl, "public, max-age=15000")
 	return controllers.RenderTemplate(c, "create-game", nil)
 }
 

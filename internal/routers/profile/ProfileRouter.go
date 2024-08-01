@@ -74,15 +74,10 @@ func getProfilePhotoViewer(c echo.Context) error {
 }
 
 func GetMyProfilePage(c echo.Context) error {
-	addTopRight := false
-	addTopRightParam := c.QueryParam("add-top-right")
-	if addTopRightParam == "true" {
-		addTopRight = true
-	}
-
 	fail := func(err error) error {
 		return fmt.Errorf("error @ ProfileRouter, getProfilePage(): %v ", err)
 	}
+
 	username := auth.GetFromClaims(auth.Username, c)
 	userId := auth.GetFromClaims(auth.UserId, c)
 
@@ -96,8 +91,49 @@ func GetMyProfilePage(c echo.Context) error {
 	if err != nil {
 		return fail(err)
 	}
+	defer tx.Rollback()
 
 	query := `
+    SELECT last_modified
+    FROM users
+    WHERE users.id = :user_id;
+  `
+
+	row := tx.QueryRowContext(ctx, query, userIdArg)
+
+	var lastModifiedStr string
+	err = row.Scan(&lastModifiedStr)
+	if err != nil {
+		fail(fmt.Errorf(", scanning into lastModified var: %v", err))
+	}
+	var lastModified time.Time
+	lastModified, err = time.Parse(time.RFC3339, lastModifiedStr)
+	if err != nil {
+		lastModified = time.Time{}
+	}
+	var ifModifiedSinceTime time.Time
+	ifModifiedSince := c.Request().Header.Get(echo.HeaderIfModifiedSince)
+	if ifModifiedSince != "" {
+		ifModifiedSinceTime, err = time.Parse(http.TimeFormat, ifModifiedSince)
+		if err != nil {
+			ifModifiedSinceTime = time.Time{}
+		}
+	}
+	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+		tx.Commit()
+		return c.NoContent(http.StatusNotModified)
+	} else {
+		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
+		c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
+	}
+
+	addTopRight := false
+	addTopRightParam := c.QueryParam("add-top-right")
+	if addTopRightParam == "true" {
+		addTopRight = true
+	}
+
+	query = `
     SELECT (
       SELECT email
       FROM users
@@ -113,46 +149,38 @@ func GetMyProfilePage(c echo.Context) error {
       SELECT COUNT(*) 
       FROM user_game_membership
       WHERE user_id = :user_id
-    ) AS num_games,
-    (
-      SELECT SUM(score)
-      FROM scores
-      WHERE user_id = :user_id
-    ) as total_points
-    FROM (SELECT 1) AS dummy;
+    ) AS num_games
+      FROM (SELECT 1) AS dummy;
   `
 
-	row := tx.QueryRowContext(ctx, query, userIdArg)
+	row = tx.QueryRowContext(ctx, query, userIdArg)
 
 	var (
-		emailRaw       sql.NullString
-		numFriendsRaw  sql.NullInt64
-		numGamesRaw    sql.NullInt64
-		totalPointsRaw sql.NullInt64
+		emailRaw      sql.NullString
+		numFriendsRaw sql.NullInt64
+		numGamesRaw   sql.NullInt64
 	)
 
-	err = row.Scan(&emailRaw, &numFriendsRaw, &numGamesRaw, &totalPointsRaw)
+	err = row.Scan(&emailRaw, &numFriendsRaw, &numGamesRaw)
 	if err != nil {
-		tx.Rollback()
 		return fail(err)
 	}
 
 	data := struct {
-		Username    string
-		Email       string
-		NumFriends  int64
-		NumGames    int64
-		TotalPoints int64
+		Username   string
+		Email      string
+		NumFriends int64
+		NumGames   int64
 	}{
-		Username:    username.(string),
-		Email:       emailRaw.String,
-		NumFriends:  numFriendsRaw.Int64,
-		NumGames:    numGamesRaw.Int64,
-		TotalPoints: totalPointsRaw.Int64,
+		Username:   username.(string),
+		Email:      emailRaw.String,
+		NumFriends: numFriendsRaw.Int64,
+		NumGames:   numGamesRaw.Int64,
 	}
 
 	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")
 
+	tx.Commit()
 	if addTopRight {
 		return controllers.RenderTemplate(c, "profile-after-login", data)
 	}

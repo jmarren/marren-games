@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -39,6 +40,7 @@ func getGameById(c echo.Context) error {
 		return fmt.Errorf("\033[31m getPlayPage error: %v \033[0m", err)
 	}
 
+	// Get Necessary Data from request
 	gameId := c.Param("game-id")
 	gameIdInt, err := strconv.Atoi(gameId)
 	if err != nil {
@@ -49,7 +51,57 @@ func getGameById(c echo.Context) error {
 	myUserId := auth.GetFromClaims(auth.UserId, c)
 	myUserIdArg := sql.Named("my_user_id", myUserId)
 
+	var ifModifiedSinceTime time.Time
+	ifModifiedSince := c.Request().Header.Get(echo.HeaderIfModifiedSince)
+	if ifModifiedSince != "" {
+		ifModifiedSinceTime, err = time.Parse(http.TimeFormat, ifModifiedSince)
+		if err != nil {
+			ifModifiedSinceTime = time.Time{}
+		}
+	}
+
+	// Create DB Transaction
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
+
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fail(err)
+	}
+	defer tx.Rollback()
+
+	var lastModifiedStr string
+
+	// Query to get last modified timestamp
 	query := `
+    SELECT last_modified
+    FROM games
+    WHERE id = :game_id;
+  `
+	row := tx.QueryRowContext(ctx, query, gameIdArg)
+
+	err = row.Scan(&lastModifiedStr)
+	if err != nil {
+		fmt.Println("error while scanning into vars")
+		return err
+	}
+
+	var lastModified time.Time
+	lastModified, err = time.Parse(time.RFC3339, lastModifiedStr)
+	if err != nil {
+		lastModified = time.Time{}
+	}
+
+	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+		tx.Commit()
+		return c.NoContent(http.StatusNotModified)
+	} else {
+		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
+		c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
+	}
+
+	query = `
     SELECT (
       CASE WHEN
     (
@@ -74,16 +126,7 @@ func getGameById(c echo.Context) error {
 	var isAskerInt sql.NullInt64
 	var todaysQuestionCreatedInt sql.NullInt64
 
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
-
-	defer cancel()
-
-	tx, err := db.Sqlite.BeginTx(ctx, nil)
-	if err != nil {
-		return fail(err)
-	}
-	defer tx.Rollback()
-	row := tx.QueryRowContext(ctx, query, gameIdArg, myUserIdArg)
+	row = tx.QueryRowContext(ctx, query, gameIdArg, myUserIdArg)
 
 	err = row.Scan(&isAskerInt, &todaysQuestionCreatedInt)
 	if err != nil {
@@ -119,7 +162,6 @@ func getGameById(c echo.Context) error {
 			}{
 				GameId: gameIdInt,
 			}
-			tx.Commit()
 			return controllers.RenderTemplate(c, "create-question", data)
 		}
 	}
@@ -174,6 +216,9 @@ func getGameById(c echo.Context) error {
 		fmt.Printf("\n \033[31m answeredTodaysQuestion: %v  \033[0m \n", answeredTodaysQuestion)
 
 		tx.Commit()
+		now := time.Now()
+		c.Response().Header().Set("Expires", now.Add(time.Minute*15).Format(http.TimeFormat))
+		// time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC).AddDate(0, 0, 1).Format(http.TimeFormat))
 		return GetGameResults(c)
 	}
 
@@ -237,10 +282,30 @@ func getGameById(c echo.Context) error {
 	}
 
 	tx.Commit()
+	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache, private")
 	return controllers.RenderTemplate(c, "gameplay", data)
 }
 
 func getCreateQuestionUI(c echo.Context) error {
+	// Content is static (only data is retrieved from url params) --> Set long cache policy
+	lastModified := time.Date(2024, 7, 31, 0, 0, 0, 0, time.UTC)
+	ifModifiedHeader := c.Request().Header.Get("If-Modified-Since")
+	if ifModifiedHeader != "" {
+		ifModifiedSinceTime, err := time.Parse(http.TimeFormat, ifModifiedHeader)
+		if err != nil {
+			return fmt.Errorf("if modified header not in proper format: %v ", err)
+		}
+
+		if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+			return c.NoContent(http.StatusNotModified)
+		}
+	}
+
+	// Content is static (only data is retrieved from url params) --> Set long cache policy
+	c.Response().Header().Set(echo.HeaderCacheControl, "public, max-age=15000")
+	c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
+
+	// Get Game Id
 	gameId, err := strconv.Atoi(c.Param("game-id"))
 	if err != nil {
 		return fmt.Errorf("game-id param not convertible to int %v", err)
@@ -255,6 +320,22 @@ func getCreateQuestionUI(c echo.Context) error {
 }
 
 func getInviteFriendsUI(c echo.Context) error {
+	lastModified := time.Date(2024, 7, 31, 0, 0, 0, 0, time.UTC)
+	ifModifiedHeader := c.Request().Header.Get("If-Modified-Since")
+	if ifModifiedHeader != "" {
+		ifModifiedSinceTime, err := time.Parse(http.TimeFormat, ifModifiedHeader)
+		if err != nil {
+			return fmt.Errorf("if modified header not in proper format: %v ", err)
+		}
+
+		if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+			return c.NoContent(http.StatusNotModified)
+		}
+	}
+
+	// Content is static (only data is retrieved from url params) --> Set long cache policy
+	c.Response().Header().Set(echo.HeaderCacheControl, "public, max-age=15000")
+	c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
 	gameId, err := strconv.Atoi(c.Param("game-id"))
 	if err != nil {
 		return fmt.Errorf("game-id param not convertible to int %v", err)
@@ -265,5 +346,6 @@ func getInviteFriendsUI(c echo.Context) error {
 	}{
 		GameId: gameId,
 	}
+
 	return controllers.RenderTemplate(c, "invite-friends", data)
 }

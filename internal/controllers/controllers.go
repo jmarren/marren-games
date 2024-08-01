@@ -123,10 +123,27 @@ func InitTemplates() {
 
 // Render full or partial templates based on the HX-Request header
 func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) error {
-	c.Response().Header().Set("Expires", time.Now().Add(time.Minute*5).Format(http.TimeFormat))
-	c.Response().Header().Set(echo.HeaderCacheControl, "max-age=300, private")
-	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
-	c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
+	currentHeadersMap := make(map[string]string)
+	headers := []string{echo.HeaderCacheControl, echo.HeaderVary}
+	for _, header := range headers {
+		currentHeader := c.Response().Header().Get(header)
+		currentHeadersMap[header] = currentHeader
+	}
+	defaultHeadersMap := map[string]string{
+		echo.HeaderCacheControl: "no-cache, private",
+		echo.HeaderVary:         "Hx-Request, X-Username",
+	}
+
+	for k, v := range currentHeadersMap {
+		if v == "" {
+			c.Response().Header().Set(k, defaultHeadersMap[k])
+		} else {
+			c.Response().Header().Set(k, currentHeadersMap[k])
+		}
+	}
+
+	fmt.Println("-- headers after operations -- \nExpires: ", c.Response().Header().Get("Expires"))
+
 	hx := c.Request().Header.Get("Hx-Request") == "true"
 
 	if hx {

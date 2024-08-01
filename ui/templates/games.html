@@ -117,6 +117,7 @@
         <th>Name</th>
         <th>Members</th>
         <th>Current Question</th>
+        <th>Current Asker</th>
       </tr>
     </thead>
     <tbody>
@@ -125,6 +126,7 @@
         <td>{{ .GameName}}</td>
         <td>{{ .GameTotalMembers}}</td>
         <td>{{ .QuestionText }}</td>
+        <td>{{ .CurrentAskerUsername}}</td>
       </tr>
       {{ end }}
     </tbody>

@@ -14,6 +14,8 @@ type TemplateData struct {
 
 func TransitionRouter(r *echo.Group) {
 	r.GET("/:target-page", func(c echo.Context) error {
+		// Add Header
+		c.Response().Header().Set(echo.HeaderCacheControl, "max-age=15000")
 		fmt.Printf("\n\nhit\n\n")
 		targetPage := c.Param("target-page")
 		dataStruct := struct {

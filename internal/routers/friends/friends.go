@@ -283,27 +283,21 @@ func getUserProfile(c echo.Context) error {
       SELECT COUNT(*) 
       FROM user_game_membership
       WHERE user_id = :other_user_id
-    ) AS num_games,
-    (
-      SELECT SUM(score)
-      FROM scores
-      WHERE user_id = :other_user_id
-    ) as total_points
-    FROM users
+    ) AS num_games
+       FROM users
   WHERE id = :other_user_id;
   `
 	row := tx.QueryRowContext(ctx, query, myUserIdArg, otherUserIdArg)
 
 	var (
-		usernameRaw    sql.NullString
-		emailRaw       sql.NullString
-		requestedRaw   sql.NullInt64
-		isFriendRaw    sql.NullInt64
-		numFriendsRaw  sql.NullInt64
-		numGamesRaw    sql.NullInt64
-		totalPointsRaw sql.NullInt64
+		usernameRaw   sql.NullString
+		emailRaw      sql.NullString
+		requestedRaw  sql.NullInt64
+		isFriendRaw   sql.NullInt64
+		numFriendsRaw sql.NullInt64
+		numGamesRaw   sql.NullInt64
 	)
-	err = row.Scan(&usernameRaw, &emailRaw, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw, &totalPointsRaw)
+	err = row.Scan(&usernameRaw, &emailRaw, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("friends, getUserProfile(), error scanning into vars: %v", err)
@@ -315,23 +309,21 @@ func getUserProfile(c echo.Context) error {
 	}
 
 	data := struct {
-		Username    string
-		UserId      int
-		Email       string
-		Requested   int64
-		IsFriend    int64
-		NumFriends  int64
-		NumGames    int64
-		TotalPoints int64
+		Username   string
+		UserId     int
+		Email      string
+		Requested  int64
+		IsFriend   int64
+		NumFriends int64
+		NumGames   int64
 	}{
-		Username:    usernameRaw.String,
-		UserId:      otherUserId,
-		Email:       emailRaw.String,
-		Requested:   requestedRaw.Int64,
-		IsFriend:    isFriendRaw.Int64,
-		NumFriends:  numFriendsRaw.Int64,
-		NumGames:    numGamesRaw.Int64,
-		TotalPoints: totalPointsRaw.Int64,
+		Username:   usernameRaw.String,
+		UserId:     otherUserId,
+		Email:      emailRaw.String,
+		Requested:  requestedRaw.Int64,
+		IsFriend:   isFriendRaw.Int64,
+		NumFriends: numFriendsRaw.Int64,
+		NumGames:   numGamesRaw.Int64,
 	}
 	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/friends/profiles/%v", otherUserId))
 	return controllers.RenderTemplate(c, "other-user-profile", data)
