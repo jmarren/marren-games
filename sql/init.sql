@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS friendships (
   user_1_id INTEGER NOT NULL,
   user_2_id INTEGER NOT NULL,
+  date_created INTEGER NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_1_id) REFERENCES users(id),
   FOREIGN KEY (user_2_id) REFERENCES users(id),
   PRIMARY KEY (user_1_id, user_2_id)
@@ -22,6 +23,7 @@ CREATE TABLE IF NOT EXISTS friendships (
 CREATE TABLE IF NOT EXISTS friend_requests (
   from_user_id INTEGER NOT NULL,
   to_user_id INTEGER NOT NULL,
+  date_sent TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (from_user_id) REFERENCES users(id),
   FOREIGN KEY (to_user_id) REFERENCES users(id),
   PRIMARY KEY (from_user_id, to_user_id)
@@ -96,6 +98,8 @@ CREATE TABLE IF NOT EXISTS scores (
   FOREIGN KEY (game_id) REFERENCES games(id),
   PRIMARY KEY (user_id, game_id)
 );
+
+
 
 CREATE TRIGGER IF NOT EXISTS user_modified_by_friendships_created
 AFTER INSERT ON friendships

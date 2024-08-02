@@ -26,8 +26,7 @@ func FriendsRouter(r *echo.Group) {
 }
 
 func getFriendsPage(c echo.Context) error {
-	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
-
+	myUserIdArg := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
 
 	defer cancel()
@@ -38,13 +37,82 @@ func getFriendsPage(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
+	// determine if friends or friend requests have changed
 	query := `
+  WITH dummy AS (
+		SELECT 1 AS id
+	),
+	most_recent_friendship AS (
+      SELECT 1 AS id, date_created AS last_date_created
+      FROM friendships
+      WHERE user_1_id = :my_user_id
+         OR user_2_id = :my_user_id
+      ORDER BY date_created DESC
+      LIMIT 1
+    ),
+    most_recent_friend_request AS (
+      SELECT 1 AS id, date_sent AS last_date_sent
+      FROM friend_requests
+      WHERE to_user_id = :my_user_id
+      ORDER BY date_sent DESC
+      LIMIT 1
+    )
+	SELECT
+	MAX(
+		IFNULL(most_recent_friendship.last_date_created, 0),
+		IFNULL(most_recent_friend_request.last_date_sent, 0)
+		)
+	FROM dummy
+	LEFT JOIN  most_recent_friendship
+		ON  most_recent_friendship.id = dummy.id
+	LEFT JOIN most_recent_friend_request
+		ON most_recent_friend_request.id = dummy.id;
+  `
+
+	row := tx.QueryRowContext(ctx, query, myUserIdArg)
+
+	var lastModifiedStr string
+
+	err = row.Scan(&lastModifiedStr)
+	if err != nil {
+		return fmt.Errorf("friends, getFriendsPage(), error scanning into lastModifiedStr: %v", err)
+	}
+
+	var lastModified time.Time
+	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
+	if err != nil {
+		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n ", err)
+		lastModified = time.Time{}
+	}
+
+	ifModifiedSinceHeader := c.Request().Header.Get(echo.HeaderIfModifiedSince)
+
+	ifModifiedSinceTime := time.Time{}
+	if ifModifiedSinceHeader != "" {
+		t, err := time.Parse(http.TimeFormat, ifModifiedSinceHeader)
+		if err != nil {
+			return fmt.Errorf("if-modified-since header not in proper format: %v", err)
+		}
+		ifModifiedSinceTime = t
+		fmt.Println(ifModifiedSinceTime)
+	}
+
+	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+		tx.Commit()
+		return c.NoContent(http.StatusNotModified)
+	} else {
+
+		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
+		c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
+	}
+
+	query = `
       SELECT fr.from_user_id, u.username
       FROM friend_requests fr
       JOIN users u ON fr.from_user_id = u.id
       WHERE to_user_id = :my_user_id;
   `
-	rows, err := tx.QueryContext(ctx, query, myUserId)
+	rows, err := tx.QueryContext(ctx, query, myUserIdArg)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("friends, getFriendsPage(), error querying for friend requests: %v", err)
@@ -85,7 +153,7 @@ func getFriendsPage(c echo.Context) error {
         JOIN users ON users.id = friend_id;
   `
 
-	rows, err = tx.QueryContext(ctx, query, myUserId)
+	rows, err = tx.QueryContext(ctx, query, myUserIdArg)
 	if err != nil {
 		tx.Rollback()
 		fmt.Println("error while querying for all friend requests: ", err)

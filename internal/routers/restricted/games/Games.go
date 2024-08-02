@@ -58,7 +58,7 @@ WITH games_last_modified AS (
 	ORDER BY games.last_modified DESC
 	LIMIT 1),
 	most_recent_invite AS (
-	SELECT 1 AS id,  date_invited   AS last_date
+	SELECT 1 AS id,  date_invited AS last_date
 	FROM user_game_invites
   WHERE user_game_invites.user_id = :my_user_id
 	ORDER BY date_invited DESC
@@ -88,9 +88,6 @@ WITH games_last_modified AS (
 	if err != nil {
 		return fmt.Errorf("/games getGames(), scanning into lastModified: %v", err)
 	}
-
-	fmt.Printf("\n lastModifiedStr: %v", lastModifiedStr)
-	fmt.Printf("\n ifModifiedSinceTime: %v", ifModifiedSinceTime)
 
 	var lastModified time.Time
 	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)

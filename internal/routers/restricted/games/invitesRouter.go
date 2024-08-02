@@ -22,10 +22,6 @@ func InvitesRouter(r *echo.Group) {
 	r.DELETE("/:user-id", deleteGameInvite)
 }
 
-// TODO
-// func getGameInvitesByUserId(c echo.Context) error {
-// }
-
 func invitePlayerToGame(c echo.Context) error {
 	newPlayerId := c.Param("user-id")
 	gameId := c.Param("game-id")
