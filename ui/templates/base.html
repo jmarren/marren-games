@@ -10,8 +10,6 @@
   <meta name="description"
     content="A daily game to play with friends. Create a question and get points based on how popular your vote is among the other players!">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
-  <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
     @font-face {
@@ -99,10 +97,10 @@
   <script src="https://d2ell5qlj9nplo.cloudfront.net/js/footer-component.js"></script>
   <script src="https://d2ell5qlj9nplo.cloudfront.net/js/top-bar.js"></script>
   <!-- <script src="https://d2ell5qlj9nplo.cloudfront.net/js/side-bar.js"></script> -->
-  <top-bar>
-    <div slot="username" id="username-top-right">{{ .Username }}</div>
-  </top-bar>
-
+  <!-- <top-bar> -->
+  <!--   <div slot="username" id="username-top-right">{{ .Username }}</div> -->
+  <!-- </top-bar> -->
+  {{ template "top-bar" .}}
   {{ template "side-bar" .Data}}
   <!-- <side-bar id="side-bar"> -->
   <!--   <div slot="profile" role="button" hx-trigger="click" hx-get="/auth/transition/profile" -->
@@ -154,8 +152,22 @@
       {{ end }}
     </div>
   </main>
-  <footer-component>
-  </footer-component>
+  <style>
+    #footer-element {
+      margin: 0;
+      left: 0;
+      bottom: 0;
+      background-color: skyblue;
+      width: 100%;
+      height: 58.5px;
+      border-top: 4px solid black;
+      position: fixed;
+    }
+  </style>
+  <div id="footer-container">
+    <footer id="footer-element">
+    </footer>
+  </div>
 </body>
 
 </html>
