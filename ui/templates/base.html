@@ -10,11 +10,35 @@
   <meta name="description"
     content="A daily game to play with friends. Create a question and get points based on how popular your vote is among the other players!">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet"> -->
+  <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+  <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <script src="/static/js/button-component.js"> </script>
+  <style>
+    @font-face {
+      font-family: 'Aruma';
+      src: url('https://d2ell5qlj9nplo.cloudfront.net/static/Aruma.ttf');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Cheto';
+      src: url('https://d2ell5qlj9nplo.cloudfront.net/static/Cheto.otf');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    }
+
+    @font-face {
+      font-family: 'Parson';
+      src: url('https://d2ell5qlj9nplo.cloudfront.net/static/Parson-ExtraBoldItalic.ttf');
+      font-weight: 900;
+      font-style: italic;
+      font-display: swap;
+    }
+  </style>
 </head>
 
 <body hx-ext="preload">
@@ -24,7 +48,7 @@
     }
 
     * {
-      cursor: url('/static/public/cursor-1.png'), auto;
+      cursor: url('https://d2ell5qlj9nplo.cloudfront.net/static/cursor-1.png'), auto;
       box-sizing: border-box;
     }
 
@@ -59,7 +83,7 @@
       border-bottom: 2px solid darkseagreen;
       font-family: Cheto;
       font-size: 30px;
-      color: cornsilk;
+      color: white;
     }
 
     .side-bar-item:hover {
@@ -71,27 +95,29 @@
     }
   </style>
 
-  <script src="/static/js/footer-component.js"></script>
-  <script src="/static/js/top-bar.js"></script>
-  <script src="/static/js/side-bar.js"></script>
+  <script src='https://d2ell5qlj9nplo.cloudfront.net/js/button-component.js'> </script>
+  <script src="https://d2ell5qlj9nplo.cloudfront.net/js/footer-component.js"></script>
+  <script src="https://d2ell5qlj9nplo.cloudfront.net/js/top-bar.js"></script>
+  <!-- <script src="https://d2ell5qlj9nplo.cloudfront.net/js/side-bar.js"></script> -->
   <top-bar>
     <div slot="username" id="username-top-right">{{ .Username }}</div>
   </top-bar>
 
-  <side-bar id="side-bar">
-    <div slot="profile" role="button" hx-trigger="click" hx-get="/auth/transition/profile"
-      hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item">
-      Profile
-    </div>
-    <div slot="games" role="button" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles"
-      hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item">
-      Games
-    </div>
-    <div slot="friends" role="button" hx-trigger="click" hx-get="/auth/transition/friends"
-      hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item">
-      Friends
-    </div>
-  </side-bar>
+  {{ template "side-bar" .Data}}
+  <!-- <side-bar id="side-bar"> -->
+  <!--   <div slot="profile" role="button" hx-trigger="click" hx-get="/auth/transition/profile" -->
+  <!--     hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item"> -->
+  <!--     Profile -->
+  <!--   </div> -->
+  <!--   <div slot="games" role="button" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles" -->
+  <!--     hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item"> -->
+  <!--     Games -->
+  <!--   </div> -->
+  <!--   <div slot="friends" role="button" hx-trigger="click" hx-get="/auth/transition/friends" -->
+  <!--     hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item"> -->
+  <!--     Friends -->
+  <!--   </div> -->
+  <!-- </side-bar> -->
 
 
 

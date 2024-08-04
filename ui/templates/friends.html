@@ -209,8 +209,7 @@
     {{ range .FriendRequests }}
     <div class="request-card">
       <div class="photo-container">
-        <img class="profile-photo-image"
-          src="https://ask-away-s3-bucket.s3.us-west-1.amazonaws.com/public/{{ .FromUsername}}">
+        <img class="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .FromUsername}}">
         <div class="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content">
         </div>
       </div>
@@ -242,8 +241,7 @@
     {{ range .Friends }}
     <div class="friend-card">
       <div class="photo-container">
-        <img class="profile-photo-image"
-          src="https://ask-away-s3-bucket.s3.us-west-1.amazonaws.com/public/{{ .Username}}">
+        <img class="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}">
         <div class="crop-filter">
         </div>
       </div>

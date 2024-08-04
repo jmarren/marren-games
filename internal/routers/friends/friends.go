@@ -16,7 +16,6 @@ import (
 
 func FriendsRouter(r *echo.Group) {
 	r.GET("", getFriendsPage)
-
 	r.POST("/search", searchUsers)
 	r.GET("/profiles/:user-id", getUserProfile)
 	r.POST("/friend-requests/:user-id", createFriendRequest)
@@ -97,11 +96,11 @@ func getFriendsPage(c echo.Context) error {
 		fmt.Println(ifModifiedSinceTime)
 	}
 
+	fmt.Printf("\nlastModified: %v\nifModifiedSinceTime: %v\n", lastModified, ifModifiedSinceTime)
+
 	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
-		tx.Commit()
 		return c.NoContent(http.StatusNotModified)
 	} else {
-
 		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
 		c.Response().Header().Set(echo.HeaderLastModified, lastModified.Format(http.TimeFormat))
 	}

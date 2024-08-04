@@ -37,6 +37,8 @@ echo "------------ Make build executable ---------------"
 sudo chmod +x /var/www/ask_away/app/build
 echo "------------ Create app.log file -------------"
 touch app.log
+echo "------------ create db-storage folder ----------"
+mkdir db-storage/
 echo "------------ Create Chron Job to Update Askers Every Night at Midnight ------------"
 # How to do with bash script? TODO
 # touch /var/www/ask_away/app/chronjob.sh

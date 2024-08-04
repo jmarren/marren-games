@@ -126,10 +126,7 @@
     <input id="search-input" type="search" name="search" placeholder="Begin Typing To Search Users..."
       hx-post="/auth/friends/search{{ if .GameId }}?game-id={{.GameId}}{{ else }}?game-id=-1{{ end }}"
       hx-trigger="input changed delay:500ms, search" hx-target="#search-results">
-
-    <img id="search-icon" src="/static/public/search_icon.svg">
-
-
+    <img id="search-icon" src="https://d2ell5qlj9nplo.cloudfront.net/static/search_icon.svg">
   </div>
 
   <table class="table">

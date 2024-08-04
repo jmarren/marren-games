@@ -62,7 +62,7 @@ func UploadToS3(fileHeader *multipart.FileHeader, key string) error {
 	// Read the contents of the file into a buffer
 	_, uploadErr := uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket: aws.String("ask-away-s3-bucket"),
-		Key:    aws.String("public/" + key),
+		Key:    aws.String("public/profile-photos/" + key),
 		Body:   bytes.NewReader(buf.Bytes()),
 	})
 	if uploadErr != nil {

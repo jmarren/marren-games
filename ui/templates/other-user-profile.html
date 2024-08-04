@@ -42,7 +42,7 @@
       background-color: seagreen;
       border-radius: 10px;
       box-shadow: 5px 5px black;
-      color: antiquewhite;
+      color: white;
       width: 500px;
     }
 
@@ -97,7 +97,7 @@
     button {
       width: 100%;
       font-family: Cheto;
-      color: antiquewhite;
+      color: white;
       padding: 5px;
       border-radius: 5px;
       margin-top: 5px;
@@ -150,7 +150,8 @@
     </div>
 
     <div id="photo-container">
-      <img id="profile-photo-image" src="https://ask-away-s3-bucket.s3.us-west-1.amazonaws.com/public/{{ .Username}}">
+      <img id="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}"
+        alt="{{ .Username }}-profile-photo">
       <div id="crop-filter">
       </div>
 

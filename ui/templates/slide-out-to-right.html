@@ -1,7 +1,7 @@
 {{ define "slide-out-to-right"}}
 
 <div id="temp-{{ .Data.TargetPage}}" hx-trigger="htmx:afterSettle delay:1s" hx-get="/auth/{{ .Data.TargetPage }}"
-  hx-target="#page-container" hx-swap="innerHTML">
+  hx-target="#page-container" hx-swap="innerHTML" preload="preload:init">
 </div>
 <style>
   @keyframes slide-out-to-right {

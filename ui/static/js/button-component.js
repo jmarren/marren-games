@@ -22,7 +22,7 @@ class ButtonComponent extends HTMLElement {
           font-family: Aruma;
           font-size: 25px;
           border-radius: 5px;
-          color: antiquewhite;
+          color: white;
           padding: 10px;
           background-color: seagreen;
         }

@@ -24,7 +24,6 @@ func GamesRouter(r *echo.Group) {
 }
 
 func getGames(c echo.Context) error {
-	fmt.Println("hit get games")
 	// Set Header to revalidate cache
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache, private")
 	// Get User Id
@@ -73,9 +72,9 @@ WITH games_last_modified AS (
 	ifModifiedSince := c.Request().Header.Get(echo.HeaderIfModifiedSince)
 	if ifModifiedSince != "" {
 		ifModifiedSinceTime, err = time.Parse(http.TimeFormat, ifModifiedSince)
-		fmt.Printf("\n ifModifiedSinceTime: %v", ifModifiedSinceTime)
+		fmt.Printf("\n ifModifiedSinceTime: %v\n", ifModifiedSinceTime)
 		if err != nil {
-			fmt.Printf("\nerror: no if-modified-since header: %v", err)
+			fmt.Printf("\nerror: no if-modified-since header: %v\n", err)
 			ifModifiedSinceTime = time.Time{}
 		}
 	}
@@ -92,12 +91,13 @@ WITH games_last_modified AS (
 	var lastModified time.Time
 	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
 	if err != nil {
-		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v ", err)
+		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n", err)
 		lastModified = time.Time{}
 	}
 
 	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
 		tx.Commit()
+		fmt.Println("returning 304 Not Modified")
 		return c.NoContent(http.StatusNotModified)
 	} else {
 		fmt.Println("if-modified-since is 0 or before last_modified")

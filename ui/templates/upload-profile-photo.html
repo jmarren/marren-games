@@ -104,10 +104,8 @@
 
 
         <div id="photo-container">
-          <img id="profile-photo-image"
-            src="https://ask-away-s3-bucket.s3.us-west-1.amazonaws.com/public/{{ .Username}}">
+          <img id="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}">
           <div id="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content"></div>
-
         </div>
       </div>
     </form>

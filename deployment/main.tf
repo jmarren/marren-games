@@ -189,3 +189,6 @@ variable "ask_away_secret_arns" {
   description = "List of ARNs for required secrets"
   type        = list(string)
 }
+
+
+
