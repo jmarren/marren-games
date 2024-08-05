@@ -149,8 +149,8 @@ func GetGameResults(c echo.Context) error {
         )
 	   GROUP BY answers.option_chosen
 	   )
-	   SELECT  votes, vote_counts.option_chosen,
-	     CASE 
+	   SELECT votes, vote_counts.option_chosen,
+	     CASE
 	         WHEN answers.option_chosen = 1
 	         THEN questions.option_1
 	         WHEN answers.option_chosen = 2
@@ -213,14 +213,14 @@ WITH vote_counts AS (
 	SELECT COUNT(*)  AS total_votes, option_chosen, game_id, question_id, answerer_id
 	FROM answers
 	GROUP BY question_id, game_id,  option_chosen
-) 
+)
 SELECT  users.username, SUM(total_votes) AS score
 FROM answers
-JOIN vote_counts 
+JOIN vote_counts
 		ON answers.game_id = vote_counts.game_id
 		AND answers.question_id = vote_counts.question_id
 		AND answers.option_chosen = vote_counts.option_chosen
-JOIN users 
+JOIN users
 	ON users.id = answers.answerer_id
   WHERE answers.game_id = :game_id
 GROUP BY answers.game_id, answers.answerer_id

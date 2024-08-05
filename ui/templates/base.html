@@ -94,30 +94,8 @@
   </style>
 
   <script src='https://d2ell5qlj9nplo.cloudfront.net/js/button-component.js'> </script>
-  <script src="https://d2ell5qlj9nplo.cloudfront.net/js/footer-component.js"></script>
-  <script src="https://d2ell5qlj9nplo.cloudfront.net/js/top-bar.js"></script>
-  <!-- <script src="https://d2ell5qlj9nplo.cloudfront.net/js/side-bar.js"></script> -->
-  <!-- <top-bar> -->
-  <!--   <div slot="username" id="username-top-right">{{ .Username }}</div> -->
-  <!-- </top-bar> -->
   {{ template "top-bar" .}}
   {{ template "side-bar" .Data}}
-  <!-- <side-bar id="side-bar"> -->
-  <!--   <div slot="profile" role="button" hx-trigger="click" hx-get="/auth/transition/profile" -->
-  <!--     hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/profile" class="side-bar-item"> -->
-  <!--     Profile -->
-  <!--   </div> -->
-  <!--   <div slot="games" role="button" hx-trigger="click" hx-get="/auth/transition/games" hx-target="#transition-styles" -->
-  <!--     hx-swap="outerHTML" hx-push-url="/auth/games" class="side-bar-item"> -->
-  <!--     Games -->
-  <!--   </div> -->
-  <!--   <div slot="friends" role="button" hx-trigger="click" hx-get="/auth/transition/friends" -->
-  <!--     hx-target="#transition-styles" hx-swap="outerHTML" hx-push-url="/auth/friends" class="side-bar-item"> -->
-  <!--     Friends -->
-  <!--   </div> -->
-  <!-- </side-bar> -->
-
-
 
   <main>
     <div id="page-container">
