@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   username TEXT NOT NULL UNIQUE,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  photo_version INT NOT NULL DEFAULT 0,
   last_modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

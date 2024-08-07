@@ -134,48 +134,68 @@ func GetMyProfilePage(c echo.Context) error {
 	}
 
 	query = `
-    SELECT (
-      SELECT email
-      FROM users
-      WHERE id = :user_id
-    ) AS email, 
+    SELECT email, photo_version,
     ( 
       SELECT COUNT(*)
       FROM friendships
-      WHERE user_1_id = :user_id
-          OR user_2_id = :user_id
+      WHERE user_1_id = 1
+          OR user_2_id = 1
     ) AS num_friends,
     (
       SELECT COUNT(*) 
       FROM user_game_membership
-      WHERE user_id = :user_id
+      WHERE user_id = 1
     ) AS num_games
-      FROM (SELECT 1) AS dummy;
+        FROM users
+      WHERE id = 1;
   `
+
+	// query = `
+	//    SELECT (
+	//      SELECT email, photo_version
+	//      FROM users
+	//      WHERE id = :user_id
+	//    ) AS email,
+	//    (
+	//      SELECT COUNT(*)
+	//      FROM friendships
+	//      WHERE user_1_id = :user_id
+	//          OR user_2_id = :user_id
+	//    ) AS num_friends,
+	//    (
+	//      SELECT COUNT(*)
+	//      FROM user_game_membership
+	//      WHERE user_id = :user_id
+	//    ) AS num_games
+	//      FROM (SELECT 1) AS dummy;
+	//  `
 
 	row = tx.QueryRowContext(ctx, query, userIdArg)
 
 	var (
-		emailRaw      sql.NullString
-		numFriendsRaw sql.NullInt64
-		numGamesRaw   sql.NullInt64
+		emailRaw        sql.NullString
+		photoVersionRaw sql.NullInt64
+		numFriendsRaw   sql.NullInt64
+		numGamesRaw     sql.NullInt64
 	)
 
-	err = row.Scan(&emailRaw, &numFriendsRaw, &numGamesRaw)
+	err = row.Scan(&emailRaw, &photoVersionRaw, &numFriendsRaw, &numGamesRaw)
 	if err != nil {
 		return fail(err)
 	}
 
 	data := struct {
-		Username   string
-		Email      string
-		NumFriends int64
-		NumGames   int64
+		Username     string
+		Email        string
+		PhotoVersion int64
+		NumFriends   int64
+		NumGames     int64
 	}{
-		Username:   username.(string),
-		Email:      emailRaw.String,
-		NumFriends: numFriendsRaw.Int64,
-		NumGames:   numGamesRaw.Int64,
+		Username:     username.(string),
+		Email:        emailRaw.String,
+		PhotoVersion: photoVersionRaw.Int64,
+		NumFriends:   numFriendsRaw.Int64,
+		NumGames:     numGamesRaw.Int64,
 	}
 
 	c.Response().Header().Set("Hx-Push-Url", "/auth/profile")

@@ -1,4 +1,6 @@
-<svg width="141" height="151" viewBox="0 0 141 151" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="71" cy="50" r="48" stroke="black" stroke-width="4"/>
-<path d="M1.99999 149.23C31.8783 98.7693 102.967 93.609 139.013 149.228" stroke="black" stroke-width="4"/>
+<svg width="226" height="211" viewBox="0 0 226 211" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="226" height="211" fill="#F5F5F5"/>
+<rect width="226" height="211" fill="white"/>
+<circle cx="113" cy="74" r="48" stroke="black" stroke-width="4"/>
+<path d="M44 173.23C73.8783 122.769 144.967 117.609 181.013 173.228" stroke="black" stroke-width="4"/>
 </svg>
