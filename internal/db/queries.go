@@ -72,6 +72,16 @@ func GetUserIdFromUsername(username string) (int, error) {
 	return id, nil
 }
 
+func GetUserPhotoVersionFromUsername(username string) (int, error) {
+	var photoVersion int
+	query := `SELECT photo_version FROM users WHERE username = ?`
+	err := Sqlite.QueryRow(query, username).Scan(&photoVersion)
+	if err != nil {
+		return 0, err
+	}
+	return photoVersion, nil
+}
+
 func GetUsernameFromUserId(id int) (string, error) {
 	var username string
 	query := `SELECT username FROM users WHERE id = ?`

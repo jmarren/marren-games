@@ -11,7 +11,9 @@
       hx-target="#page-content" hx-trigger="click" {{ else }} {{ end }}>
 
       <div class="photo-container">
-        <img class="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}">
+        <img class="profile-photo-image" {{ if eq .PhotoVersion 0 }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/static/blank_avatar.svg" {{ else }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username }}-{{ .PhotoVersion }}" {{end}}>
         <div class="crop-filter"></div>
       </div>
       <div class="username-container">

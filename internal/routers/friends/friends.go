@@ -77,11 +77,17 @@ func getFriendsPage(c echo.Context) error {
 		return fmt.Errorf("friends, getFriendsPage(), error scanning into lastModifiedStr: %v", err)
 	}
 
+	fmt.Println("lastModifiedStr: ", lastModifiedStr)
+
 	var lastModified time.Time
-	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
-	if err != nil {
-		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n ", err)
+	if lastModifiedStr == "0" {
 		lastModified = time.Time{}
+	} else {
+		lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
+		if err != nil {
+			fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n", err)
+			lastModified = time.Time{}
+		}
 	}
 
 	ifModifiedSinceHeader := c.Request().Header.Get(echo.HeaderIfModifiedSince)
@@ -97,8 +103,9 @@ func getFriendsPage(c echo.Context) error {
 	}
 
 	fmt.Printf("\nlastModified: %v\nifModifiedSinceTime: %v\n", lastModified, ifModifiedSinceTime)
+	fmt.Println("ifModifiedSinceTime.IsZero(): ", ifModifiedSinceTime.IsZero())
 
-	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
+	if !lastModified.IsZero() && !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {
 		return c.NoContent(http.StatusNotModified)
 	} else {
 		c.Response().Header().Set(echo.HeaderCacheControl, "private, no-cache")
@@ -106,7 +113,7 @@ func getFriendsPage(c echo.Context) error {
 	}
 
 	query = `
-      SELECT fr.from_user_id, u.username
+      SELECT fr.from_user_id, u.username, u.photo_version
       FROM friend_requests fr
       JOIN users u ON fr.from_user_id = u.id
       WHERE to_user_id = :my_user_id;
@@ -118,8 +125,9 @@ func getFriendsPage(c echo.Context) error {
 	}
 
 	type FriendRequest struct {
-		FromId       int
-		FromUsername string
+		FromId           int
+		FromUsername     string
+		FromPhotoVersion int
 	}
 
 	var friendRequests []FriendRequest
@@ -127,15 +135,17 @@ func getFriendsPage(c echo.Context) error {
 	for rows.Next() {
 		var friendRequestId int
 		var friendRequestUsername string
-		err := rows.Scan(&friendRequestId, &friendRequestUsername)
+		var friendRequestPhotoVersion int
+		err := rows.Scan(&friendRequestId, &friendRequestUsername, &friendRequestPhotoVersion)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 		friendRequests = append(friendRequests,
 			FriendRequest{
-				FromId:       friendRequestId,
-				FromUsername: friendRequestUsername,
+				FromId:           friendRequestId,
+				FromUsername:     friendRequestUsername,
+				FromPhotoVersion: friendRequestPhotoVersion,
 			})
 	}
 
@@ -147,7 +157,8 @@ func getFriendsPage(c echo.Context) error {
   WHEN friendships.user_2_id = :my_user_id
             THEN friendships.user_1_id
         END AS friend_id,
-        users.username AS friend_username
+        users.username AS friend_username,
+        users.photo_version AS friend_photo_version
         FROM friendships
         JOIN users ON users.id = friend_id;
   `
@@ -160,13 +171,14 @@ func getFriendsPage(c echo.Context) error {
 	}
 
 	type Friend struct {
-		Username string
-		UserId   int
+		Username     string
+		UserId       int
+		PhotoVersion int
 	}
 	var friends []Friend
 	for rows.Next() {
 		var friend Friend
-		err := rows.Scan(&friend.UserId, &friend.Username)
+		err := rows.Scan(&friend.UserId, &friend.Username, &friend.PhotoVersion)
 		if err != nil {
 			return fmt.Errorf("friends, getFriendsPage() error querying for friends: %v ", err)
 		}
@@ -209,7 +221,7 @@ func searchUsers(c echo.Context) error {
 	defer tx.Rollback()
 
 	query := `
-    SELECT username, email, id
+    SELECT username, email, id, photo_version
     FROM users
     WHERE username LIKE ?
     LIMIT 10;
@@ -222,31 +234,34 @@ func searchUsers(c echo.Context) error {
 	}
 
 	var users []struct {
-		Username string
-		Email    string
-		UserId   int64
+		Username     string
+		Email        string
+		UserId       int64
+		PhotoVersion int64
 	}
 
 	for rows.Next() {
 		var (
-			username sql.NullString
-			email    sql.NullString
-			userId   sql.NullInt64
+			username     sql.NullString
+			email        sql.NullString
+			userId       sql.NullInt64
+			photoVersion sql.NullInt64
 		)
-		if err := rows.Scan(&username, &email, &userId); err != nil {
+		if err := rows.Scan(&username, &email, &userId, &photoVersion); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("friends, searchUsers(), error scanning into users struct: %v", err)
 		}
 
-		fmt.Println(" \n\n username: ", username.String)
 		users = append(users, struct {
-			Username string
-			Email    string
-			UserId   int64
+			Username     string
+			Email        string
+			UserId       int64
+			PhotoVersion int64
 		}{
-			Username: username.String,
-			Email:    email.String,
-			UserId:   userId.Int64,
+			Username:     username.String,
+			Email:        email.String,
+			UserId:       userId.Int64,
+			PhotoVersion: photoVersion.Int64,
 		})
 	}
 
@@ -258,9 +273,10 @@ func searchUsers(c echo.Context) error {
 	if shortenedUrl != "invite-friends" {
 		type DataStruct struct {
 			Data []struct {
-				Username string
-				Email    string
-				UserId   int64
+				Username     string
+				Email        string
+				UserId       int64
+				PhotoVersion int64
 			}
 			GameId int
 		}
@@ -284,9 +300,10 @@ func searchUsers(c echo.Context) error {
 	}
 	type DataStruct struct {
 		Data []struct {
-			Username string
-			Email    string
-			UserId   int64
+			Username     string
+			Email        string
+			UserId       int64
+			PhotoVersion int64
 		}
 		GameId int
 	}
@@ -324,7 +341,7 @@ func getUserProfile(c echo.Context) error {
 	defer tx.Rollback()
 
 	query := `
-    SELECT username, email,
+    SELECT username, email, photo_version,
     (SELECT MAX(
         CASE
   WHEN from_user_id = :my_user_id AND to_user_id = :other_user_id THEN 1
@@ -359,12 +376,13 @@ func getUserProfile(c echo.Context) error {
 	var (
 		usernameRaw   sql.NullString
 		emailRaw      sql.NullString
+		photoVersion  sql.NullInt64
 		requestedRaw  sql.NullInt64
 		isFriendRaw   sql.NullInt64
 		numFriendsRaw sql.NullInt64
 		numGamesRaw   sql.NullInt64
 	)
-	err = row.Scan(&usernameRaw, &emailRaw, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw)
+	err = row.Scan(&usernameRaw, &emailRaw, &photoVersion, &requestedRaw, &isFriendRaw, &numFriendsRaw, &numGamesRaw)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("friends, getUserProfile(), error scanning into vars: %v", err)
@@ -376,21 +394,23 @@ func getUserProfile(c echo.Context) error {
 	}
 
 	data := struct {
-		Username   string
-		UserId     int
-		Email      string
-		Requested  int64
-		IsFriend   int64
-		NumFriends int64
-		NumGames   int64
+		Username     string
+		UserId       int
+		Email        string
+		PhotoVersion int64
+		Requested    int64
+		IsFriend     int64
+		NumFriends   int64
+		NumGames     int64
 	}{
-		Username:   usernameRaw.String,
-		UserId:     otherUserId,
-		Email:      emailRaw.String,
-		Requested:  requestedRaw.Int64,
-		IsFriend:   isFriendRaw.Int64,
-		NumFriends: numFriendsRaw.Int64,
-		NumGames:   numGamesRaw.Int64,
+		Username:     usernameRaw.String,
+		UserId:       otherUserId,
+		Email:        emailRaw.String,
+		PhotoVersion: photoVersion.Int64,
+		Requested:    requestedRaw.Int64,
+		IsFriend:     isFriendRaw.Int64,
+		NumFriends:   numFriendsRaw.Int64,
+		NumGames:     numGamesRaw.Int64,
 	}
 	c.Response().Header().Set("Hx-Push-Url", fmt.Sprintf("/auth/friends/profiles/%v", otherUserId))
 	return controllers.RenderTemplate(c, "other-user-profile", data)
@@ -560,6 +580,7 @@ func deleteRequest(c echo.Context) error {
 }
 
 func deleteFriendship(c echo.Context) error {
+	fmt.Println("request to delete friendship")
 	myUserId := sql.Named("my_user_id", auth.GetFromClaims(auth.UserId, c))
 	otherId, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
@@ -580,6 +601,8 @@ func deleteFriendship(c echo.Context) error {
 	// Defer a rollback in case anything fails.
 	defer tx.Rollback()
 
+	fmt.Println("here")
+
 	query := `
   DELETE FROM friendships
   WHERE (friendships.user_1_id = :my_user_id AND friendships.user_2_id = :other_user_id) 
@@ -588,9 +611,12 @@ func deleteFriendship(c echo.Context) error {
 `
 	_, err = tx.ExecContext(ctx, query, myUserId, otherUserId)
 	if err != nil {
+		fmt.Println("error")
+		fmt.Printf("friends, deleteFriendship(), error deleting friendship: %v", err)
 		return fmt.Errorf("friends, deleteFriendship(), error deleting friendship: %v", err)
 	}
 
+	fmt.Println("here")
 	data := struct {
 		UserId int
 	}{

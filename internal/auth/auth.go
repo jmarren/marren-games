@@ -22,6 +22,7 @@ import (
 type JwtCustomClaims struct {
 	Username string `json:"username"`
 	UserId   int    `json:"userId"`
+	// UserPhotoVersion int    `json:"userPhotoVersion"`
 	jwt.RegisteredClaims
 }
 
@@ -59,12 +60,18 @@ func AuthenticateUser(username, password string) (string, error) {
 		return "", err
 	}
 
+	// userPhotoVersion, err := db.GetUserPhotoVersionFromUsername(username)
+	// if err != nil {
+	// 	return "", err
+	// }
+
 	log.Println("User authenticated successfully")
 
 	// Set custom claims
 	claims := &JwtCustomClaims{
 		username,
 		userId,
+		// userPhotoVersion,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -187,6 +194,7 @@ func RegisterUser(username, password, email string) (string, error) {
 	claims := &JwtCustomClaims{
 		username,
 		userId,
+		// 0,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -208,6 +216,7 @@ type ClaimsType string
 const (
 	Username ClaimsType = "Username"
 	UserId   ClaimsType = "UserId"
+	// UserPhotoVersion ClaimsType = "UserPhotoVersion"
 )
 
 func GetFromClaims(item ClaimsType, c echo.Context) interface{} {
@@ -219,11 +228,14 @@ func GetFromClaims(item ClaimsType, c echo.Context) interface{} {
 	if !ok {
 		return nil
 	}
+
 	switch item {
 	case Username:
 		return claims.Username
 	case UserId:
 		return claims.UserId
+	// case UserPhotoVersion:
+	// 	return claims.UserPhotoVersion
 	default:
 		return ""
 	}

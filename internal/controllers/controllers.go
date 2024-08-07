@@ -224,11 +224,12 @@ func CreateAccountSubmitHandler(c echo.Context) error {
 	username := c.FormValue("username")
 
 	data := struct {
-		Username string
+		Username     string
+		PhotoVersion int
 	}{
-		Username: username,
+		Username:     username,
+		PhotoVersion: 0,
 	}
-
 	return RenderTemplate(c, "upload-profile-photo", data)
 }
 

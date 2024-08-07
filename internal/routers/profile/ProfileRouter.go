@@ -43,12 +43,58 @@ func uploadProfilePhoto(c echo.Context) error {
 	}
 
 	username := auth.GetFromClaims(auth.Username, c).(string)
+	userId := auth.GetFromClaims(auth.UserId, c).(int)
 
-	uploadErr := awssdk.UploadToS3(f, username)
+	userIdArg := sql.Named("user_id", userId)
+
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(4*time.Second))
+	defer cancel()
+
+	tx, err := db.Sqlite.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("ProfileRouter, uploadProfilePhoto(), failed to start tx: %v", err)
+	}
+	defer tx.Rollback()
+
+	query := `
+    SELECT photo_version
+    FROM users
+    WHERE users.id = :user_id;
+  `
+
+	row := tx.QueryRowContext(ctx, query, userIdArg)
+
+	var userPhotoVersionRaw sql.NullInt64
+
+	err = row.Scan(&userPhotoVersionRaw)
+	if err != nil {
+		return fmt.Errorf("error getting photo version: %v", err)
+	}
+
+	newPhotoVersion := userPhotoVersionRaw.Int64 + 1
+
+	uploadLocation := fmt.Sprintf("%v-%v", username, newPhotoVersion)
+
+	uploadErr := awssdk.UploadToS3(f, uploadLocation)
 	if uploadErr != nil {
 		fmt.Println("uploadError uploading to s3: ", uploadErr)
 		return uploadErr
 	}
+
+	newPhotoVersionArg := sql.Named("new_photo_version", newPhotoVersion)
+
+	query = `
+    UPDATE users
+    SET photo_version = :new_photo_version,
+        last_modified = CURRENT_TIMESTAMP
+    WHERE id = :user_id;
+  `
+
+	_, err = tx.ExecContext(ctx, query, userIdArg, newPhotoVersionArg)
+	if err != nil {
+		return fmt.Errorf("profileRouter, uploadProfilePhoto(), error updating user photo version: %v", err)
+	}
+	tx.Commit()
 
 	data := struct {
 		Username string
@@ -64,10 +110,31 @@ func uploadProfilePhoto(c echo.Context) error {
 
 func getProfilePhotoViewer(c echo.Context) error {
 	username := auth.GetFromClaims(auth.Username, c)
+	userId := auth.GetFromClaims(auth.UserId, c)
+
+	userIdArg := sql.Named("user_id", userId)
+
+	query := `
+    SELECT photo_version
+    FROM users
+    WHERE users.id = :user_id;
+  `
+
+	row := db.Sqlite.QueryRow(query, userIdArg)
+
+	var userPhotoVersionRaw sql.NullInt64
+
+	err := row.Scan(&userPhotoVersionRaw)
+	if err != nil {
+		return fmt.Errorf("error getting photo version: %v", err)
+	}
+
 	data := struct {
-		Username string
+		Username     string
+		PhotoVersion int64
 	}{
-		Username: username.(string),
+		Username:     username.(string),
+		PhotoVersion: userPhotoVersionRaw.Int64,
 	}
 
 	return controllers.RenderTemplate(c, "profile-photo-viewer", data)
@@ -138,37 +205,17 @@ func GetMyProfilePage(c echo.Context) error {
     ( 
       SELECT COUNT(*)
       FROM friendships
-      WHERE user_1_id = 1
-          OR user_2_id = 1
+  WHERE user_1_id = :user_id
+  OR user_2_id = :user_id
     ) AS num_friends,
     (
       SELECT COUNT(*) 
       FROM user_game_membership
-      WHERE user_id = 1
+  WHERE user_id = :user_id
     ) AS num_games
         FROM users
-      WHERE id = 1;
+  WHERE id = :user_id;
   `
-
-	// query = `
-	//    SELECT (
-	//      SELECT email, photo_version
-	//      FROM users
-	//      WHERE id = :user_id
-	//    ) AS email,
-	//    (
-	//      SELECT COUNT(*)
-	//      FROM friendships
-	//      WHERE user_1_id = :user_id
-	//          OR user_2_id = :user_id
-	//    ) AS num_friends,
-	//    (
-	//      SELECT COUNT(*)
-	//      FROM user_game_membership
-	//      WHERE user_id = :user_id
-	//    ) AS num_games
-	//      FROM (SELECT 1) AS dummy;
-	//  `
 
 	row = tx.QueryRowContext(ctx, query, userIdArg)
 
@@ -209,11 +256,31 @@ func GetMyProfilePage(c echo.Context) error {
 
 func getProfilePhotoUpload(c echo.Context) error {
 	username := auth.GetFromClaims(auth.Username, c)
+	userId := auth.GetFromClaims(auth.UserId, c)
+
+	userIdArg := sql.Named("user_id", userId)
+
+	query := `
+    SELECT photo_version
+    FROM users
+    WHERE users.id = :user_id;
+  `
+
+	row := db.Sqlite.QueryRow(query, userIdArg)
+
+	var userPhotoVersionRaw sql.NullInt64
+
+	err := row.Scan(&userPhotoVersionRaw)
+	if err != nil {
+		return fmt.Errorf("error getting photo version: %v", err)
+	}
 
 	data := struct {
-		Username string
+		Username     string
+		PhotoVersion int64
 	}{
-		Username: username.(string),
+		Username:     username.(string),
+		PhotoVersion: userPhotoVersionRaw.Int64,
 	}
 	return controllers.RenderTemplate(c, "upload-profile-photo", data)
 }

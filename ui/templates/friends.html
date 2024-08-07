@@ -11,7 +11,6 @@
       }
     }
 
-
     #page-content {
       animation-name: slide-in-from-left;
       animation-duration: 1s;
@@ -131,6 +130,14 @@
       gap: 10px;
     }
 
+    .request-card .photo-container {
+      overflow: hidden;
+      object-fit: contain;
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
     .friend-card .photo-container {
       overflow: hidden;
       object-fit: contain;
@@ -145,6 +152,13 @@
     }
 
     .friend-card .profile-photo-image {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .request-card .profile-photo-image {
       position: absolute;
       width: 200px;
       height: 200px;
@@ -188,8 +202,26 @@
       background-color: seagreen;
     }
 
+    .accept-button:hover {
+      background-color: darkseagreen;
+      color: white;
+    }
+
+    .accept-button:active {
+      transform: scale(0.95);
+    }
+
     .decline-button {
       background-color: indianred;
+    }
+
+    .decline-button:hover {
+      background-color: lightcoral;
+      color: white;
+    }
+
+    .decline-button:active {
+      transform: scale(0.95);
     }
 
     .friend-card button {
@@ -198,6 +230,10 @@
 
     .friend-card button:hover {
       background-color: darksalmon;
+    }
+
+    .friend-card button:active {
+      transform: scale(0.95);
     }
   </style>
   {{ template "search-bar" }}
@@ -209,8 +245,11 @@
     {{ range .FriendRequests }}
     <div class="request-card">
       <div class="photo-container">
-        <img class="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .FromUsername}}">
-        <div class="crop-filter" hx-get="/auth/profile/ui/profile-photo" hx-target="#page-content">
+        <img class="profile-photo-image" {{ if eq .FromPhotoVersion 0 }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/static/blank_avatar.svg" {{ else }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .FromUsername }}-{{ .FromPhotoVersion }}"
+          {{end}}>
+        <div class="crop-filter" hx-get="/auth/friends/profiles/{{ .FromId }} " hx-target="#page-content">
         </div>
       </div>
 
@@ -241,7 +280,9 @@
     {{ range .Friends }}
     <div class="friend-card">
       <div class="photo-container">
-        <img class="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}">
+        <img class="profile-photo-image" {{ if eq .PhotoVersion 0 }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/static/blank_avatar.svg" {{ else }}
+          src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username }}-{{ .PhotoVersion }}" {{end}}>
         <div class="crop-filter">
         </div>
       </div>

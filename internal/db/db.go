@@ -30,9 +30,6 @@ func InitDB() error {
 	if err != nil {
 		return fmt.Errorf("failed to read init script: %v", err)
 	}
-
-	fmt.Println(os.Getenv("USE_DEV_SQLITE"))
-
 	// Determine whether to use in-memory SQLite or the production database
 	useDevSQLite := os.Getenv("USE_DEV_SQLITE")
 

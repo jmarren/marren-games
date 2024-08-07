@@ -116,8 +116,8 @@ AFTER DELETE ON friendships
 BEGIN
   UPDATE users
   SET last_modified = CURRENT_TIMESTAMP
-  WHERE users.id = NEW.user_1_id
-      OR users.id = NEW.user_2_id;
+  WHERE users.id = OLD.user_1_id
+      OR users.id = OLD.user_2_id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS user_modified_by_games_membership_created
@@ -127,6 +127,7 @@ BEGIN
   SET last_modified = CURRENT_TIMESTAMP
   WHERE users.id = NEW.user_id;
 END;
+
 
 CREATE TRIGGER IF NOT EXISTS game_modified_by_asker_updated
 AFTER UPDATE ON current_askers

@@ -9,7 +9,7 @@ tmp_dir = "tmp"
 # Command to build your project; change './cmd/server' to your main package location
 cmd = "go build -o ./tmp/main ./cmd/server"
 # Path to the binary created by the build command
-full_bin = "USE_DEV_SQLITE=true ./tmp/main"
+full_bin = " ./tmp/main"
 # Extensions to watch for changes
 include_ext = ["go", "html", "css", "js"]
 # Directories to exclude from watching

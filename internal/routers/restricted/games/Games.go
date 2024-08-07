@@ -88,11 +88,17 @@ WITH games_last_modified AS (
 		return fmt.Errorf("/games getGames(), scanning into lastModified: %v", err)
 	}
 
+	fmt.Println("lastModifiedStr: ", lastModifiedStr)
+
 	var lastModified time.Time
-	lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
-	if err != nil {
-		fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n", err)
+	if lastModifiedStr == "0" {
 		lastModified = time.Time{}
+	} else {
+		lastModified, err = time.Parse(time.DateTime, lastModifiedStr)
+		if err != nil {
+			fmt.Printf("\nPOTENTIAL ERROR: Games, getGames(), error while parsing lastModifiedStr %v \n", err)
+			lastModified = time.Time{}
+		}
 	}
 
 	if !ifModifiedSinceTime.IsZero() && lastModified.Before(ifModifiedSinceTime.Add(1*time.Second)) {

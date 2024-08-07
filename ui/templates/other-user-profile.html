@@ -150,7 +150,9 @@
     </div>
 
     <div id="photo-container">
-      <img id="profile-photo-image" src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username}}"
+      <img id="profile-photo-image" {{ if eq .PhotoVersion 0 }}
+        src="https://d2ell5qlj9nplo.cloudfront.net/static/blank_avatar.svg" {{ else }}
+        src="https://d2ell5qlj9nplo.cloudfront.net/profile-photos/{{ .Username }}-{{ .PhotoVersion }}" {{end}}
         alt="{{ .Username }}-profile-photo">
       <div id="crop-filter">
       </div>
