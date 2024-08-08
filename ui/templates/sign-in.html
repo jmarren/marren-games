@@ -54,10 +54,6 @@
       font-family: Cheto;
     }
 
-    button-component {
-      flex-grow: 1;
-    }
-
 
     .item {
       display: flex;
@@ -65,21 +61,32 @@
       gap: 5px;
     }
 
-    #page-back-btn {
-      display: block;
-      align-self: start;
+    button {
+      color: white;
       font-family: Aruma;
-      font-size: 25px;
-      background-color: seagreen;
-      color: antiquewhite;
       border-radius: 5px;
+      background-color: seagreen;
+      font-size: 25px;
+    }
+
+    button:hover {
+      background-color: darkolivegreen;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    #page-back-btn {
+      align-self: start;
       padding: 5px;
       padding-right: 15px;
       padding-bottom: 7.5px;
     }
 
-    #page-back-btn:hover {
-      background-color: darkolivegreen;
+    button[type=submit] {
+      width: 100%;
+      padding: 10px;
     }
   </style>
 
@@ -103,11 +110,9 @@
       </label>
       <input type="password" id="password" name="password" required>
     </div>
-    <button-component>
-      <button slot="button" type="submit" value="Sign In">
-        Let's go!
-      </button>
-    </button-component>
+    <button type="submit" value="Sign In">
+      Let's go!
+    </button>
   </form>
 </div>
 {{ end }}

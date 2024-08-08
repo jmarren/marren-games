@@ -43,23 +43,31 @@
       flex-direction: column;
       gap: 10px;
     }
+
+    button {
+      width: 100%;
+      font-family: Aruma;
+      font-size: 25px;
+      border-radius: 5px;
+      color: white;
+      padding: 10px;
+      background-color: seagreen;
+    }
+
+    button:hover {
+      background-color: darkolivegreen;
+    }
   </style>
   <h1>
     Answer one question a day then vote for the best response!
   </h1>
   <div id="buttons-container">
-    <button-component>
-      <button slot="button" id="create-account-button" hx-get="/create-account" hx-target="#page-content"
-        hx-push-url="true" hx-swap="outerHTML" preload="preload:init">
-        Create An Account
-      </button>
-    </button-component>
-    <button-component>
-      <button slot="button" id="sign-in-button" hx-get="/sign-in" hx-target="#page-content" hx-push-url="true"
-        hx-swap="outerHTML" preload="preload:init">
-        Sign In
-      </button>
-    </button-component>
+    <button id="sign-in-button" hx-get="/sign-in" hx-target="#page-content" hx-push-url="true" hx-swap="outerHTML">
+      Sign In
+    </button>
+    <button id="create-account-button" hx-get="/create-account" hx-target="#page-content" hx-push-url="true"
+      hx-swap="outerHTML">
+      Create Account
   </div>
 </div>
 
