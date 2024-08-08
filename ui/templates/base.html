@@ -124,6 +124,8 @@
       {{ template "no-question-yet" .Data }}
       {{ else if eq .PartialTemplate "other-user-profile" }}
       {{ template "other-user-profile" .Data }}
+      {{ else if eq .PartialTemplate "index" }}
+      {{ template "index" .Data}}
       {{ else }}
       {{ template "index"}}
       {{ end }}

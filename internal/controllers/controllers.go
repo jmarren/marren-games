@@ -176,18 +176,20 @@ func RenderTemplate(c echo.Context, partialTemplate string, data interface{}) er
 }
 
 func IndexHandler(c echo.Context) error {
-	// c.Response().Header().Set(echo.HeaderVary, "HX-Request")
-	// c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
+	c.Response().Header().Set(echo.HeaderCacheControl, "max-age=86400, public")
+	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
 	return RenderTemplate(c, "index", nil)
 }
 
 func SignInHandler(c echo.Context) error {
-	// c.Response().Header().Set(echo.HeaderVary, "HX-Request")
-	// c.Response().Header().Set(echo.HeaderLastModified, time.Now().Format(http.TimeFormat))
+	c.Response().Header().Set(echo.HeaderCacheControl, "max-age=86400, public")
+	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
 	return RenderTemplate(c, "sign-in", nil)
 }
 
 func CreateAccountHandler(c echo.Context) error {
+	c.Response().Header().Set(echo.HeaderCacheControl, "max-age=86400, public")
+	c.Response().Header().Set(echo.HeaderVary, "Hx-Request")
 	return RenderTemplate(c, "create-account", nil)
 }
 
