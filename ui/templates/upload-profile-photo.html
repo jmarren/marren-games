@@ -87,10 +87,17 @@
       border-radius: 5px;
       padding: 5px;
     }
+
+
+    #upload-photo-error {
+      color: red;
+      font-size: 20px;
+      display: block;
+    }
   </style>
-  <div id="container">
+  <div id="container" hx-ext="response-targets">
     <form enctype="multipart/form-data" hx-post="/auth/profile/profile-photo" hx-target="#page-content"
-      hx-swap="innerHTML">
+      hx-swap="innerHTML" hx-target-error="#upload-photo-error">
       <div id="profile-photo-item">
         <div id="profile-photo-label">
           <label>
@@ -112,6 +119,7 @@
         </div>
       </div>
     </form>
+    <div id="upload-photo-error"></div>
   </div>
 
   {{ end }}
