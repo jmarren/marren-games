@@ -28,6 +28,7 @@ func ProfileRouter(r *echo.Group) {
 		return controllers.RenderTemplate(c, "index-after-logout", nil)
 	})
 
+	r.Use(CustomBodyLimit("2MB"))
 	r.POST("/profile-photo", uploadProfilePhoto)
 	r.GET("/ui/profile-photo-upload", getProfilePhotoUpload)
 	r.GET("/ui/profile-photo", getProfilePhotoViewer)
