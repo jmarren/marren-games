@@ -91,14 +91,12 @@
       height: 40px;
     }
 
-
-
-
-    #friend-requests-container,
-    #my-friends-container {
-      display: inline-block;
+    .card-container {
       padding: 20px;
+      display: flex;
+      gap: 15px;
     }
+
 
     .request-card {
       display: flex;
@@ -241,7 +239,7 @@
   <h1>
     Requests
   </h1>
-  <div id="friend-requests-container">
+  <div class="card-container">
     {{ range .FriendRequests }}
     <div class="request-card">
       <div class="photo-container">
@@ -276,7 +274,7 @@
     My Friends
   </h1>
 
-  <div id="my-friends-container">
+  <div class="card-container">
     {{ range .Friends }}
     <div class="friend-card">
       <div class="photo-container">
