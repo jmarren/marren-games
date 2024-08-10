@@ -133,7 +133,7 @@ JOIN users
 	ON users.id = current_askers.user_id
 LEFT JOIN questions ON
 	user_game_membership.game_id = questions.game_id
-	  AND DATE(questions.date_created) = DATE('now') 
+	  AND DATE(questions.date_created, 'localtime') = DATE('now', 'localtime') 
 JOIN (
       SELECT game_id , COUNT(user_id) AS total_members
   FROM user_game_membership

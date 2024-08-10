@@ -116,7 +116,7 @@ func getGameById(c echo.Context) error {
         SELECT COUNT(*)
         FROM questions
         WHERE game_id = :game_id
-          AND DATE(date_created) = DATE('now')
+          AND DATE(date_created, 'localtime') = DATE('now', 'localtime')
         ) > 0 THEN 1
       ELSE 0
       END)
@@ -227,7 +227,7 @@ func getGameById(c echo.Context) error {
     FROM questions
     INNER JOIN games
       ON questions.game_id = games.id
-    WHERE questions.game_id = :game_id AND DATE(questions.date_created) = DATE('now');
+    WHERE questions.game_id = :game_id AND DATE(questions.date_created, 'localtime') = DATE('now', 'localtime');
   `
 
 	result := db.Sqlite.QueryRow(query, gameIdArg)

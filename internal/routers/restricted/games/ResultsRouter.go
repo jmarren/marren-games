@@ -69,7 +69,7 @@ func createAnswer(c echo.Context) error {
     SELECT id
     FROM questions
     WHERE game_id = :game_id
-    AND DATE(date_created) = DATE('now');
+    AND DATE(date_created, 'localtime') = DATE('now', 'localtime');
   `
 
 	var questionIdRaw sql.NullInt64
@@ -140,12 +140,12 @@ func GetGameResults(c echo.Context) error {
 	   JOIN questions
 	       ON questions.id = answers.question_id
 	       AND
-	       DATE(questions.date_created) = DATE('now')
+	       DATE(questions.date_created, 'localtime') = DATE('now', 'localtime')
 	   WHERE answers.game_id = :game_id AND answers.question_id = (
           SELECT id
           FROM questions
           WHERE game_id = :game_id
-            AND DATE(date_created) = DATE('now')
+            AND DATE(date_created, 'localtime') = DATE('now', 'localtime')
         )
 	   GROUP BY answers.option_chosen
 	   )

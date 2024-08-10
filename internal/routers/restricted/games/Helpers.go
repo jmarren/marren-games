@@ -30,7 +30,7 @@ func GetTodaysQuestionId(gameId int) (int64, error) {
     SELECT id
     FROM questions
     WHERE game_id = :game_id
-    AND DATE(date_created) = DATE('now')
+    AND DATE(date_created, 'localtime') = DATE('now', 'localtime')
   `
 
 	var questionIdRaw sql.NullInt64

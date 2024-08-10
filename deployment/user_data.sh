@@ -40,13 +40,14 @@ touch app.log
 echo "------------ create db-storage folder ----------"
 mkdir db-storage/
 echo "------------ Create Chron Job to Update Askers Every Night at Midnight ------------"
-# How to do with bash script? TODO
-# touch /var/www/ask_away/app/chronjob.sh
-# sudo echo "0 0 * * * curl -X POST http://localhost:8082/update-askers" > /var/www/ask_away/app/chronjob.sh
-# crontab -e "/var/www/ask_away/app/chronjob.sh"
+cron_job="0 0 * * * curl -X POST http://localhost:8082/update-askers"
+cron_file="/tmp/cron_bkp"
+crontab -l >$cron_file
+echo "$cron_job" >>$cron_file
+crontab $cronfile
+rm $cron_file
 echo "------------ Get env_vars --------------"
 ENV_VARS=$(aws secretsmanager get-secret-value --region "us-west-1" --output json --secret-id ask_away_env_vars)
-
 echo "------------ Extract individual secrets using jq ------------"
 TURSO_DATABASE_URL=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.turso_database_url')
 TURSO_AUTH_TOKEN=$(echo $ENV_VARS | jq -r '.SecretString | fromjson.turso_auth_token')
