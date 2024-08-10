@@ -1,8 +1,6 @@
 {{ define "profile-after-login" }}
-
 <div slot="username" hx-swap-oob="true" id="username-top-right">
   {{ .Username }}
 </div>
 {{ template "profile" . }}
-
 {{ end }}
