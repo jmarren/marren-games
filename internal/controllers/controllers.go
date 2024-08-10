@@ -104,6 +104,7 @@ func InitTemplates() {
 		"fade-out.html",
 		"no-question-yet.html",
 		"top-bar.html",
+		"loader.html",
 	}
 
 	// Create a base layout template
