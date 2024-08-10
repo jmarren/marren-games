@@ -96,6 +96,11 @@
     button[type=submit] {
       width: 100%;
       padding: 10px;
+      height: 47px;
+    }
+
+    .htmx-request #button-text {
+      display: none;
     }
   </style>
 
@@ -116,7 +121,7 @@
 
   <span id="create-account-title">Create Account</span>
   <form id="create-account-form" hx-post="/create-account-submit" hx-target="#page-content" hx-swap="outerHTML"
-    hx-target-5*="#create-account-error" hx-target-error="next #create-acount-error">
+    hx-target-5*="#create-account-error" hx-target-error="next #create-acount-error" hx-indicator="#submit-button">
     <div class="form-item">
       <label for="username">
         Username
@@ -137,8 +142,9 @@
     </div>
 
     <div class="form-item">
-      <button type="submit">
-        Let's go!
+      <button type="submit" id="submit-button">
+        <div id="button-text">Let's go!</div>
+        {{ template "loader"}}
       </Button>
 
     </div>

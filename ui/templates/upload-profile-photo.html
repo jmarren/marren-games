@@ -86,6 +86,7 @@
       background-color: skyblue;
       border-radius: 5px;
       padding: 5px;
+      height: 35px;
     }
 
 
@@ -94,6 +95,10 @@
       font-size: 14px;
       display: block;
       font-family: Aruma;
+    }
+
+    .htmx-request #button-text {
+      display: none;
     }
   </style>
 
@@ -107,7 +112,7 @@
   </script>
   <div id="container" hx-ext="response-targets">
     <form enctype="multipart/form-data" hx-post="/auth/profile/profile-photo" hx-target="#page-content"
-      hx-swap="innerHTML" hx-target-error="#upload-photo-error">
+      hx-swap="innerHTML" hx-target-error="#upload-photo-error" hx-indicator="button[type=submit]">
       <div id="profile-photo-item">
         <div id="profile-photo-label">
           <label>
@@ -115,7 +120,8 @@
           </label>
           <input type="file" name="profileImage" accept="image/jpeg" required />
           <button type="submit">
-            Submit
+            <div id="button-text">Submit</div>
+            {{ template "loader"}}
           </button>
           <div id="upload-photo-error"></div>
         </div>
